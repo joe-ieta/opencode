@@ -441,6 +441,20 @@ session.error                   → 错误提示
 - 升级流程：更新二进制 → `opencode generate > openapi.json` → diff 与上一版的差异（路径、事件联合类型、字段）→ 更新 Qt 客户端 → 跑阶段 0 冒烟清单。
 - 事件类型是联合类型，新增事件必须被 Qt 侧"未知事件忽略"策略安全兜底。
 
+### 5.8 业务上下文注入（插件 + 业务服务，已确定）
+
+架构与钩子细节见 `docs/opencode-qt-integration-methodology.md` 5.4；Qt 端点与流程清单见同文档第 7 节。实施步骤：
+
+1. 业务侧提供分析接口（建议 `127.0.0.1` + 随机端口 + 一次性 token，契约见方法文档 5.4）；
+2. 编写插件 `.opencode/plugin/business-context.ts`：
+   - `experimental.chat.system.transform`：追加业务规则/知识（首选，最安全）；
+   - `experimental.chat.messages.transform`：按需注入补充资料（幂等 + 超时 + 降级）；
+   - `chat.message`：需要审计/持久化的输入增强走这里（写入历史 parts）；
+3. 通过 `OPENCODE_CONFIG_CONTENT` 下发 `"plugin": ["./.opencode/plugin/business-context.ts"]`，业务服务地址与令牌作为 serve 进程环境变量注入；
+4. 冒烟验证：注入可见、每 step 不重复、业务服务不可用时降级且会话不失败。
+
+约束：不破坏 tool-call/tool-result 配对（优先 system 注入）；`messages.transform` 的修改不落库；压缩场景需识别并剔除注入标记。
+
 ---
 
 ## 6. 附录
