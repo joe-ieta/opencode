@@ -3,6 +3,8 @@
 > 本文是集成设计的方法与决策记录，配套实施步骤见 `docs/opencode-qt-integration.md`。
 >
 > 基准版本：opencode `v1.18.31`（dev 分支，HEAD `e03db9bc6`）。所有协议、字段、端点均来自当前源码与 `packages/sdk/openapi.json`（由 `opencode generate` 生成，共 188 个端点）。
+>
+> 已确定决策：进程外 `opencode serve` + 全原生 Qt UI；业务上下文干预采用**插件 + 业务服务**（见 5.4）；权限/问答等全部交互由 Qt 承载（见 6）；Qt 端消费的端点与事件清单见 7。
 
 ---
 
@@ -183,10 +185,80 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 
 1. **MCP 工具（首选）**：检索封装为 MCP server 的 `search/retrieve`，配置 `mcp` 字段；模型自主调用，结果以 tool part 呈现。
 2. **服务端插件工具**：`@opencode-ai/plugin` 的 `tool()`，进程内直接访问向量库/HTTP。
-3. **预注入**：`instructions` 文件、prompt 的 `system` 覆盖、`parts` 的 `file`（file:// 或 data:）、`references`（外部目录进入系统提示词，模型按需读取）、`skills`。
+3. **预注入**：`instructions` 文件、prompt 的 `system` 追加、`parts` 的 `file`（file:// 或 data:）、`references`（外部目录进入系统提示词，模型按需读取）、`skills`。
 4. **自定义命令**：`config.command` / `POST /session/{id}/command`，把"检索+提问"封装为模板，Qt 做知识库选择器。
 
 约束：工具结果受 `tool_output.max_lines/max_bytes` 截断；敏感检索工具用 `permission` 做 `ask` 管控。
+
+### 5.4 Prompt 组装干预（已确定：插件 + 业务服务）
+
+**决策**：业务侧不接管 prompt 组装。业务分析与资料加工保留在业务服务（Qt 侧或独立进程），opencode 通过插件钩子在服务端组装环节注入；插件仅做薄适配层，随 serve 进程运行，无需 fork 内核。
+
+```
+业务服务（Qt 侧或独立进程，提供 HTTP/IPC）
+   ▲ analyze / retrieve（超时 300ms，失败降级 skip）
+   │
+opencode serve 进程内的插件（薄适配）
+   ├─ chat.message                          改写本轮输入（持久化，可审计）
+   ├─ experimental.chat.messages.transform  读取完整会话消息，注入补充内容
+   ├─ experimental.chat.system.transform    追加/改写系统提示词
+   ├─ chat.params / chat.headers            调参/模型路由
+   └─ experimental.session.compacting       保护压缩语义
+```
+
+**钩子选择表**：
+
+| 场景 | 钩子 | 触发频率 | 持久化 | 说明 |
+|---|---|---|---|---|
+| 每轮重型检索 | `chat.message` | 每轮 | 是（写入历史） | 结果作为 parts，可审计 |
+| 每 step 轻量补充 | `experimental.chat.messages.transform` | 每 step + 压缩 | 否（内存态） | 必须幂等去重 |
+| 业务规则/知识 | `experimental.chat.system.transform` | 每请求 | 否 | 最安全，不动消息序列 |
+| 模型参数/路由 | `chat.params` / `chat.headers` | 每请求 | 否 | 按业务维度切模型 |
+| 压缩保护 | `experimental.session.compacting` | 压缩时 | 否 | 避免摘要被注入污染 |
+
+**业务服务契约（建议）**：
+
+```
+POST /internal/context/analyze
+{ sessionID, agent, model, step, userInput, messages: [{ id, role, parts }] }
+→ { systemAppend?, userTextAppend?, documents?: [{ mime, name, url|data }], skip? }
+```
+
+**插件骨架**：
+
+```ts
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const BusinessContext: Plugin = async () => ({
+  "experimental.chat.system.transform": async (_input, output) => {
+    const res = await analyze({ phase: "system" })
+    if (res?.systemAppend) output.system.push(res.systemAppend)
+  },
+  "experimental.chat.messages.transform": async (_input, output) => {
+    const res = await analyze({ phase: "messages", messages: output.messages })
+    if (res?.documents?.length) {
+      // 以末尾 system 消息追加，避免破坏 tool-call/tool-result 配对
+    }
+  },
+  "chat.message": async (input, output) => {
+    const res = await analyze({ phase: "message", parts: output.parts })
+    if (res?.userTextAppend) output.parts.push({ type: "text", text: res.userTextAppend, synthetic: true })
+  },
+})
+```
+
+配置注入：`OPENCODE_CONFIG_CONTENT` 中 `"plugin": ["./.opencode/plugin/business-context.ts"]`；业务服务地址与令牌通过 serve 进程环境变量传入。
+
+**约束（必须遵守）**：
+
+1. 不破坏 tool-call/tool-result 配对；优先 `system.transform` 或末尾 system 消息注入；
+2. `messages.transform` 每 step 触发 → 幂等（按 messageID+step 去重）、超时（建议 300ms）、失败降级 skip；
+3. `messages.transform` 修改不落库；需审计/持久化走 `chat.message` 的 parts；
+4. 压缩场景同样触发 → 注入内容需可识别（带标记），避免污染摘要；
+5. 插件运行在 serve 进程内，可访问文件/网络；业务凭据用环境变量注入，不写死在插件；
+6. 插件内不做重活（阻塞会拖慢每个 step）；重型检索放业务服务异步完成。
+
+若业务分析逻辑位于 Qt 进程内，则 Qt 需暴露本地接口供插件调用（建议 `127.0.0.1` + 随机端口 + 一次性 token，插件从环境变量读取地址与令牌），见 7.4。
 
 ---
 
@@ -225,7 +297,88 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 
 ---
 
-## 7. 多实例 / 多 daemon 方法
+## 7. Qt 壳端点消费清单与流程映射
+
+### 7.1 服务端端点（按 Qt 功能分组）
+
+| Qt 功能 | 端点 | 备注 |
+|---|---|---|
+| 启动/心跳 | `GET /global/health` | 版本校验 + 周期心跳 |
+| 项目上下文 | `GET /path` | 当前目录/worktree/config 路径 |
+| 会话列表 | `GET /session` | 侧边栏，按目录过滤 |
+| 新建会话 | `POST /session` | 可带 `title`/`agent`/`model`/`permission` |
+| 会话管理 | `PATCH /session/{id}`、`DELETE /session/{id}`、`GET /session/{id}/children` | 重命名/删除/子会话 |
+| 历史加载 | `GET /session/{id}/message?limit=&before=` | 分页 + cursor |
+| 单条刷新 | `GET /session/{id}/message/{messageID}` | 按需 |
+| 发送消息（主链路） | `POST /session/{id}/prompt_async` | 异步 204，结果走事件 |
+| 发送消息（同步） | `POST /session/{id}/message` | 仅脚本化场景 |
+| 中止 | `POST /session/{id}/abort` | 停止按钮 |
+| 事件流 | `GET /event` | **唯一 SSE**，渲染/状态/交互 |
+| 状态兜底 | `GET /session/status` | 断线后状态对齐 |
+| 权限待决 | `GET /permission` | 重连恢复 |
+| 权限应答 | `POST /permission/{requestID}/reply` | `once`/`always`/`reject` |
+| 权限应答（兼容） | `POST /session/{id}/permissions/{permissionID}` | 旧式 |
+| 问答待决 | `GET /question` | 重连恢复 |
+| 问答应答 | `POST /question/{requestID}/reply`、`/reject` | `answers: string[][]` |
+| 手动压缩 | `POST /session/{id}/summarize` | "压缩上下文"按钮 |
+| 回滚 | `POST /session/{id}/revert`、`/unrevert` | 消息级回滚 |
+| 分叉 | `POST /session/{id}/fork` | 从消息分支 |
+| 命令面板 | `GET /command`、`POST /session/{id}/command` | slash 命令 |
+| Agent 选择 | `GET /agent` | 下拉框 |
+| 模型选择 | `GET /config/providers`、`GET /provider` | 下拉框 |
+| 技能展示 | `GET /skill` | 可选 |
+| 设置读取 | `GET /config`、`GET /global/config` | 设置界面 |
+| 设置保存 | `PATCH /global/config` | 持久化 |
+| 凭据登录 | `GET /provider/auth`、`POST /provider/{id}/oauth/authorize`、`/oauth/callback`、`PUT /auth/{providerID}` | 登录流程 |
+| 会话内 shell | `POST /session/{id}/shell` | 可选 |
+| 变更视图 | `GET /session/{id}/diff`、`GET /file/status`、`GET /vcs/diff` | diff 面板 |
+| 文件浏览 | `GET /file`、`GET /file/content`、`GET /find/file` | 可选 |
+| 终端 | `GET|POST /pty`、`GET /pty/{id}/connect` | 可选 |
+
+### 7.2 事件 → UI 映射
+
+| 事件 | Qt 行为 |
+|---|---|
+| `session.created` / `session.updated` / `session.deleted` | 会话列表刷新 |
+| `message.updated` | 消息头（role/状态/用量） |
+| `message.part.updated` | part upsert 渲染 |
+| `message.part.delta` | 增量追加（优先） |
+| `message.part.removed` | 移除 part |
+| `session.status` | busy/retry 指示 |
+| `session.idle` | 结束"生成中" |
+| `session.error` | 错误提示（含 ContextOverflow） |
+| `session.diff` | diff 面板刷新 |
+| `todo.updated` | 任务清单 |
+| `permission.asked` / `permission.replied` | 弹窗 / 关闭弹窗 |
+| `question.asked` / `question.replied` / `question.rejected` | 弹窗 / 关闭弹窗 |
+| `file.edited` / `lsp.updated` | 可选刷新 |
+
+### 7.3 关键流程时序
+
+**打开/恢复会话**：`GET /session` → `GET /session/{id}/message`（分页）→ 建立 `GET /event` → `GET /permission` + `GET /question` 重建待决弹窗。
+
+**发送消息**：`POST /session/{id}/prompt_async`（带 model/agent/parts）→ 事件流渲染增量与工具 part → `session.idle` 结束生成态。
+
+**交互应答**：事件 `permission.asked`/`question.asked` → 弹窗 → reply → `replied` 事件关闭所有窗口弹窗。
+
+**断线恢复**：重连 → `GET /session/status` 对齐状态 → 对活跃会话 `GET /session/{id}/message` 重放 → 重新 `GET /permission` + `GET /question`。
+
+### 7.4 Qt 侧需要暴露的本地接口（业务逻辑在 Qt 时）
+
+若业务分析与资料加工在 Qt 进程内完成，Qt 需为 serve 插件提供本地调用入口：
+
+- `POST /internal/context/analyze`（见 5.4 契约）；
+- 仅监听 `127.0.0.1`，随机端口 + 一次性 token（插件从环境变量读取）；
+- 超时保护与降级返回 `{ skip: true }`；
+- 不要把业务凭据通过接口透传给插件。
+
+### 7.5 Qt 内部模块清单（配套实现）
+
+`ServerProcess`（QProcess 生命周期）、`ApiClient`（QNAM + Basic Auth + 目录头）、`SseClient`（/event 分帧解析）、`EventRouter`（事件→信号）、`SessionModel`（part 投影与增量合并）、`PermissionBridge` / `QuestionBridge`（弹窗闭环）、`SettingsStore`（config 读写）、`BusinessContextClient`（对接业务服务/插件）。
+
+---
+
+## 8. 多实例 / 多 daemon 方法
 
 - `opencode serve` 无单例限制，可多开；**不要用 `packages/cli` 的 `service start`**（按 state 目录单例，会互踢）。
 - 隔离资源：
@@ -245,7 +398,7 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 
 ---
 
-## 8. 风险清单与对策
+## 9. 风险清单与对策
 
 | # | 风险 | 影响 | 对策 |
 |---|---|---|---|
@@ -258,15 +411,18 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 | 7 | question 工具默认未启用 | 问答/计划确认缺失 | 注入 `OPENCODE_CLIENT=desktop` |
 | 8 | 压缩行为随版本变化 | 上下文语义差异 | 关注 `compaction` 配置与事件；UI 只做标记展示 |
 | 9 | 同步 `/message` 长阻塞 | Qt 超时/卡死 | 主用 `prompt_async` |
-| 10 | 多 daemon 共享 DB/锁 | 数据损坏/互踢 | 按第 7 节隔离；禁用 `service start` |
+| 10 | 多 daemon 共享 DB/锁 | 数据损坏/互踢 | 按第 8 节隔离；禁用 `service start` |
 | 11 | Windows 依赖 Git Bash（shell 工具） | 部分工具不可用 | 安装 Git 或禁用 bash 工具 |
 | 12 | 裁剪仓库遗漏（TUI 引用 20+ 处、build 默认内嵌 Web UI） | 构建失败/体积 | 保守保留 tui 依赖；`--skip-embed-web-ui` |
 | 13 | 大 payload（base64 附件） | UI 卡顿 | 后台线程解析 + 渲染节流（30–60 FPS） |
 | 14 | 权限弹窗类型渲染不足 | 用户误批危险操作 | 按 permission 类型渲染上下文（diff/命令/目录） |
+| 15 | 插件注入破坏消息序列（tool-call/result 配对） | LLM 请求报错、会话失败 | 优先 `system.transform`；不在消息中间插入；末尾 system 注入 |
+| 16 | 插件重复注入 / 阻塞每个 step | 内容重复、延迟升高 | 按 messageID+step 幂等；300ms 超时；失败降级 skip |
+| 17 | 注入内容污染压缩摘要 | 摘要失真、上下文异常 | 注入带标记；`experimental.session.compacting` 中识别并剔除 |
 
 ---
 
-## 9. 验收与测试方法
+## 10. 验收与测试方法
 
 **冒烟清单（每次升级必跑）**
 - [ ] `/global/health` 正常且版本符合预期；
@@ -276,7 +432,9 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 - [ ] 权限闭环（`asked` → reply → `replied`）；
 - [ ] 问答闭环（`question.asked` → reply/reject）；
 - [ ] 断线重连后历史与待决恢复；
-- [ ] 压缩触发后 UI 标记正确、会话可继续。
+- [ ] 压缩触发后 UI 标记正确、会话可继续；
+- [ ] 业务注入生效且不重复（`system.transform` 追加可见、消息序列合法）；
+- [ ] 业务服务不可用时插件降级、会话不失败。
 
 **契约测试**：用 `packages/http-recorder` 录制真实交互，作为 Qt 侧回归基线。
 
@@ -284,7 +442,7 @@ Qt 交互：渲染 `part.type == "compaction"` 为"上下文已压缩"标记；`
 
 ---
 
-## 10. 附录
+## 11. 附录
 
 ### A. 关键文件索引
 
