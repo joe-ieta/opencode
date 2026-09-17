@@ -34,8 +34,32 @@ ctest --output-on-failure
 - `tst_sse_parser`：SSE 分帧单元测试（跨包、CRLF、心跳、非法 JSON）；
 - `tst_process`：真实启动 `qtoc_core` 并校验 `/global/health`（找不到内核时自动跳过）。
 
+## 运行配置（环境变量）
+
+客户端启动内核时会读取以下环境变量（也可在 Qt Creator 的 Run 配置里设置）：
+
+| 变量 | 作用 | 示例 |
+|---|---|---|
+| `QTOC_CORE_PATH` | qtoc_core 可执行文件路径 | `E:\...\artifacts\qtoc\qtoc_core.exe` |
+| `QTOC_MODEL` | 默认模型（写入内核配置 `model`） | `anthropic/claude-sonnet-4-5` |
+| `QTOC_CONFIG_JSON` | 完整覆盖内核配置（优先级最高） | `{"model":"...","permission":{...}}` |
+| `QTOC_AUTH_JSON` | 内联凭据（映射为 `OPENCODE_AUTH_CONTENT`） | `{"anthropic":{"type":"api","key":"sk-..."}}` |
+| `QTOC_DEBUG=1` | 打印每个事件的类型到 Server log | - |
+
+未设置 `QTOC_MODEL` 时客户端默认配置只有权限项；此时 `prompt_async` 会被接受但内核无法调用模型，聊天窗口不会有内容（错误只以 `session.error` 事件返回）。
+
+## 验证步骤
+
+1. **Start server**：Server log 出现 `opencode server listening on http://127.0.0.1:<port>` 与 `server ready on port <port>`；
+2. **事件流**：Server log 出现 `event stream connected`；
+3. **模型检查**：Server log 出现 `providers: N [...], models: M, defaults: {...}`；若 `models: 0` 或提示 `no model configured`，先配置 `QTOC_MODEL` 与凭据；
+4. **会话**：Server log 出现 `session: ses_...`；
+5. **发送消息**：Server log 出现 `prompt accepted: ...`；聊天页出现用户文本与流式回复；
+6. **权限/问答**：让模型执行一次编辑类操作，确认弹窗与应答闭环。
+
+无反馈排查顺序：Server log 是否有 `session error: ...` → `providers/models` 是否为 0 → `QTOC_MODEL` 是否设置 → 凭据环境变量是否存在（如 `ANTHROPIC_API_KEY` 或 `QTOC_AUTH_JSON`）→ 用 `curl -u opencode:<password> http://127.0.0.1:<port>/config` 查看内核实际生效配置。
+
 ## 说明
 
 - 客户端不负责 prompt 组装、模型解析与工具执行，全部由内核完成；
-- 需要真实模型响应时，请在 `OPENCODE_CONFIG_CONTENT`（见 `MainWindow::startServer`）中配置 provider 凭据，或使用本地 mock provider；
 - 事件与端点清单见 `docs/qtui/opencode-qt-integration-methodology.md` 第 7 节。

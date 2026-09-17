@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -89,14 +90,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(m_server, &ServerProcess::failed, this, &MainWindow::onServerFailed);
     connect(m_server, &ServerProcess::stopped, this, [this]() { setStatus("stopped"); });
 
+    connect(m_sse, &SseClient::opened, this, &MainWindow::onSseOpened);
     connect(m_sse, &SseClient::eventReceived, this, &MainWindow::onEvent);
     connect(m_sse, &SseClient::failed, this, &MainWindow::onServerFailed);
 
     connect(m_router, &EventRouter::partUpdated, this, &MainWindow::onPartUpdated);
     connect(m_router, &EventRouter::partDelta, this, &MainWindow::onPartDelta);
     connect(m_router, &EventRouter::sessionIdle, this, [this](const QString &) { setStatus("idle"); });
-    connect(m_router, &EventRouter::sessionError, this,
-            [this](const QString &, const QString &message) { appendLog("session error: " + message); });
+    connect(m_router, &EventRouter::sessionStatus, this, &MainWindow::onSessionStatus);
+    connect(m_router, &EventRouter::sessionError, this, [this](const QString &, const QString &message) {
+        showSystem("error: " + message);
+    });
+    connect(m_router, &EventRouter::unhandled, this, [this](const QString &type) {
+        if (qEnvironmentVariableIsSet("QTOC_DEBUG")) appendLog("event: " + type);
+    });
     connect(m_router, &EventRouter::permissionAsked, this, &MainWindow::onPermissionAsked);
     connect(m_router, &EventRouter::questionAsked, this, &MainWindow::onQuestionAsked);
 
@@ -131,13 +138,26 @@ QString MainWindow::corePath() const {
     return QDir(QCoreApplication::applicationDirPath()).filePath(name);
 }
 
+QString MainWindow::configJson() const {
+    const QString override = qEnvironmentVariable("QTOC_CONFIG_JSON");
+    if (!override.isEmpty()) return override;
+
+    QJsonObject config{
+        {"permission", QJsonObject{{"edit", "ask"}, {"bash", "ask"}}},
+    };
+    const QString model = qEnvironmentVariable("QTOC_MODEL");
+    if (!model.isEmpty()) config.insert("model", model);
+    return QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact));
+}
+
 void MainWindow::startServer() {
     ServerProcess::Options options;
     options.corePath = corePath();
     options.workDir = m_temp.filePath("workspace");
     options.stateDir = m_temp.filePath("state");
     options.password = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    options.configJson = QStringLiteral("{\"permission\":{\"edit\":\"ask\",\"bash\":\"ask\"}}");
+    options.configJson = configJson();
+    appendLog("config: " + options.configJson);
 
     QString error;
     if (!m_server->start(options, &error)) {
@@ -159,7 +179,41 @@ void MainWindow::onServerReady(quint16 port) {
     m_sse->open(QUrl(m_server->baseUrl().toString() + "/event"), m_api->authHeader());
     appendLog(QString("server ready on port %1").arg(port));
     setStatus("ready");
+    checkProviders();
     createSession();
+}
+
+void MainWindow::onSseOpened() {
+    appendLog("event stream connected");
+}
+
+void MainWindow::checkProviders() {
+    m_api->get("/config/providers", [this](bool ok, const QJsonDocument &doc, const QString &error) {
+        if (!ok) {
+            appendLog("provider check failed: " + error);
+            return;
+        }
+        const QJsonObject root = doc.object();
+        const QJsonArray providers = root.value("providers").toArray();
+        int models = 0;
+        QStringList ids;
+        for (const QJsonValue &value : providers) {
+            const QJsonObject provider = value.toObject();
+            ids.append(provider.value("id").toString());
+            models += provider.value("models").toObject().size();
+        }
+        const QJsonObject defaults = root.value("default").toObject();
+        appendLog(QString("providers: %1 [%2], models: %3, defaults: %4")
+                      .arg(providers.size())
+                      .arg(ids.join(", "))
+                      .arg(models)
+                      .arg(QString::fromUtf8(QJsonDocument(defaults).toJson(QJsonDocument::Compact))));
+        if (models == 0) {
+            showSystem("no provider models available: set credentials (e.g. ANTHROPIC_API_KEY or QTOC_AUTH_JSON) and QTOC_MODEL");
+        } else if (qEnvironmentVariable("QTOC_MODEL").isEmpty() && !qEnvironmentVariableIsSet("QTOC_CONFIG_JSON")) {
+            showSystem("no model configured: set QTOC_MODEL=provider/model to start chatting");
+        }
+    });
 }
 
 void MainWindow::onServerLog(const QString &line) {
@@ -179,7 +233,12 @@ void MainWindow::createSession() {
             return;
         }
         m_sessionID = doc.object().value("id").toString();
+        if (m_sessionID.isEmpty()) {
+            showSystem("create session failed: response has no id");
+            return;
+        }
         m_model->reset();
+        m_notice.clear();
         refreshTranscript();
         appendLog("session: " + m_sessionID);
         setStatus("session ready");
@@ -188,15 +247,23 @@ void MainWindow::createSession() {
 
 void MainWindow::sendPrompt() {
     const QString text = m_input->text().trimmed();
-    if (text.isEmpty() || m_sessionID.isEmpty()) return;
+    if (text.isEmpty()) return;
+    if (m_sessionID.isEmpty()) {
+        showSystem("no session ready; wait for the server and try again");
+        return;
+    }
     m_input->clear();
 
     const QJsonObject body{
         {"parts", QJsonArray{QJsonObject{{"type", "text"}, {"text", text}}}},
     };
     m_api->post(QString("/session/%1/prompt_async").arg(m_sessionID), body,
-                [this](bool ok, const QJsonDocument &, const QString &error) {
-                    if (!ok) appendLog("prompt failed: " + error);
+                [this, text](bool ok, const QJsonDocument &, const QString &error) {
+                    if (ok) {
+                        appendLog("prompt accepted: " + text);
+                        return;
+                    }
+                    showSystem("prompt failed: " + error);
                 });
     setStatus("running");
 }
@@ -207,7 +274,14 @@ void MainWindow::abortSession() {
 }
 
 void MainWindow::onEvent(const QJsonObject &event) {
+    if (qEnvironmentVariableIsSet("QTOC_DEBUG")) {
+        appendLog("event: " + event.value("type").toString());
+    }
     m_router->handle(event);
+}
+
+void MainWindow::onSessionStatus(const QString &, const QString &status) {
+    if (!status.isEmpty()) setStatus(status);
 }
 
 void MainWindow::onPartUpdated(const QJsonObject &part) {
@@ -287,12 +361,20 @@ void MainWindow::onQuestionAsked(const QJsonObject &request) {
 }
 
 void MainWindow::refreshTranscript() {
-    m_transcript->setPlainText(m_model->transcript());
+    const QString body = m_model->transcript();
+    m_transcript->setPlainText(m_notice.isEmpty() ? body : (body.isEmpty() ? m_notice : body + "\n\n" + m_notice));
     m_transcript->moveCursor(QTextCursor::End);
 }
 
 void MainWindow::appendLog(const QString &line) {
     m_log->appendPlainText(line);
+}
+
+void MainWindow::showSystem(const QString &line) {
+    appendLog(line);
+    if (!m_notice.isEmpty()) m_notice += "\n";
+    m_notice += line;
+    m_renderTimer->start();
 }
 
 void MainWindow::setStatus(const QString &text) {

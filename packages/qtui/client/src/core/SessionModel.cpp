@@ -5,6 +5,7 @@ SessionModel::SessionModel(QObject *parent) : QObject(parent) {}
 void SessionModel::reset() {
     m_parts.clear();
     m_order.clear();
+    m_streamed.clear();
 }
 
 void SessionModel::upsert(const QJsonObject &part) {
@@ -15,7 +16,11 @@ void SessionModel::upsert(const QJsonObject &part) {
     entry.id = id;
     entry.type = part.value("type").toString();
     if (entry.type == "text" || entry.type == "reasoning") {
-        entry.text = part.value("text").toString();
+        if (m_streamed.contains(id) && m_parts.contains(id)) {
+            entry.text = m_parts.value(id).text;
+        } else {
+            entry.text = part.value("text").toString();
+        }
     } else if (entry.type == "tool") {
         const QString tool = part.value("tool").toString();
         const QJsonObject state = part.value("state").toObject();
@@ -33,6 +38,7 @@ void SessionModel::upsert(const QJsonObject &part) {
 
 void SessionModel::appendDelta(const QString &partID, const QString &field, const QString &delta) {
     if (field != "text" || !m_parts.contains(partID)) return;
+    m_streamed.insert(partID);
     m_parts[partID].text += delta;
 }
 

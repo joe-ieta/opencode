@@ -33,16 +33,21 @@ private slots:
     void onServerReady(quint16 port);
     void onServerLog(const QString &line);
     void onServerFailed(const QString &message);
+    void onSseOpened();
     void onEvent(const QJsonObject &event);
     void onPartUpdated(const QJsonObject &part);
     void onPartDelta(const QString &partID, const QString &field, const QString &delta);
+    void onSessionStatus(const QString &sessionID, const QString &status);
     void onPermissionAsked(const QJsonObject &request);
     void onQuestionAsked(const QJsonObject &request);
     void refreshTranscript();
 
 private:
     QString corePath() const;
+    QString configJson() const;
+    void checkProviders();
     void appendLog(const QString &line);
+    void showSystem(const QString &line);
     void setStatus(const QString &text);
 
     ServerProcess *m_server = nullptr;
@@ -52,6 +57,7 @@ private:
     SessionModel *m_model = nullptr;
     QTemporaryDir m_temp;
     QString m_sessionID;
+    QString m_notice;
     QPlainTextEdit *m_transcript = nullptr;
     QPlainTextEdit *m_log = nullptr;
     QLineEdit *m_input = nullptr;

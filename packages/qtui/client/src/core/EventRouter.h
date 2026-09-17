@@ -17,6 +17,7 @@ signals:
     void partUpdated(const QJsonObject &part);
     void partDelta(const QString &partID, const QString &field, const QString &delta);
     void sessionIdle(const QString &sessionID);
+    void sessionStatus(const QString &sessionID, const QString &status);
     void sessionError(const QString &sessionID, const QString &message);
     void permissionAsked(const QJsonObject &request);
     void permissionReplied(const QString &requestID);

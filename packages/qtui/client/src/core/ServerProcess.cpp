@@ -37,6 +37,11 @@ bool ServerProcess::start(const Options &options, QString *error) {
     env.insert("OPENCODE_SERVER_PASSWORD", options.password);
     env.insert("OPENCODE_CLIENT", "desktop");
     if (!options.configJson.isEmpty()) env.insert("OPENCODE_CONFIG_CONTENT", options.configJson);
+    // Convenience: QTOC_AUTH_JSON maps to the kernel's inline credential channel.
+    const QString authJson = env.value("QTOC_AUTH_JSON");
+    if (!authJson.isEmpty() && env.value("OPENCODE_AUTH_CONTENT").isEmpty()) {
+        env.insert("OPENCODE_AUTH_CONTENT", authJson);
+    }
     // Keep test state out of the user profile.
     env.insert("XDG_DATA_HOME", options.stateDir + "/data");
     env.insert("XDG_STATE_HOME", options.stateDir + "/state");
