@@ -4,13 +4,18 @@
 
 SseClient::SseClient(QObject *parent) : QObject(parent) {}
 
-void SseClient::open(const QUrl &url, const QByteArray &authorization) {
+void SseClient::open(const QUrl &url, const QByteArray &authorization, const QString &directory) {
     close();
 
     QNetworkRequest request(url);
     request.setRawHeader("Authorization", authorization);
     request.setRawHeader("Accept", "text/event-stream");
     request.setRawHeader("Cache-Control", "no-cache");
+    // Events are scoped to the request directory; without it the stream only
+    // receives server-level events (connected/heartbeat).
+    if (!directory.isEmpty()) {
+        request.setRawHeader("x-opencode-directory", QUrl::toPercentEncoding(directory));
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     // Qt 6.7 enables a 30s transfer timeout by default, which would kill the
     // long-lived event stream.

@@ -198,8 +198,9 @@ void MainWindow::stopServer() {
 }
 
 void MainWindow::onServerReady(quint16 port) {
-    m_api->configure(m_server->baseUrl(), m_server->password(), m_temp.filePath("workspace"));
-    m_sse->open(QUrl(m_server->baseUrl().toString() + "/event"), m_api->authHeader());
+    const QString directory = m_temp.filePath("workspace");
+    m_api->configure(m_server->baseUrl(), m_server->password(), directory);
+    m_sse->open(QUrl(m_server->baseUrl().toString() + "/event"), m_api->authHeader(), directory);
     appendLog(QString("server ready on port %1").arg(port));
     setStatus("ready");
     checkProviders();

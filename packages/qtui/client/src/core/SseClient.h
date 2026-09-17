@@ -13,7 +13,7 @@ class SseClient : public QObject {
 public:
     explicit SseClient(QObject *parent = nullptr);
 
-    void open(const QUrl &url, const QByteArray &authorization);
+    void open(const QUrl &url, const QByteArray &authorization, const QString &directory = QString());
     void close();
     bool isOpen() const { return m_reply != nullptr; }
 
