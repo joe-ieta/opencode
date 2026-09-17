@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "bun run --cwd packages/opencode src/index.ts",
     "dev:headless": "bun run --cwd packages/opencode src/index.ts serve",
+    "qtoc:trim": "bun run script/qtoc/trim.ts",
+    "qtoc:build": "bun run script/qtoc/build.ts",
     "lint": "oxlint",
     "typecheck": "bun turbo typecheck",
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",

@@ -67,17 +67,27 @@ curl.exe -s -u opencode:your-secret http://127.0.0.1:4096/global/health
 curl.exe -N -u opencode:your-secret http://127.0.0.1:4096/event
 ```
 
-## 3. 构建单文件二进制
+## 3. 构建单文件二进制（qtoc_core）
+
+标准方式（推荐，含安装、类型检查与归档）：
+
+```bash
+bun run qtoc:build
+```
+
+等价底层命令：
 
 ```powershell
 # 默认跳过 Web UI 内嵌（本分支无 packages/app）
-bun run --cwd packages/opencode script/build.ts --single
-
-# 若未来恢复 packages/app，可显式内嵌
-bun run --cwd packages/opencode script/build.ts --single --embed-web-ui
+bun run --cwd packages/opencode script/build.ts --single --skip-install
 ```
 
-产物：`packages/opencode/dist/opencode-<os>-<arch>/bin/opencode`，随 Qt 安装包分发。
+产物：
+
+- `packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]`
+- 归档：`artifacts/qtoc/qtoc_core[.exe]` 与 `artifacts/qtoc/qtoc_core-<version>-<os>-<arch>[.exe]`
+
+与上游同步后的重建流程见 `docs/qtoc-build.md`。
 
 ## 4. 验证清单
 
@@ -103,6 +113,8 @@ bun run --cwd packages/opencode script/build.ts --single --embed-web-ui
 
 ## 6. 相关文档
 
+- 构建与同步：`docs/qtoc-build.md`（qtoc_core 稳定构建模式）
+- 安装 Bun：`docs/bun-install.md`
 - 实施步骤：`docs/opencode-qt-integration.md`
 - 方法与决策：`docs/opencode-qt-integration-methodology.md`
   - 5.4 业务上下文注入（插件 + 业务服务）
