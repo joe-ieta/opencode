@@ -231,11 +231,26 @@ void MainWindow::checkProviders() {
                       .arg(ids.join(", "))
                       .arg(models)
                       .arg(QString::fromUtf8(QJsonDocument(defaults).toJson(QJsonDocument::Compact))));
-        if (models == 0) {
-            showSystem("no provider models available: set credentials (e.g. ANTHROPIC_API_KEY or QTOC_AUTH_JSON) and QTOC_MODEL");
-        } else if (qEnvironmentVariable("QTOC_MODEL").isEmpty() && !qEnvironmentVariableIsSet("QTOC_CONFIG_JSON")) {
-            showSystem("no model configured: set QTOC_MODEL=provider/model to start chatting");
+
+        if (qEnvironmentVariableIsSet("QTOC_CONFIG_JSON")) {
+            appendLog("config override in use (QTOC_CONFIG_JSON)");
+            return;
         }
+        const QtocSettings settings = QtocSettings::load();
+        const QString model = settings.modelString();
+        if (models == 0) {
+            showSystem("no provider models available: set API Key in Settings... (or a provider env var such as ANTHROPIC_API_KEY)");
+            return;
+        }
+        if (model.isEmpty()) {
+            showSystem("no model configured: open Settings... and set LLM type + model");
+            return;
+        }
+        if (settings.provider.isEmpty() && !model.contains('/')) {
+            showSystem("model needs a provider: set LLM type in Settings... (current model: " + model + ")");
+            return;
+        }
+        appendLog("using model: " + model);
     });
 }
 
