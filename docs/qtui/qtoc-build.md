@@ -30,7 +30,7 @@
 - Windows 建议安装 Git（shell 工具运行需要 Git Bash）。
 - 磁盘空间：安装缓存默认在用户目录，空间不足时设置 `BUN_INSTALL_CACHE_DIR`（见 `docs/qtui/bun-install.md` 第 5 节）。
 
-## 3. 日常构建
+## 3. 日常构建（本地）
 
 ```bash
 bun run qtoc:build
@@ -41,6 +41,27 @@ bun run qtoc:build
 ```
 
 流程：`bun install` → `bun run typecheck` → `bun run --cwd packages/opencode script/build.ts --single --skip-install` → 归档到 `artifacts/qtoc/`。
+
+本地构建只产出**当前平台**的 `qtoc_core`（`--single`），冒烟测试也只针对当前平台。
+
+## 3.1 发布构建：CI 矩阵原生构建（推荐）
+
+**结论：发布产物一律使用 CI 矩阵原生构建，不在 Windows 上交叉编译 Linux/macOS 产物。**
+
+- 工作流：`.github/workflows/qtoc.yml`
+- 触发：手动 `workflow_dispatch`，或推送 `qt-headless-v*` 标签
+- 矩阵：`ubuntu-latest`、`windows-latest`、`macos-latest`（各自原生 `bun run qtoc:build`，原生冒烟）
+- 步骤：checkout → setup-bun → `bun install` → `bun run typecheck` → `bun run qtoc:build --skip-install --skip-typecheck` → Linux 上额外做 `serve` + `/global/health` 冒烟 → 上传 `artifacts/qtoc/*` 为 Actions Artifacts（`qtoc_core-Linux` / `qtoc_core-Windows` / `qtoc_core-macOS`，保留 14 天）
+
+约定与注意：
+
+| 事项 | 说明 |
+|---|---|
+| 原生优先 | 每个平台在自身 runner 上构建与冒烟，避免交叉编译的原生依赖（fff-bun / parcel-watcher / node-pty）与目标 libc 问题 |
+| macOS | 产物未签名/未公证；对外分发需在 macOS 上另行 `codesign` + `notarytool` |
+| 架构覆盖 | 默认矩阵为各平台 x64/默认架构（`macos-latest` 当前为 arm64）；如需 Linux arm64 或 macOS x64，追加 `ubuntu-24.04-arm`、`macos-13` |
+| 版本 | 构建版本来自 `Script.version`（形如 `0.0.0-qt-headless-<timestamp>`），与标签名独立 |
+| 交叉编译 | 仅作为实验手段（需去掉 `--single` 与 `--skip-install` 并自行验证），不作为发布路径 |
 
 ## 4. 与上游同步后的重建（标准流程）
 

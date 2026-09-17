@@ -1,0 +1,71 @@
+name: qtoc
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "qt-headless-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: qtoc_core (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: bun install
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build qtoc_core
+        run: bun run qtoc:build --skip-install --skip-typecheck
+
+      - name: Smoke test (serve + health)
+        if: runner.os == 'Linux'
+        timeout-minutes: 3
+        env:
+          OPENCODE_SERVER_PASSWORD: ci-secret
+          OPENCODE_CLIENT: desktop
+        run: |
+          set -e
+          ./artifacts/qtoc/qtoc_core serve --hostname 127.0.0.1 --port 4096 &
+          PID=$!
+          trap "kill $PID 2>/dev/null || true" EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS -u opencode:ci-secret http://127.0.0.1:4096/global/health | grep -q '"healthy":true'; then
+              echo "health ok"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "health check failed" >&2
+          exit 1
+
+      - name: Upload qtoc_core
+        uses: actions/upload-artifact@v4
+        with:
+          name: qtoc_core-${{ runner.os }}
+          path: artifacts/qtoc/*
+          if-no-files-found: error
+          retention-days: 14

@@ -87,7 +87,8 @@ bun run --cwd packages/opencode script/build.ts --single --skip-install
 - `packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]`
 - 归档：`artifacts/qtoc/qtoc_core[.exe]` 与 `artifacts/qtoc/qtoc_core-<version>-<os>-<arch>[.exe]`
 
-与上游同步后的重建流程见 `docs/qtui/qtoc-build.md`。
+发布产物使用 **CI 矩阵原生构建**（`.github/workflows/qtoc.yml`，Linux/Windows/macOS 各自原生构建与冒烟），
+与上游同步后的重建流程见 `docs/qtui/qtoc-build.md`（含 3.1 节 CI 矩阵说明）。
 
 ## 4. 验证清单
 

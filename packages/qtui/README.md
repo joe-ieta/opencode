@@ -26,6 +26,9 @@ bun run qtoc:build       # 构建 qtoc_core 并归档到 artifacts/qtoc/
 
 可选参数：`--skip-install`、`--skip-typecheck`、`--baseline`。
 
+发布产物走 **CI 矩阵原生构建**（`.github/workflows/qtoc.yml`：Linux/Windows/macOS 各自原生构建 + 冒烟 + 上传产物），
+本地 `qtoc:build` 只产出当前平台版本。详见 `docs/qtui/qtoc-build.md` 3.1 节。
+
 ## Qt 客户端工程
 
 用 Qt Creator 打开 `client/CMakeLists.txt`，按 `client/README.md` 配置运行（指定 `qtoc_core` 路径或复制到 `client/fixtures/`）。
