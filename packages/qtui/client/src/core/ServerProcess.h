@@ -15,9 +15,11 @@ public:
         QString stateDir;
         QString configJson;
         QString password;
+        quint16 port = 0;  // 0 = random
     };
 
     explicit ServerProcess(QObject *parent = nullptr);
+    ~ServerProcess() override;
 
     bool start(const Options &options, QString *error);
     void stop();

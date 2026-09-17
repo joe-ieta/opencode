@@ -27,6 +27,7 @@ protected:
 private slots:
     void startServer();
     void stopServer();
+    void onSettings();
     void createSession();
     void sendPrompt();
     void abortSession();

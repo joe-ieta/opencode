@@ -13,6 +13,12 @@ ServerProcess::ServerProcess(QObject *parent) : QObject(parent) {
             [this](int exitCode, QProcess::ExitStatus) { handleFinished(exitCode); });
 }
 
+ServerProcess::~ServerProcess() {
+    // Ensure the child is gone before members are destroyed; a running QProcess
+    // can still emit output signals during destruction.
+    stop();
+}
+
 bool ServerProcess::start(const Options &options, QString *error) {
     if (m_process.state() != QProcess::NotRunning) {
         if (error) *error = "server is already running";
@@ -50,7 +56,7 @@ bool ServerProcess::start(const Options &options, QString *error) {
     m_process.setProcessEnvironment(env);
     m_process.setWorkingDirectory(options.workDir);
     m_process.setProgram(options.corePath);
-    m_process.setArguments({"serve", "--hostname", "127.0.0.1", "--port", "0"});
+    m_process.setArguments({"serve", "--hostname", "127.0.0.1", "--port", QString::number(options.port)});
     m_process.start();
 
     if (!m_process.waitForStarted(10000)) {
@@ -62,11 +68,15 @@ bool ServerProcess::start(const Options &options, QString *error) {
 
 void ServerProcess::stop() {
     if (m_process.state() == QProcess::NotRunning) return;
+#ifdef Q_OS_WIN
+    // terminate() only posts WM_CLOSE, which console processes usually ignore.
+    m_process.kill();
+#else
     m_process.terminate();
-    if (!m_process.waitForFinished(3000)) {
-        m_process.kill();
-        m_process.waitForFinished(2000);
-    }
+    if (m_process.waitForFinished(3000)) return;
+    m_process.kill();
+#endif
+    m_process.waitForFinished(5000);
 }
 
 QUrl ServerProcess::baseUrl() const {

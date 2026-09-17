@@ -32,8 +32,12 @@ qt_add_executable(qtoc-client
   src/core/EventRouter.h
   src/core/SessionModel.cpp
   src/core/SessionModel.h
+  src/core/Settings.cpp
+  src/core/Settings.h
   src/ui/MainWindow.cpp
   src/ui/MainWindow.h
+  src/ui/SettingsDialog.cpp
+  src/ui/SettingsDialog.h
 )
 
 target_link_libraries(qtoc-client PRIVATE Qt6::Widgets Qt6::Network)

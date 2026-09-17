@@ -25,7 +25,9 @@
 #include "../core/EventRouter.h"
 #include "../core/ServerProcess.h"
 #include "../core/SessionModel.h"
+#include "../core/Settings.h"
 #include "../core/SseClient.h"
+#include "SettingsDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle("qtoc_core demo client");
@@ -39,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     auto *toolbar = addToolBar("main");
     toolbar->addAction("Start server", this, &MainWindow::startServer);
     toolbar->addAction("Stop server", this, &MainWindow::stopServer);
+    toolbar->addAction("Settings...", this, &MainWindow::onSettings);
     toolbar->addSeparator();
     m_newSession = new QPushButton("New session", this);
     m_abort = new QPushButton("Abort", this);
@@ -107,6 +110,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(m_router, &EventRouter::permissionAsked, this, &MainWindow::onPermissionAsked);
     connect(m_router, &EventRouter::questionAsked, this, &MainWindow::onQuestionAsked);
 
+    const QtocSettings initial = QtocSettings::load();
+    if (!initial.modelString().isEmpty()) setWindowTitle("qtoc_core demo client - " + initial.modelString());
     setStatus(QString("qtoc_core: %1").arg(corePath()));
 }
 
@@ -139,24 +144,42 @@ QString MainWindow::corePath() const {
 }
 
 QString MainWindow::configJson() const {
-    const QString override = qEnvironmentVariable("QTOC_CONFIG_JSON");
-    if (!override.isEmpty()) return override;
+    return QtocSettings::load().configJson();
+}
 
-    QJsonObject config{
-        {"permission", QJsonObject{{"edit", "ask"}, {"bash", "ask"}}},
-    };
-    const QString model = qEnvironmentVariable("QTOC_MODEL");
-    if (!model.isEmpty()) config.insert("model", model);
-    return QString::fromUtf8(QJsonDocument(config).toJson(QJsonDocument::Compact));
+void MainWindow::onSettings() {
+    SettingsDialog dialog(QtocSettings::load(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    const QtocSettings settings = dialog.settings();
+    settings.save();
+    appendLog("settings saved: provider=" + settings.provider + " model=" + settings.modelString() +
+              " port=" + QString::number(settings.port) +
+              (settings.baseUrl.isEmpty() ? QString() : " baseUrl=" + settings.baseUrl));
+    setWindowTitle(settings.modelString().isEmpty() ? "qtoc_core demo client"
+                                                    : "qtoc_core demo client - " + settings.modelString());
+
+    if (m_server->isRunning()) {
+        const auto answer = QMessageBox::question(this, "Restart server",
+                                                  "Settings saved. Restart the server now to apply them?");
+        if (answer == QMessageBox::Yes) {
+            stopServer();
+            startServer();
+        } else {
+            showSystem("settings saved; restart the server to apply");
+        }
+    }
 }
 
 void MainWindow::startServer() {
+    const QtocSettings settings = QtocSettings::load();
     ServerProcess::Options options;
     options.corePath = corePath();
     options.workDir = m_temp.filePath("workspace");
     options.stateDir = m_temp.filePath("state");
     options.password = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    options.configJson = configJson();
+    options.configJson = settings.configJson();
+    options.port = settings.port;
     appendLog("config: " + options.configJson);
 
     QString error;

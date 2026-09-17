@@ -34,19 +34,33 @@ ctest --output-on-failure
 - `tst_sse_parser`：SSE 分帧单元测试（跨包、CRLF、心跳、非法 JSON）；
 - `tst_process`：真实启动 `qtoc_core` 并校验 `/global/health`（找不到内核时自动跳过）。
 
-## 运行配置（环境变量）
+## 运行配置
 
-客户端启动内核时会读取以下环境变量（也可在 Qt Creator 的 Run 配置里设置）：
+### 设置窗口（推荐）
+
+工具栏 **Settings...** 打开运行参数设置：
+
+| 字段 | 说明 |
+|---|---|
+| LLM 类型 | provider id（如 `anthropic`、`openai`）。内置 id 直接使用；其它 id 自动注册为 OpenAI 兼容自定义 provider（`npm: @ai-sdk/openai-compatible`） |
+| 基础 URL | 可选，覆盖 provider 的 `baseURL`（自建网关/代理时使用） |
+| API Key | 可选，写入内核 `provider.<id>.options.apiKey`（仅保存在本机 QSettings，并注入内核进程） |
+| 模型名称 | 模型 id（如 `claude-sonnet-4-5`），最终以 `provider/model` 写入内核配置 |
+| 服务端口 | 内核 HTTP 端口，`随机` 表示 0（随机端口） |
+
+保存后若内核正在运行，客户端会询问是否立即重启以应用设置。设置持久化在 QSettings（Windows 注册表 `HKCU\Software\qtoc\qtoc-client`）。
+
+### 环境变量（作为设置窗口的回退/覆盖）
 
 | 变量 | 作用 | 示例 |
 |---|---|---|
 | `QTOC_CORE_PATH` | qtoc_core 可执行文件路径 | `E:\...\artifacts\qtoc\qtoc_core.exe` |
-| `QTOC_MODEL` | 默认模型（写入内核配置 `model`） | `anthropic/claude-sonnet-4-5` |
+| `QTOC_PROVIDER` / `QTOC_BASE_URL` / `QTOC_API_KEY` / `QTOC_MODEL` / `QTOC_PORT` | 设置窗口字段的回退值 | `QTOC_MODEL=anthropic/claude-sonnet-4-5` |
 | `QTOC_CONFIG_JSON` | 完整覆盖内核配置（优先级最高） | `{"model":"...","permission":{...}}` |
 | `QTOC_AUTH_JSON` | 内联凭据（映射为 `OPENCODE_AUTH_CONTENT`） | `{"anthropic":{"type":"api","key":"sk-..."}}` |
 | `QTOC_DEBUG=1` | 打印每个事件的类型到 Server log | - |
 
-未设置 `QTOC_MODEL` 时客户端默认配置只有权限项；此时 `prompt_async` 会被接受但内核无法调用模型，聊天窗口不会有内容（错误只以 `session.error` 事件返回）。
+未配置模型时客户端默认配置只有权限项；此时 `prompt_async` 会被接受但内核无法调用模型，聊天窗口不会有内容（错误只以 `session.error` 事件返回）。
 
 ## 验证步骤
 
