@@ -81,9 +81,20 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 ## 7. 版本与标签
 
-- `qt-headless-v1.18.31`：当前发行线（指向最新裁剪+验证提交）。
-- `qt-headless-v1.18.31.1`：本次 qtoc_core 构建模式的迭代标签。
+| 标签 | 内容 |
+|---|---|
+| `qt-headless-v1.18.31` | 当前发行线（始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.18.31.1` | qtoc_core 构建模式、同步安全裁剪、Windows 安装验证 |
+| `qt-headless-v1.18.31.2` | qtui 包重组（docs/qtui、packages/qtui、Qt Creator 客户端）并合并上游 `upstream/dev` |
+
 - 二进制内置版本来自构建时的 `Script.version`（形如 `0.0.0-qt-headless-<timestamp>`），`qtoc_core --version` 可查看。
+- 打标签流程：
+  ```bash
+  git tag -f -a qt-headless-v1.18.31 -m "opencode headless distribution profile for Qt integration"
+  git push -f origin qt-headless-v1.18.31
+  git tag -a qt-headless-v1.18.31.2 -m "<本次迭代说明>"
+  git push origin qt-headless-v1.18.31.2
+  ```
 
 ## 8. 常见问题
 
