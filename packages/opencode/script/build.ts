@@ -167,7 +167,8 @@ for (const item of targets) {
     plugins: [plugin],
     external: ["node-gyp"],
     format: "esm",
-    minify: true,
+    // QTOC_MINIFY=0 produces an unminified (larger, more debuggable) binary.
+    minify: process.env.QTOC_MINIFY !== "0",
     sourcemap: sourcemapsFlag ? "linked" : "none",
     splitting: true,
     compile: {

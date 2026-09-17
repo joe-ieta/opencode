@@ -117,7 +117,17 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
   git push origin qt-headless-v1.18.31.2
   ```
 
-## 8. 常见问题
+## 8. 已知问题与修复（1.18.31 基线）
+
+| 问题 | 根因 | 修复 |
+|---|---|---|
+| 编译版发 prompt 崩溃：`TypeError ... 'node.name'`（源码运行正常） | `packages/core/src/filesystem.ts` 与 `filesystem/search.ts` 循环导入；打包后 `FileSystemSearch.node` 为 `undefined`，location 服务图层构建失败 | `search.ts` 改为 `import type { FileSystem }`，值引用 `Entry`/`Match` 直接从 `@opencode-ai/schema/filesystem` 引入 |
+| 插件依赖安装失败：`@opencode-ai/plugin@0.0.0-qt-headless-...` 在 npm 不存在 | 构建版本号为本地预览版本 | `packages/qtui/src/build.ts` 默认设置 `OPENCODE_VERSION=<仓库版本>`（1.18.31）并保留 `OPENCODE_CHANNEL=qt-headless` |
+| 图层构建报错信息晦涩（`a.name` / `node.name`） | LayerNode 图未校验 `undefined` 依赖 | `packages/core/src/effect/layer-node.ts` 增加 `validateNodes`，报出节点名与索引 |
+| `qtoc:build` 归档 `EBUSY` | 目标文件被正在运行的内核进程占用 | 归档 `copyRetry`（10 次 × 1s 重试） |
+| 需要调试构建 | - | 构建脚本新增 `QTOC_MINIFY=0`（默认压缩） |
+
+## 9. 常见问题
 
 | 现象 | 处理 |
 |---|---|
