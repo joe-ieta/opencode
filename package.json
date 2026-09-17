@@ -121,11 +121,7 @@
     "esbuild",
     "node-pty",
     "protobufjs",
-    "tree-sitter",
-    "tree-sitter-bash",
-    "tree-sitter-powershell",
-    "web-tree-sitter",
-    "electron"
+    "web-tree-sitter"
   ],
   "overrides": {
     "@ai-sdk/anthropic": "3.0.111",

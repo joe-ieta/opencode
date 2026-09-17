@@ -81,14 +81,17 @@ bun run --cwd packages/opencode script/build.ts --single --embed-web-ui
 
 ## 4. 验证清单
 
-- [ ] `bun install` 成功，无缺失 workspace 报错
-- [ ] `bun turbo typecheck` 通过
-- [ ] `serve` 启动并输出 `opencode server listening on ...`
-- [ ] `/global/health` 返回 `{ healthy: true, version }`
-- [ ] `/event` 建连、心跳正常
-- [ ] `OPENCODE_CLIENT=desktop` 时 `GET /experimental/tool/ids` 包含 `question`
-- [ ] 业务上下文插件（方案 B）注入生效且不重复
-- [ ] 构建产物可运行（`--single`）
+- [x] `bun install` 成功，无缺失 workspace 报错（1130 packages / 19.3s，Windows + Bun 1.4.2）
+- [x] `bun turbo typecheck` 通过（17/17 tasks）
+- [x] `serve` 启动并输出 `opencode server listening on ...`
+- [x] `/global/health` 返回 `{ healthy: true, version }`
+- [x] `/event` 建连、收到 `server.connected`
+- [x] `OPENCODE_CLIENT=desktop` 时 `GET /experimental/tool/ids` 包含 `question`
+- [ ] 业务上下文插件（方案 B）注入生效且不重复（待业务服务就绪后验证）
+- [x] 构建产物可运行（`--single --skip-install` → `opencode.exe` 118.3 MB，serve 健康检查通过）
+
+> 验证环境：Windows（E: 盘工作区，Bun 1.4.2），日期 2026-09-17。
+> 安装注意事项（C 盘空间不足、node-gyp 处理）见 `docs/bun-install.md` 第 5 节。
 
 ## 5. 与上游同步
 
