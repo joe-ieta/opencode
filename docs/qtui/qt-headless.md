@@ -47,7 +47,7 @@ nix/ + flake.*          Nix 打包
 **CLI 命令集（保留）**：`serve`、`generate`、`models`、`agent`、`providers`、`mcp`、`session`、`export`、`import`、`db`、`plug`、`debug`、`upgrade`、`uninstall`。
 **已注销命令**：`tui`、`run`、`attach`、`web`、`pr`、`github`、`stats`、`account`、`acp`。
 
-**说明**：`packages/tui` 与 `packages/ui` 作为编译依赖保留（`packages/opencode` 的 config/util 与构建 worker 复用它们），但 CLI 不再暴露 TUI 命令，二进制默认不内嵌 Web UI。如需彻底移除，见 `docs/opencode-qt-integration-methodology.md` 4.3 的"彻底"方案。
+**说明**：`packages/tui` 与 `packages/ui` 作为编译依赖保留（`packages/opencode` 的 config/util 与构建 worker 复用它们），但 CLI 不再暴露 TUI 命令，二进制默认不内嵌 Web UI。如需彻底移除，见 `docs/qtui/opencode-qt-integration-methodology.md` 4.3 的"彻底"方案。
 
 ## 2. 运行
 
@@ -87,7 +87,7 @@ bun run --cwd packages/opencode script/build.ts --single --skip-install
 - `packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]`
 - 归档：`artifacts/qtoc/qtoc_core[.exe]` 与 `artifacts/qtoc/qtoc_core-<version>-<os>-<arch>[.exe]`
 
-与上游同步后的重建流程见 `docs/qtoc-build.md`。
+与上游同步后的重建流程见 `docs/qtui/qtoc-build.md`。
 
 ## 4. 验证清单
 
@@ -101,7 +101,7 @@ bun run --cwd packages/opencode script/build.ts --single --skip-install
 - [x] 构建产物可运行（`--single --skip-install` → `opencode.exe` 118.3 MB，serve 健康检查通过）
 
 > 验证环境：Windows（E: 盘工作区，Bun 1.4.2），日期 2026-09-17。
-> 安装注意事项（C 盘空间不足、node-gyp 处理）见 `docs/bun-install.md` 第 5 节。
+> 安装注意事项（C 盘空间不足、node-gyp 处理）见 `docs/qtui/bun-install.md` 第 5 节。
 
 ## 5. 与上游同步
 
@@ -113,9 +113,9 @@ bun run --cwd packages/opencode script/build.ts --single --skip-install
 
 ## 6. 相关文档
 
-- 构建与同步：`docs/qtoc-build.md`（qtoc_core 稳定构建模式）
-- 安装 Bun：`docs/bun-install.md`
-- 实施步骤：`docs/opencode-qt-integration.md`
-- 方法与决策：`docs/opencode-qt-integration-methodology.md`
+- 构建与同步：`docs/qtui/qtoc-build.md`（qtoc_core 稳定构建模式）
+- 安装 Bun：`docs/qtui/bun-install.md`
+- 实施步骤：`docs/qtui/opencode-qt-integration.md`
+- 方法与决策：`docs/qtui/opencode-qt-integration-methodology.md`
   - 5.4 业务上下文注入（插件 + 业务服务）
   - 7 Qt 壳端点消费清单与流程映射

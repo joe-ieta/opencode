@@ -3,6 +3,16 @@
 > 分支：`qt-headless`；产物：`qtoc_core`（由 headless opencode 构建）。
 > 目标：与官方库同步后，可重复地重新裁剪并产出同名可执行文件。
 
+## 0. 包与目录
+
+| 位置 | 内容 |
+|---|---|
+| `packages/qtui/src/trim.ts` | 幂等裁剪脚本（同步上游后重新应用 headless 配置） |
+| `packages/qtui/src/build.ts` | 构建编排（install → typecheck → qtoc_core → 归档） |
+| `packages/qtui/client/` | Qt Creator + CMake 演示/测试工程（见 `packages/qtui/client/README.md`） |
+| `docs/qtui/` | 集成文档（本文、方法、实施、发行、Bun 安装） |
+| `artifacts/qtoc/` | 构建产物归档（已 gitignore） |
+
 ## 1. 产物与命名
 
 | 位置 | 名称 |
@@ -16,9 +26,9 @@
 
 ## 2. 环境准备
 
-- Bun ≥ 1.3.14：见 `docs/bun-install.md`。
+- Bun ≥ 1.3.14：见 `docs/qtui/bun-install.md`。
 - Windows 建议安装 Git（shell 工具运行需要 Git Bash）。
-- 磁盘空间：安装缓存默认在用户目录，空间不足时设置 `BUN_INSTALL_CACHE_DIR`（见 `docs/bun-install.md` 第 5 节）。
+- 磁盘空间：安装缓存默认在用户目录，空间不足时设置 `BUN_INSTALL_CACHE_DIR`（见 `docs/qtui/bun-install.md` 第 5 节）。
 
 ## 3. 日常构建
 
@@ -42,7 +52,7 @@ bun run qtoc:trim               # 重新应用 headless 裁剪（幂等；模式
 bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 ```
 
-然后按 `docs/qt-headless.md` 第 4 节做冒烟验证（健康检查、question 工具、SSE、二进制启动）。
+然后按 `docs/qtui/qt-headless.md` 第 4 节做冒烟验证（健康检查、question 工具、SSE、二进制启动）。
 
 ## 5. 冲突热点清单
 
@@ -57,9 +67,9 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `.github/workflows/test.yml` | 移除 app e2e 任务 |
 | 删除类冲突（modify/delete） | **保持删除**（app/desktop/web/session-ui/storybook/console/stats/enterprise/slack/function/cli、github/、sdks/、nix/、flake.*、相关 workflows 与 patches） |
 
-合并完成后一律执行 `bun run qtoc:trim`：它会重新应用上述裁剪，并在上游改动了关键模式时抛错提示手动更新 `script/qtoc/trim.ts`。
+合并完成后一律执行 `bun run qtoc:trim`：它会重新应用上述裁剪，并在上游改动了关键模式时抛错提示手动更新 `packages/qtui/src/trim.ts`。
 
-## 6. trim 脚本行为（`script/qtoc/trim.ts`）
+## 6. trim 脚本行为（`packages/qtui/src/trim.ts`）
 
 1. 删除 UI 应用与无关组件目录/文件/workflows/patches；
 2. 精简根 `package.json`（workspaces、scripts、trustedDependencies、patchedDependencies），确保 `qtoc:trim` / `qtoc:build` 脚本存在；
@@ -79,7 +89,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 | 现象 | 处理 |
 |---|---|
-| `bun install` 报 node-gyp / ENOSPC | 见 `docs/bun-install.md` 第 5 节 |
-| `qtoc:trim` 抛 "no longer matches the expected outfile pattern" | 上游改了 `build.ts`，更新 `script/qtoc/trim.ts` 中的模式后重跑 |
+| `bun install` 报 node-gyp / ENOSPC | 见 `docs/qtui/bun-install.md` 第 5 节 |
+| `qtoc:trim` 抛 "no longer matches the expected outfile pattern" | 上游改了 `build.ts`，更新 `packages/qtui/src/trim.ts` 中的模式后重跑 |
 | `qtoc:build` 找不到产物 | 确认 `build.ts` 未报错、`packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]` 存在 |
 | `git push` 报 husky `bun: command not found` | 将 `%USERPROFILE%\.bun\bin` 加入当前会话 PATH 后再推送 |

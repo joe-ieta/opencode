@@ -1,0 +1,6 @@
+build*/
+fixtures/qtoc_core
+fixtures/qtoc_core.exe
+CMakeLists.txt.user*
+.qtc_clangd/
+*.autosave

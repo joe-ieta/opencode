@@ -2,7 +2,7 @@
 /**
  * qtoc_core build orchestrator.
  *
- * Usage:
+ * Usage (from repo root):
  *   bun run qtoc:build                 # install + typecheck + build + stage artifact
  *   bun run qtoc:build --skip-install  # reuse node_modules
  *   bun run qtoc:build --skip-typecheck
@@ -16,7 +16,7 @@ import { $ } from "bun"
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const ROOT = path.resolve(import.meta.dir, "../..")
+const ROOT = path.resolve(import.meta.dir, "../../..")
 process.chdir(ROOT)
 
 const args = new Set(process.argv.slice(2))

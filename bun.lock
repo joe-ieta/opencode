@@ -406,6 +406,15 @@
         "@typescript/native-preview": "catalog:",
       },
     },
+    "packages/qtui": {
+      "name": "@opencode-ai/qtui",
+      "version": "1.18.31",
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+        "@typescript/native-preview": "catalog:",
+      },
+    },
     "packages/schema": {
       "name": "@opencode-ai/schema",
       "dependencies": {
@@ -1166,6 +1175,8 @@
     "@opencode-ai/plugin": ["@opencode-ai/plugin@workspace:packages/plugin"],
 
     "@opencode-ai/protocol": ["@opencode-ai/protocol@workspace:packages/protocol"],
+
+    "@opencode-ai/qtui": ["@opencode-ai/qtui@workspace:packages/qtui"],
 
     "@opencode-ai/schema": ["@opencode-ai/schema@workspace:packages/schema"],
 

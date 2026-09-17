@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@opencode-ai/qtui",
+  "version": "1.18.31",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Qt/C++ integration package for the headless opencode kernel (qtoc_core)",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "trim": "bun run src/trim.ts",
+    "build": "bun run src/build.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

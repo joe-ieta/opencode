@@ -11,7 +11,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const ROOT = path.resolve(import.meta.dir, "../..")
+const ROOT = path.resolve(import.meta.dir, "../../..")
 process.chdir(ROOT)
 
 const REMOVED_DIRS = [
@@ -113,11 +113,11 @@ for (const file of REMOVED_PATCHES) await remove(file)
     actions.push(`package.json: removed script ${key}`)
   }
   if (!pkg.scripts["qtoc:trim"]) {
-    pkg.scripts["qtoc:trim"] = "bun run script/qtoc/trim.ts"
+    pkg.scripts["qtoc:trim"] = "bun run --cwd packages/qtui trim"
     actions.push("package.json: added script qtoc:trim")
   }
   if (!pkg.scripts["qtoc:build"]) {
-    pkg.scripts["qtoc:build"] = "bun run script/qtoc/build.ts"
+    pkg.scripts["qtoc:build"] = "bun run --cwd packages/qtui build"
     actions.push("package.json: added script qtoc:build")
   }
   if (Array.isArray(pkg.trustedDependencies)) {
@@ -169,7 +169,7 @@ for (const file of REMOVED_PATCHES) await remove(file)
   }
   if (!text.includes("/bin/qtoc_core")) {
     throw new Error(
-      "qtoc trim: packages/opencode/script/build.ts no longer matches the expected outfile pattern. Review the upstream build script and update script/qtoc/trim.ts.",
+      "qtoc trim: packages/opencode/script/build.ts no longer matches the expected outfile pattern. Review the upstream build script and update packages/qtui/src/trim.ts.",
     )
   }
 }

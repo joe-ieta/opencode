@@ -1,0 +1,29 @@
+#pragma once
+
+#include <QHash>
+#include <QJsonObject>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+
+class SessionModel : public QObject {
+    Q_OBJECT
+
+public:
+    explicit SessionModel(QObject *parent = nullptr);
+
+    void reset();
+    void upsert(const QJsonObject &part);
+    void appendDelta(const QString &partID, const QString &field, const QString &delta);
+    QString transcript() const;
+
+private:
+    struct Part {
+        QString id;
+        QString type;
+        QString text;
+    };
+
+    QHash<QString, Part> m_parts;
+    QStringList m_order;
+};

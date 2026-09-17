@@ -1,6 +1,6 @@
 # opencode × Qt 集成方法文档（方法论与决策要点）
 
-> 本文是集成设计的方法与决策记录，配套实施步骤见 `docs/opencode-qt-integration.md`。
+> 本文是集成设计的方法与决策记录，配套实施步骤见 `docs/qtui/opencode-qt-integration.md`。
 >
 > 基准版本：opencode `v1.18.31`（dev 分支，HEAD `e03db9bc6`）。所有协议、字段、端点均来自当前源码与 `packages/sdk/openapi.json`（由 `opencode generate` 生成，共 188 个端点）。
 >
