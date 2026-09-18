@@ -43,6 +43,7 @@
 |---|---|---|---|
 | 2026-09-17 | `upstream/dev` | `88c6c7abc..b02acc1e30`（2 个提交） | `qtoc:sync` 自动解决 3 个删除冲突；trim 0 变更；typecheck 18/18；构建与冒烟通过 |
 | 2026-09-18 | `upstream/dev` | 已是最新（无新提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18 |
+| 2026-09-18 | `upstream/dev` | `b02acc1e30..3dd1b30539`（3 个提交） | `qtoc:sync` 自动解决 59 个删除冲突；trim 0 变更；typecheck 18/18；`openapi.json`/`types.gen.ts` 无变化（188 端点基线不变） |
 
 ## 发布记录
 
