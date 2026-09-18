@@ -42,6 +42,14 @@
 | 日期 | 上游 ref | 提交范围 | 结果 |
 |---|---|---|---|
 | 2026-09-17 | `upstream/dev` | `88c6c7abc..b02acc1e30`（2 个提交） | `qtoc:sync` 自动解决 3 个删除冲突；trim 0 变更；typecheck 18/18；构建与冒烟通过 |
+| 2026-09-18 | `upstream/dev` | 已是最新（无新提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18 |
+
+## 发布记录
+
+| 版本标签 | 内容 | 冒烟结果 |
+|---|---|---|
+| `qt-headless-v1.18.31.4` | `qtoc:sync` 自动化、架构 KG、上游合并 | 构建 smoke 通过 |
+| `qt-headless-v1.18.31.5` | 上游同步（已最新）+ 重新构建 | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；真实 DeepSeek 回复完成（`finish: stop`）；无 ERROR |
 
 ## 本地 delta 与上游化状态
 
