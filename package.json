@@ -10,6 +10,7 @@
     "dev:headless": "bun run --cwd packages/opencode src/index.ts serve",
     "qtoc:trim": "bun run --cwd packages/qtui trim",
     "qtoc:build": "bun run --cwd packages/qtui build",
+    "qtoc:sync": "bun run --cwd packages/qtui sync",
     "lint": "oxlint",
     "typecheck": "bun turbo typecheck",
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",

@@ -120,6 +120,10 @@ for (const file of REMOVED_PATCHES) await remove(file)
     pkg.scripts["qtoc:build"] = "bun run --cwd packages/qtui build"
     actions.push("package.json: added script qtoc:build")
   }
+  if (!pkg.scripts["qtoc:sync"]) {
+    pkg.scripts["qtoc:sync"] = "bun run --cwd packages/qtui sync"
+    actions.push("package.json: added script qtoc:sync")
+  }
   if (Array.isArray(pkg.trustedDependencies)) {
     const keptTrusted = pkg.trustedDependencies.filter((item: string) => !REMOVED_TRUSTED_DEPS.includes(item))
     if (keptTrusted.length !== pkg.trustedDependencies.length) {

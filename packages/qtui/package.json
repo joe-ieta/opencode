@@ -12,6 +12,7 @@
   "scripts": {
     "trim": "bun run src/trim.ts",
     "build": "bun run src/build.ts",
+    "sync": "bun run src/sync.ts",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {

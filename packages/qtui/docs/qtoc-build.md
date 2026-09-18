@@ -65,15 +65,28 @@ bun run qtoc:build
 
 ## 4. 与上游同步后的重建（标准流程）
 
+推荐使用同步脚本（自动 fetch/merge、自动保持删除、trim、install、typecheck）：
+
+```bash
+git checkout qt-headless
+bun run qtoc:sync               # = fetch upstream/dev → merge → 自动解决 modify/delete → trim → install → typecheck
+bun run qtoc:build              # 构建 + 归档（CI 矩阵亦可）
+```
+
+出现非删除类冲突时，脚本会中止并列出冲突文件；手动解决后执行 `bun run qtoc:trim` 再提交。
+
+等价的底层命令（脚本内部步骤）：
+
 ```bash
 git fetch upstream
-git checkout qt-headless
 git merge upstream/dev          # 解决冲突，见第 5 节
 bun run qtoc:trim               # 重新应用 headless 裁剪（幂等；模式不匹配会报错）
 bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 ```
 
 然后按 `packages/qtui/docs/qt-headless.md` 第 4 节做冒烟验证（健康检查、question 工具、SSE、二进制启动）。
+
+架构与长期维护策略见 `packages/qtui/docs/KG/architecture.md`。
 
 ## 5. 冲突热点清单
 
