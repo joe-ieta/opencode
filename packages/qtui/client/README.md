@@ -76,4 +76,6 @@ ctest --output-on-failure
 ## 说明
 
 - 客户端不负责 prompt 组装、模型解析与工具执行，全部由内核完成；
-- 事件与端点清单见 `packages/qtui/docs/opencode-qt-integration-methodology.md` 第 7 节。
+- 工程逐模块导读与扩展方式见 `packages/qtui/docs/guide/client-tour.md`；
+- 接口功能分类与关键约定见 `packages/qtui/docs/guide/qt-shell-guide.md`；
+- 端点与事件清单见 `packages/qtui/docs/api/qtoc-http-api.md`。

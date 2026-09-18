@@ -234,7 +234,7 @@ curl -s -u opencode:dev-secret http://127.0.0.1:4096/global/health
 bun run --cwd packages/opencode script/build.ts --single
 ```
 
-详细验证清单见 `packages/qtui/docs/qt-headless.md` 第 4 节。
+详细验证清单见 `packages/qtui/docs/ops/qt-headless.md` 第 4 节。
 
 ---
 

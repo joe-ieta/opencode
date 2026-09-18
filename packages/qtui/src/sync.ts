@@ -94,4 +94,4 @@ if (!skipTypecheck) {
 
 console.log("qtoc sync: done")
 console.log("  next: bun run qtoc:build")
-console.log("  then: run the smoke checklist in packages/qtui/docs/qt-headless.md")
+console.log("  then: run the smoke checklist in packages/qtui/docs/ops/qt-headless.md")

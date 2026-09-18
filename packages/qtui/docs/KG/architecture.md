@@ -45,7 +45,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 | 打包发行 | `qtui/src/build.ts`、`opencode/script/build.ts`、`.github/workflows/qtoc.yml` | 版本/通道注入、`QTOC_MINIFY`、产物命名、归档重试、CI 矩阵原生构建 |
 | 内核补丁 | `core/filesystem/search.ts`、`core/effect/layer-node.ts` | 修复打包崩溃；图层依赖校验 |
 | 独立客户端 | `qtui/client/**` | 进程管理、HTTP/SSE、事件路由、会话投影、权限/问答、设置窗口、Qt Test |
-| 文档 | `qtui/docs/**` | 集成方法、构建/同步、Bun 安装、KG 历史 |
+| 文档 | `qtui/docs/**` | 阅读引导（README）、接口参考（api）、开发指南（guide）、集成方法（integration）、构建/同步（ops）、KG 历史 |
 
 ## 3. 同步成本分析
 
@@ -80,7 +80,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 
 ### 阶段 1（已落地）
 - [x] `bun run qtoc:sync`：自动 fetch/merge/解决删除冲突/trim/install/typecheck
-- [x] 同步流程文档化（本文 + `qtoc-build.md` 第 4 节）
+- [x] 同步流程文档化（本文 + `../ops/qtoc-build.md` 第 4 节）
 
 ### 阶段 2（内核修复上游化）
 - [x] 已提交 PR 1：`fix(core): break filesystem search import cycle` — https://github.com/anomalyco/opencode/pull/49683
@@ -116,7 +116,7 @@ bun run qtoc:build
 # 推送 qt-headless-v* 标签，或在 GitHub Actions 手动运行 qtoc 工作流
 ```
 
-同步后验证：`packages/qtui/docs/qt-headless.md` 第 4 节冒烟清单 + `ctest`（`packages/qtui/client`）。
+同步后验证：`packages/qtui/docs/ops/qt-headless.md` 第 4 节冒烟清单 + `ctest`（`packages/qtui/client`）。
 
 ## 7. 风险与监控点
 

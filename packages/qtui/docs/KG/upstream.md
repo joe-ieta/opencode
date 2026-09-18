@@ -10,7 +10,7 @@
 | 上游仓库 | https://github.com/anomalyco/opencode （remote `upstream`，默认分支 `dev`） |
 | 本仓库（fork） | https://github.com/joe-ieta/opencode （remote `origin`） |
 | 跟踪分支 | `qt-headless` |
-| 同步工具 | `bun run qtoc:sync`（见 `qtoc-build.md` 第 4 节） |
+| 同步工具 | `bun run qtoc:sync`（见 `../ops/qtoc-build.md` 第 4 节） |
 | 当前内核版本 | `1.18.31`（channel `qt-headless`） |
 
 ## 上游政策备忘
