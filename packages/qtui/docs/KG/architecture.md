@@ -87,6 +87,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 - [x] 已提交 PR 2：`fix(core): validate layer node dependencies` — https://github.com/anomalyco/opencode/pull/49684
 - [ ] 上游合并后，从本地 delta 中移除对应补丁（`search.ts` / `layer-node.ts`），并在 KG 记录
 - 说明：两个 PR 均从 `upstream/dev` 拉出独立分支（`filesystem-search-cycle`、`layer-node-validation`），只包含对应修复（PR 2 含单测）
+- 长期跟踪：issue/PR/同步历史/上游政策统一记录在 `KG/upstream.md`
 
 ### 阶段 3（协议契约与版本策略）
 - [ ] 客户端只使用稳定面（`/session`、`/event`、`/permission`、`/question`、`/config`、`/config/providers`）
