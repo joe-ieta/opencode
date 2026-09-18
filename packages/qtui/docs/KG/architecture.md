@@ -83,9 +83,10 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 - [x] 同步流程文档化（本文 + `qtoc-build.md` 第 4 节）
 
 ### 阶段 2（内核修复上游化）
-- [ ] 向上游提交 PR 1：`fix(core): break filesystem search import cycle`（附 KG-001 复现与验证）
-- [ ] 向上游提交 PR 2：`fix(core): validate layer node dependencies`（报节点名+索引）
-- [ ] 上游合并后，从本地 delta 中移除对应补丁，并在 KG 记录
+- [x] 已提交 PR 1：`fix(core): break filesystem search import cycle` — https://github.com/anomalyco/opencode/pull/49683
+- [x] 已提交 PR 2：`fix(core): validate layer node dependencies` — https://github.com/anomalyco/opencode/pull/49684
+- [ ] 上游合并后，从本地 delta 中移除对应补丁（`search.ts` / `layer-node.ts`），并在 KG 记录
+- 说明：两个 PR 均从 `upstream/dev` 拉出独立分支（`filesystem-search-cycle`、`layer-node-validation`），只包含对应修复（PR 2 含单测）
 
 ### 阶段 3（协议契约与版本策略）
 - [ ] 客户端只使用稳定面（`/session`、`/event`、`/permission`、`/question`、`/config`、`/config/providers`）
