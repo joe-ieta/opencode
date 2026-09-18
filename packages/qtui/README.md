@@ -27,7 +27,7 @@ bun run qtoc:build       # 构建 qtoc_core 并归档到 artifacts/qtoc/
 可选参数：`--skip-install`、`--skip-typecheck`、`--baseline`。
 
 发布产物走 **CI 矩阵原生构建**（`.github/workflows/qtoc.yml`：Linux/Windows/macOS 各自原生构建 + 冒烟 + 上传产物），
-本地 `qtoc:build` 只产出当前平台版本。详见 `docs/qtui/qtoc-build.md` 3.1 节。
+本地 `qtoc:build` 只产出当前平台版本。详见 `packages/qtui/docs/qtoc-build.md` 3.1 节。
 
 ## Qt 客户端工程
 
@@ -35,8 +35,8 @@ bun run qtoc:build       # 构建 qtoc_core 并归档到 artifacts/qtoc/
 
 ## 文档
 
-- 集成方法与端点清单：`docs/qtui/opencode-qt-integration-methodology.md`
-- 实施步骤：`docs/qtui/opencode-qt-integration.md`
-- Headless 发行与验证：`docs/qtui/qt-headless.md`
-- 构建与上游同步：`docs/qtui/qtoc-build.md`
-- Bun 安装（Windows/Linux）：`docs/qtui/bun-install.md`
+- 集成方法与端点清单：`packages/qtui/docs/opencode-qt-integration-methodology.md`
+- 实施步骤：`packages/qtui/docs/opencode-qt-integration.md`
+- Headless 发行与验证：`packages/qtui/docs/qt-headless.md`
+- 构建与上游同步：`packages/qtui/docs/qtoc-build.md`
+- Bun 安装（Windows/Linux）：`packages/qtui/docs/bun-install.md`

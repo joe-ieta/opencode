@@ -443,7 +443,7 @@ session.error                   → 错误提示
 
 ### 5.8 业务上下文注入（插件 + 业务服务，已确定）
 
-架构与钩子细节见 `docs/qtui/opencode-qt-integration-methodology.md` 5.4；Qt 端点与流程清单见同文档第 7 节。实施步骤：
+架构与钩子细节见 `packages/qtui/docs/opencode-qt-integration-methodology.md` 5.4；Qt 端点与流程清单见同文档第 7 节。实施步骤：
 
 1. 业务侧提供分析接口（建议 `127.0.0.1` + 随机端口 + 一次性 token，契约见方法文档 5.4）；
 2. 编写插件 `.opencode/plugin/business-context.ts`：
