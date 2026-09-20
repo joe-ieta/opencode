@@ -3,7 +3,7 @@
 > 定位：在**不 fork 内核、最小 delta、可持续同步 OpenCode 上游**的前提下，把 `qtoc_core` 扩展为面向数据分析、数据治理与数据语义化查询（Text-to-SQL）的领域智能体运行时。
 > 本文聚焦**宏观设计**（架构、边界、能力需求、流程与兼容策略）；实施细节（工具 Schema、提示词、评测集）在后续设计文档中展开。
 > 版本基线：opencode `1.18.31`（channel `qt-headless`）。
-> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）。
+> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）、`../KG/data-agent-faq.md`（扩展边界与交付形态决策）。
 
 ---
 

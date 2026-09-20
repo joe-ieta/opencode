@@ -31,6 +31,7 @@ docs/README.md（本文）
 ```
 docs/README.md（本文）
   → integration/data-agent-design.md  领域智能体总体架构、能力需求、样例链路、上游兼容策略
+  → KG/data-agent-faq.md              扩展边界、网关交付形态、单一二进制配置区分
   → integration/methodology.md        5.4 业务上下文注入（插件 + 业务服务）
   → guide/qt-shell-guide.md           客户端落地约定
 ```
@@ -72,6 +73,7 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 知识库 | `KG/` | `architecture.md` | 代码组织、上游差异、同步成本、长期路线、Roadmap | 维护者 |
 | 知识库 | `KG/` | `upstream.md` | 上游政策、我方 Issue/PR、合并与发布记录、delta 状态 | 维护者 |
 | 知识库 | `KG/` | `history.md` | 问题处理历史（KG-001…）、验证基线、关键提交 | 维护者/排查 |
+| 知识库 | `KG/` | `data-agent-faq.md` | 数据治理扩展边界、网关交付形态（MCP）、单一二进制配置区分（Q&A 决策记录） | 架构师/维护者 |
 
 相关入口（不在本目录）：
 
