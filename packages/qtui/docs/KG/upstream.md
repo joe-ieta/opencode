@@ -45,6 +45,7 @@
 | 2026-09-18 | `upstream/dev` | 已是最新（无新提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18 |
 | 2026-09-18 | `upstream/dev` | `b02acc1e30..3dd1b30539`（3 个提交） | `qtoc:sync` 自动解决 59 个删除冲突；trim 0 变更；typecheck 18/18；`openapi.json`/`types.gen.ts` 无变化（188 端点基线不变） |
 | 2026-09-20 | `upstream/dev` | `3dd1b30539..ebb7b76eca`（18 个提交） | `qtoc:sync` 自动解决 32 个删除冲突；trim 移除 packages/web、packages/console 的上游新增文件（2 处）；typecheck 18/18；协议无变化（188 端点） |
+| 2026-09-20 | `upstream/dev` | `ebb7b76eca..70a24697ea`（10 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游版本后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 
 ## 发布记录
 

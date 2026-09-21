@@ -66,7 +66,7 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 开发指南 | `guide/` | `client-tour.md` | 参考实现逐模块导读、构建运行、扩展任务、调试清单 | 客户端开发者 |
 | 集成设计 | `integration/` | `methodology.md` | 集成模式选型、职责边界、协议面策略、配置注入、RAG、权限/问答、多 daemon、风险、验收 | 架构师/集成负责人 |
 | 集成设计 | `integration/` | `implementation.md` | 阶段 0/1/2 实施步骤、裁剪清单、Qt 模块划分、源码索引 | 架构师/实施者 |
-| 领域设计 | `integration/` | `data-agent-design.md` | 数据治理/Text-to-SQL 领域智能体：目标范围、架构分层、能力需求、样例链路、扩展点映射、上游兼容策略、路线图 | 架构师/领域负责人 |
+| 领域设计 | `integration/` | `data-agent-design.md` | 数据治理/Text-to-SQL 领域智能体：目标范围、架构分层、能力需求、样例链路、扩展点映射、语义层选型与定制、决策记录、上游兼容策略、路线图 | 架构师/领域负责人 |
 | 运维发行 | `ops/` | `qtoc-build.md` | 构建编排、CI 矩阵、上游同步标准流程、冲突热点、标签流程 | 构建/维护 |
 | 运维发行 | `ops/` | `qt-headless.md` | 发行内容（保留/移除）、运行方式、验证清单、与上游同步注意 | 构建/维护 |
 | 运维发行 | `ops/` | `bun-install.md` | Bun 安装（Windows/Linux）、镜像、疑难（node-gyp/ENOSPC） | 构建/维护 |
