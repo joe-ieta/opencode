@@ -3,7 +3,7 @@
 > 定位：在**不 fork 内核、最小 delta、可持续同步 OpenCode 上游**的前提下，把 `qtoc_core` 扩展为面向数据分析、数据治理与数据语义化查询（Text-to-SQL）的领域智能体运行时。
 > 本文聚焦**宏观设计**（架构、边界、能力需求、流程与兼容策略）；实施细节（工具 Schema、提示词、评测集）在后续设计文档中展开。
 > 版本基线：opencode `1.18.32`（channel `qt-headless`）。
-> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）、`../KG/data-agent-faq.md`（扩展边界与交付形态决策）。
+> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）、`../KG/data-agent-faq.md`（扩展边界与交付形态决策）、`dual-engine-architecture.md`（双引擎底座架构 v1）、`../capabilities/text2sql.md`（Text-to-SQL 能力包设计，验证 Demo）。
 
 ---
 
@@ -195,6 +195,8 @@
 ---
 
 ## 5. 样例链路设计：Text-to-SQL 治理闭环（宏观）
+
+> 该链路的**能力包级设计**（manifest、工具契约分层、发布与挂载、评测、双引擎验证矩阵）已独立为 `../capabilities/text2sql.md`（作为双引擎架构的验证 Demo）；本节保留领域设计视角的宏观链路与失败处理。
 
 ### 5.1 状态机
 
