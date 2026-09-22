@@ -192,6 +192,39 @@
 
 SDK 需 UI 无关、可嵌入（QtCreator 插件/桌面/无头批处理三种宿主）。
 
+### 4.7 接口面选型：V1/V2 成熟度与混用边界
+
+**成熟度对比**（基线 `1.18.32`）：
+
+| 维度 | V1（legacy，Demo 现用） | V2（`/api/*`） |
+|---|---|---|
+| 定位 | 稳定主链路（Qt/CLI/TUI 现用） | 新会话内核方向；协议自述 "Experimental HttpApi surface" |
+| 能力面 | 完整：config/MCP/project/VCS/global/auth/会话管理 | 不完整：缺 config/MCP/project/VCS/global/auth/sync/会话重命名删除 |
+| 消息输入 | `parts`（text/file/agent/subtask）、`system`、`tools`、`noReply`、per-message `model`/`agent`、`format: json_schema` | 仅 `{ text, files, agents }` + `delivery: steer\|queue` + `resume`；**无 parts/subtask、无结构化输出、无 per-message 覆盖** |
+| 会话控制 | abort/revert/unrevert/summarize/fork/share | `wait`/`interrupt`/`compact`/agent·model switch/revert stage·commit·clear/context |
+| 事件 | `message.part.*`、`permission.asked`、`question.asked`；无重放 | `session.next.*` 分段事件、`permission.v2.asked`、`question.v2.asked`；**durable + 游标重放** |
+| 权限持久化 | `always` 仅实例内存 | `save` patterns → `/api/permission/saved` |
+| 实现/验证 | 大量生产验证 | core session V2 已实质落地（`packages/core/src/session/**`、36 个相关测试）；仓库内无客户端消费 |
+| 稳定性 | 稳定面 | 实验，可能变更 |
+
+**混用边界**（哪些能混、哪些不能）：
+
+| 层 | 能否混用 | 说明 |
+|---|---|---|
+| 存储/数据 | ✅ | 共享同一 schema/表（`SessionTable`/`MessageTable`(V1MessageData)/`PartTable`/`SessionInputTable`）；V1 读取同一 `SessionTable`（`packages/opencode/src/session/session.ts:540-543`） |
+| 事件流 | ✅ | 单一事件总线（`EventV2Bridge`），V1/V2 变体同时出现在 `/event` |
+| 历史读取 | ✅ | V2 消息以 V1 兼容形状持久化，V1 可读；V1 历史在 V2 续跑时懒合成 inbox 记录（`packages/core/src/session/input.ts:118-168` `projectPrompted`） |
+| 应答（权限/问答） | ❌ 必须按变体路由 | V1 与 V2 的 pending 服务与应答端点相互独立：收到 `permission.asked` → `/permission/{requestID}/reply`；收到 `permission.v2.asked` → `/api/session/{sessionID}/permission/{requestID}/reply`；问答同理 |
+| 执行器 | ⚠️ 禁止同会话并发 | V1 走 `SessionPrompt` 循环，V2 走 `SessionExecution`/runner；同一会话按"一个模式"顺序操作，不并发混用 |
+| 目录作用域 | ⚠️ 需适配 | V1 用 `x-opencode-directory` 头；V2 用 body `location.directory` / query |
+
+**选型策略**：
+
+1. **V1 主链路**：交互式会话、结构化输出（`format`）、多模态 parts、管理面（config/MCP/project）；
+2. **V2 选择性增强**（优先编排侧）：委派/批处理的 `wait`/`interrupt`、游标重放（`event?after=`/`history?after=`）、会话级 `agent`/`model` 切换、`delivery: steer|queue`、`/api/permission/saved` 持久化；
+3. **适配层**：SDK 暴露统一模型并按能力路由 V1/V2；事件层双变体兼容；V2 调用集中在单一适配模块，随内核版本锁定并纳入回归；
+4. **迁移触发条件**：V2 补齐 `format`/parts/管理面、移除 experimental 标注、本仓库客户端验证通过后，再评估切换主链路。
+
 ---
 
 ## 5. 能力包规范与注册（v1：文件/包注册）
@@ -334,7 +367,7 @@ SDK 需 UI 无关、可嵌入（QtCreator 插件/桌面/无头批处理三种宿
 
 ## 7. 验证能力：Text-to-SQL Demo 能力包
 
-Text-to-SQL 能力包是双引擎架构的**验证 Demo（demo 工程）**，用于端到端验证底座能力；它不作为生产首发能力，验证通过后再按生产化路径转正。能力包级设计（manifest、工具契约、链路、评测、发布与挂载、验证矩阵）见 `../capabilities/text2sql.md`；领域需求与宏观设计见 `data-agent-design.md`。
+Text-to-SQL 能力包是双引擎架构的**验证 Demo（demo 工程）**，用于端到端验证底座能力；它不作为生产首发能力，验证通过后再按生产化路径转正。能力包级设计（manifest、工具契约、链路、评测、发布与挂载、验证矩阵）见 `../capabilities/text2sql.md`；领域需求与宏观设计见 `data-agent-design.md`。Demo 使用 **V1 接口面**（依赖 `format: json_schema` 结构化输出与 parts，见 4.7），V2 增强项按 4.7 的选型策略灰度接入。
 
 **验证项一览**：
 
@@ -423,6 +456,10 @@ gateway / registry / infra 独立，经 HTTP/文件交互
 ### 9.5 内核版本（D5）
 
 **决策**：**双引擎不允许不同 `qtoc_core` 版本**。`qtoc_core` 作为基础资源被共用：底座统一分发与管理同一版本；能力包 manifest 声明兼容区间但运行期强制精确匹配，不兼容的能力包拒绝挂载。
+
+### 9.6 接口面策略（D6）
+
+**决策**：**V1 主链路 + V2 选择性增强**（见 4.7）。禁止同一会话并发混用 V1/V2 执行器；事件层必须同时兼容 V1/V2 变体并按变体路由应答；V2 调用集中在 SDK 的单一适配模块，随内核版本锁定并纳入契约回归。
 
 ---
 

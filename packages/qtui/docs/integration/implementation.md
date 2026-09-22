@@ -145,11 +145,11 @@ Content-Type: application/json
 
 ### 2.5 SSE 事件流
 
-连接 `GET /event`，响应头 `content-type: text/event-stream`。服务端行为（`packages/server/src/handlers/event.ts`）：
+连接 `GET /event`，响应头 `content-type: text/event-stream`。服务端行为（`packages/opencode/src/server/routes/instance/httpapi/handlers/event.ts`）：
 
 - 事件编码：`data: <JSON>\n\n`，JSON 形如 `{ "id": "...", "type": "...", "properties": { ... } }`。
-- 心跳：每 15 秒一行 `: heartbeat`（注释行，客户端忽略）。
-- **全局流无重放**：断线重连后需要重新拉取历史（见 2.6）。
+- 心跳与终止：每 **10 秒**一个 `server.heartbeat` 事件（按未知事件忽略）；实例释放时发送 `server.instance.disposed` 并结束流（需重连）。`/api/event`（V2）才是 15s `: heartbeat` 注释心跳。
+- **全局流无重放**：断线重连后需要重新拉取历史（见 2.6）；V2 `/api/session/{id}/event?after=` 提供游标重放。
 
 解析要点（TS 参考实现 `packages/client/src/generated/client.ts:192-247`）：
 

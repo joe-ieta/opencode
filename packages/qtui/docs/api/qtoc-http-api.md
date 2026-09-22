@@ -58,12 +58,15 @@ Qt 侧解析建议：取 `data.message`，回退 `message`，再回退原始 JSO
 `GET /event`（目录级）与 `GET /global/event`（全局），响应头 `content-type: text/event-stream`。
 
 - 事件编码：`data: <JSON>\n\n`，JSON 为 `{ "id": "...", "type": "...", "properties": { ... } }`。
-- 心跳：每 15 秒一行 `: heartbeat`（注释行，忽略）。
+- **心跳与终止（两个流不同）**：
+  - `/event`（legacy，Qt 主用）：每 **10 秒**一个 `server.heartbeat` **事件**（`{ id, type: "server.heartbeat", properties: {} }`，按未知事件忽略）；实例释放时发送 `server.instance.disposed` 并**结束流**（客户端需重连）；
+  - `/api/event`（V2）：每 **15 秒**一行 `: heartbeat` 注释行（客户端忽略）。
 - 首帧：连接后立即收到 `server.connected`。
 - **两个流的帧结构不同**：
   - `/event`：`data: { id, type, properties }`（目录级，Qt 主用）；
   - `/global/event`：`data: { directory, project?, workspace?, payload: { id, type, properties } }`（跨目录，多项目场景按 `directory` 分发）。
-- **无事件 ID、无重放**：断线后必须用 REST 拉取历史重建（见 `guide/qt-shell-guide.md` 第 8 节）。
+- **V1/V2 事件变体并存**：同一 `/event` 流会同时出现两代变体（如 `permission.asked` 与 `permission.v2.asked`、`question.asked` 与 `question.v2.asked`、V2 的 `session.next.*`）；客户端必须同时兼容，并按变体路由应答（V1 与 V2 的 pending 服务与应答端点相互独立，见 `../integration/dual-engine-architecture.md` 4.7）。
+- **legacy `/event` 无事件 ID、无重放**：断线后必须用 REST 拉取历史重建（见 `guide/qt-shell-guide.md` 第 8 节）；V2 `/api/session/{id}/event?after=` 提供游标重放。
 - 订阅者队列容量 256（`Queue.dropping`）：消费过慢会触发 `SubscriberOverflowError` 并终止该事件流（Qt 侧必须保证事件处理非阻塞，收到流结束需按第 8 节恢复）。
 
 分帧解析要点（参考实现 `packages/qtui/client/src/core/SseParser.cpp`）：
@@ -467,8 +470,10 @@ Qt 渲染建议：
 | `file.edited` | `file` | 文件变更联动（可选） |
 | `lsp.updated` | `{}` | LSP 状态（可选） |
 | `installation.*` | - | 安装/升级提示（可选） |
+| `permission.v2.asked` | `id, sessionID, action, resources[], save?, metadata?, source?` | V2 权限弹窗（应答必须走 `/api/session/{id}/permission/{requestID}/reply`） |
+| `question.v2.asked` | `id, sessionID, questions[], tool?` | V2 问答弹窗（应答必须走 `/api/session/{id}/question/{requestID}/reply|reject`） |
 
-> V2 事件（`session.next.*`、`permission.v2.*`、`question.v2.*` 等）属于实验面，Qt 可安全忽略。
+> V2 事件（`session.next.*`、`permission.v2.*`、`question.v2.*` 等）属于实验面：**纯 V1 主链路的 Qt 客户端可忽略**；但只要通过 `/api/*` 驱动过会话（哪怕只用于编排或重放），就必须处理 V2 的权限/问答变体并按变体路由应答（见 1.5 与 `../integration/dual-engine-architecture.md` 4.7），否则该会话会永久挂起。
 
 ---
 

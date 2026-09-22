@@ -110,7 +110,7 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 目录作用域 | `x-opencode-directory: <urlencoded 绝对路径>`（SSE 也必须带） |
 | 主链路 | `POST /session/{id}/prompt_async` + `GET /event`（SSE） |
 | 端点规模 | 188（稳定面 + `/experimental/*` + `/api/*` V2 + `/tui/*`） |
-| 事件 | `data: {id,type,properties}`；15s 心跳；无重放 |
+| 事件 | `data: {id,type,properties}`；`/event` 为 10s `server.heartbeat` 事件、`/api/event` 为 15s 注释心跳；legacy 无重放（V2 有游标） |
 | 客户端 | `packages/qtui/client`（Qt6 + CMake，含单测与进程测试） |
 
 ---

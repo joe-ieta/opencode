@@ -79,7 +79,7 @@ opencode serve（headless 内核，独立进程）
 
 - 认证：HTTP Basic，`opencode:<OPENCODE_SERVER_PASSWORD>`；Qt 每个请求（含 SSE）都带 `Authorization`。
 - 目录：`x-opencode-directory: <urlencoded 绝对路径>`（GET 也可 `?directory=`）；多项目共用一个 daemon。
-- SSE 格式：`data: {id,type,properties}`，15s 心跳 `: heartbeat`，无事件 ID、**无重放**；断线后拉历史重建。
+- SSE 格式：`data: {id,type,properties}`；`/event` 心跳为每 10s 的 `server.heartbeat` 事件（实例释放时以 `server.instance.disposed` 结束流），`/api/event` 为 15s 注释心跳；legacy 无事件 ID、**无重放**（V2 有游标）；断线后拉历史重建。
 
 ### 3.3 端点清单（按功能分组，共 188）
 
