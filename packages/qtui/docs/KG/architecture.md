@@ -1,7 +1,7 @@
 # qtui 模块架构与维护策略（KG）
 
 > 本文记录 qtui 支撑模块的代码组织方式、与上游 OpenCode 的关系、同步成本评估，以及已确定的长期演进路线。
-> 基线：`qt-headless` 分支，opencode `1.18.31`（channel `qt-headless`），上游参照 `upstream/dev`。
+> 基线：`qt-headless` 分支，opencode `1.18.32`（channel `qt-headless`），上游参照 `upstream/dev`。
 
 ## 摘要
 
@@ -24,16 +24,16 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 
 | 类型 | 数量 | 说明 |
 |---|---|---|
-| 删除 D | 2619 | app/desktop/web/session-ui/storybook/console/stats/enterprise/slack/function/cli、github/、sdks/、nix/、flake、相关 workflows/patches |
+| 删除 D | 2679 | app/desktop/web/session-ui/storybook/console/stats/enterprise/slack/function/cli、github/、sdks/、nix/、flake、相关 workflows/patches |
 | 新增 A | 36 | `packages/qtui`（脚本/客户端/文档）+ `.github/workflows/qtoc.yml` |
-| 修改 M | 9 | 内核源码仅 3 个：`core/filesystem/search.ts`、`core/effect/layer-node.ts`、`opencode/script/build.ts`；配置 6 个：`package.json`、`bun.lock`、`turbo.json`、`test.yml`、`.gitignore`、`opencode/src/index.ts` |
+| 修改 M | 8 | 内核源码仅 2 个：`core/effect/layer-node.ts`、`opencode/script/build.ts`（`search.ts` 已上游化）；配置 6 个：`package.json`、`bun.lock`、`turbo.json`、`test.yml`、`.gitignore`、`opencode/src/index.ts` |
 
 内核改动清单（全部有 KG 记录）：
 
 | 文件 | 改动 | 性质 |
 |---|---|---|
-| `packages/core/src/filesystem/search.ts` | 循环导入修复（`import type` + schema 直接引入 `Entry/Match`） | **可上游化**（真实 bug） |
-| `packages/core/src/effect/layer-node.ts` | `validateNodes` 依赖校验（报节点名+索引） | **可上游化**（防御） |
+| `packages/core/src/filesystem/search.ts` | 循环导入修复（`import type` + schema 直接引入 `Entry/Match`） | **已上游化**（上游 #50439，2026-09-21；本地已采用上游版本） |
+| `packages/core/src/effect/layer-node.ts` | `validateNodes` 依赖校验（报节点名+索引） | **可上游化**（防御；PR #49684 OPEN） |
 | `packages/opencode/script/build.ts` | `QTOC_MINIFY` 开关 + `qtoc_core` 产物名 + headless 默认 | 必须保留（发行定制） |
 
 ## 2. 能力构成（不只是裁剪打包）
@@ -43,7 +43,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 | 裁剪 | `qtui/src/trim.ts` | 幂等删除 UI/无关包、精简 workspaces/命令/CI/patches；模式漂移时**报错不静默** |
 | 同步 | `qtui/src/sync.ts` | fetch → merge → 自动解决 modify/delete 冲突（保持删除）→ trim → install → typecheck |
 | 打包发行 | `qtui/src/build.ts`、`opencode/script/build.ts`、`.github/workflows/qtoc.yml` | 版本/通道注入、`QTOC_MINIFY`、产物命名、归档重试、CI 矩阵原生构建 |
-| 内核补丁 | `core/filesystem/search.ts`、`core/effect/layer-node.ts` | 修复打包崩溃；图层依赖校验 |
+| 内核补丁 | `core/effect/layer-node.ts` | 图层依赖校验（`search.ts` 修复已上游化，本地无补丁） |
 | 独立客户端 | `qtui/client/**` | 进程管理、HTTP/SSE、事件路由、会话投影、权限/问答、设置窗口、Qt Test |
 | 文档 | `qtui/docs/**` | 阅读引导（README）、接口参考（api）、开发指南（guide）、集成方法（integration）、构建/同步（ops）、KG 历史 |
 
@@ -56,7 +56,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 | 删除类冲突 | 上游持续改 app/desktop/console/stats 等 | 每次同步，随上游活跃度增长 | `qtoc:sync` 自动保持删除（已落地） |
 | 热点文件冲突 | `package.json` / `index.ts` / `build.ts` / `turbo.json` / `test.yml` | 上游改到才发生 | 人工合并（改动小） |
 | trim 模式漂移 | 上游重构 build/index/命令注册 | 低频 | trim fail-fast → 更新模式 |
-| 内核补丁冲突 | `search.ts` 被上游改动 | 低频 | 上游已修则丢弃本地补丁 |
+| 内核补丁冲突 | `layer-node.ts` 被上游改动 | 低频 | 上游已修则丢弃本地补丁（`search.ts` 已按此处理） |
 | 协议漂移 | openapi / 事件联合类型变化 | 中频 | 客户端只依赖稳定面 + 未知事件忽略 |
 
 量化估计：
@@ -85,7 +85,8 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 ### 阶段 2（内核修复上游化）
 - [x] 已提交 PR 1：`fix(core): break filesystem search import cycle` — https://github.com/anomalyco/opencode/pull/49683
 - [x] 已提交 PR 2：`fix(core): validate layer node dependencies` — https://github.com/anomalyco/opencode/pull/49684
-- [ ] 上游合并后，从本地 delta 中移除对应补丁（`search.ts` / `layer-node.ts`），并在 KG 记录
+- [x] PR 1 已由上游 #50439 合并（2026-09-21，署名含 `frank`）；`search.ts` 本地补丁已移除（2026-09-22）
+- [ ] PR 2（`layer-node.ts`）上游合并后，从本地 delta 中移除对应补丁，并在 KG 记录
 - 说明：两个 PR 均从 `upstream/dev` 拉出独立分支（`filesystem-search-cycle`、`layer-node-validation`），只包含对应修复（PR 2 含单测）
 - 长期跟踪：issue/PR/同步历史/上游政策统一记录在 `KG/upstream.md`
 

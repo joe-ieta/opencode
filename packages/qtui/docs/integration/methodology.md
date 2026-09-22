@@ -4,7 +4,7 @@
 >
 > 面向客户端的接口分类指南见 `packages/qtui/docs/guide/qt-shell-guide.md`，全量端点清单见 `packages/qtui/docs/api/qtoc-http-api.md`。
 >
-> 基准版本：opencode `v1.18.31`（dev 分支，HEAD `e03db9bc6`）。所有协议、字段、端点均来自当前源码与 `packages/sdk/openapi.json`（由 `opencode generate` 生成，共 188 个端点）。
+> 基准版本：opencode `v1.18.32`（channel `qt-headless`）。所有协议、字段、端点均来自当前源码与 `packages/sdk/openapi.json`（由 `opencode generate` 生成，共 188 个端点）。
 >
 > 已确定决策：进程外 `opencode serve` + 全原生 Qt UI；业务上下文干预采用**插件 + 业务服务**（见 5.4）；权限/问答等全部交互由 Qt 承载（见 6）；Qt 端消费的端点与事件清单见 7。
 

@@ -2,7 +2,7 @@
 
 > 目标：将 opencode 裁剪为 headless 内核（HTTP + SSE），由现有 Qt/C++ 原生客户端接管全部 UI。
 >
-> 基准版本：opencode `v1.18.31`（仓库 dev 分支，HEAD `e03db9bc6`）。
+> 基准版本：opencode `v1.18.32`（channel `qt-headless`）。
 > 协议以 `packages/sdk/openapi.json` 与 `packages/sdk/js/src/v2/gen/types.gen.ts` 为准；本文引用的路径、字段均来自当前源码。
 
 ---

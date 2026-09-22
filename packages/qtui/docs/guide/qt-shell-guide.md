@@ -2,7 +2,7 @@
 
 > 面向 Qt / C++ / 其它 Native 桌面开发者：从零实现一个连接 `qtoc_core` 的原生客户端需要掌握的全部关键方面。
 > 协议全量清单见 `../api/qtoc-http-api.md`；设计决策与理由见 `../integration/methodology.md`；参考实现逐模块导读见 `client-tour.md`。
-> 基准版本：opencode `1.18.31`（channel `qt-headless`）。
+> 基准版本：opencode `1.18.32`（channel `qt-headless`）。
 
 ---
 

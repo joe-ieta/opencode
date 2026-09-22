@@ -11,7 +11,7 @@
 | 本仓库（fork） | https://github.com/joe-ieta/opencode （remote `origin`） |
 | 跟踪分支 | `qt-headless` |
 | 同步工具 | `bun run qtoc:sync`（见 `../ops/qtoc-build.md` 第 4 节） |
-| 当前内核版本 | `1.18.31`（channel `qt-headless`） |
+| 当前内核版本 | `1.18.32`（channel `qt-headless`；上游 2026-09-22 同步） |
 
 ## 上游政策备忘
 
@@ -25,15 +25,20 @@
 
 | Issue | 标题 | 状态 | 关联 PR | 备注 |
 |---|---|---|---|---|
-| [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | OPEN | #49683 | 编译版崩溃根因（KG-001） |
+| [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | **CLOSED**（2026-09-21，由上游 #50439 修复） | #49683 | 编译版崩溃根因（KG-001），已上游化 |
 | [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | OPEN | #49684 | 诊断性改进（KG-001 的定位手段） |
 
 ## 我方 PRs
 
 | PR | 分支 | 标题 | 状态 | 检查 | 备注 |
 |---|---|---|---|---|---|
-| [#49683](https://github.com/anomalyco/opencode/pull/49683) | `filesystem-search-cycle` | fix(core): break filesystem search import cycle | OPEN（BLOCKED，待 review） | 合规检查通过 | 上游合并后删除本地补丁 |
+| [#49683](https://github.com/anomalyco/opencode/pull/49683) | `filesystem-search-cycle` | fix(core): break filesystem search import cycle | OPEN（已被上游 #50439 取代并合并，待关闭） | 合规检查通过 | 本地补丁已移除（2026-09-22） |
 | [#49684](https://github.com/anomalyco/opencode/pull/49684) | `layer-node-validation` | fix(core): validate layer node dependencies | OPEN（BLOCKED，待 review） | 合规检查通过；含单测 | 上游合并后删除本地补丁 |
+
+上游代提交（我方修复）：
+| PR | 作者 | 标题 | 状态 | 备注 |
+|---|---|---|---|---|
+| [#50439](https://github.com/anomalyco/opencode/pull/50439) | `rekram1-node`（署名含 `frank`） | fix(core): break filesystem search import cycle | **MERGED**（2026-09-21） | 内容与我方 #49683 完全一致（同一 blob），已随上游进入 1.18.32 |
 
 状态取值：`OPEN` / `CHANGES_REQUESTED` / `MERGED` / `CLOSED`；`BLOCKED` 表示等待维护者 review。
 
@@ -46,6 +51,7 @@
 | 2026-09-18 | `upstream/dev` | `b02acc1e30..3dd1b30539`（3 个提交） | `qtoc:sync` 自动解决 59 个删除冲突；trim 0 变更；typecheck 18/18；`openapi.json`/`types.gen.ts` 无变化（188 端点基线不变） |
 | 2026-09-20 | `upstream/dev` | `3dd1b30539..ebb7b76eca`（18 个提交） | `qtoc:sync` 自动解决 32 个删除冲突；trim 移除 packages/web、packages/console 的上游新增文件（2 处）；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-20 | `upstream/dev` | `ebb7b76eca..70a24697ea`（10 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游版本后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
+| 2026-09-22 | `upstream/dev` | `70a24697ea..fe3f3a41f7`（6 个提交，含上游 #50439 = 我方 #49683） | `qtoc:sync` 自动解决 57 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；`search.ts` 本地补丁移除（与上游一致）；版本同步至 `1.18.32`；构建 `qtoc_core-1.18.32-windows-x64.exe` 并冒烟通过 |
 
 ## 发布记录
 
@@ -59,16 +65,16 @@
 
 | 本地改动 | 类型 | 上游化状态 | 上游合并后的动作 |
 |---|---|---|---|
-| `packages/core/src/filesystem/search.ts` | 可上游化（bug fix） | PR #49683 | 删除本地补丁，采用上游版本 |
-| `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684 | 删除本地补丁 |
+| `packages/core/src/filesystem/search.ts` | 可上游化（bug fix） | **已上游化**（上游 #50439，2026-09-21 合并；内容与 #49683 一致） | 本地补丁已移除（2026-09-22），与上游一致 |
+| `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684（OPEN） | 上游合并后删除本地补丁 |
 | `packages/opencode/script/build.ts`（`QTOC_MINIFY` / `qtoc_core` 产物名 / headless 默认） | 发行定制 | 不上游 | 保留，由 `trim` 维护 |
 | `packages/opencode/src/index.ts`（命令注销） | 裁剪 | 不上游 | 由 `trim` 维护 |
 | `package.json` / `turbo.json` / `test.yml` / workspaces | 裁剪配置 | 不上游 | 由 `trim` 维护 |
 
 ## 待办清单（长期）
 
-- [ ] 跟进 #49683 / #49684 的 review 意见（分支：`filesystem-search-cycle` / `layer-node-validation`）
-- [ ] 上游合并任一 PR 后：`bun run qtoc:sync` → 删除本地对应补丁 → 更新本文与 `KG/architecture.md`
+- [x] #49683：已由上游 #50439 合并，本地 `search.ts` 补丁已移除（2026-09-22）；待上游关闭我方 PR
+- [ ] 跟进 #49684 的 review 意见（分支：`layer-node-validation`）；合并后删除本地 `layer-node.ts` 补丁
 - [ ] 若上游提供官方打包/版本注入方案，评估替换本地 `build.ts` 定制
 - [ ] 每次同步后更新「上游合并记录」与「本地 delta」表
 - [ ] 关注上游 V2 API / 事件协议变化（客户端适配层）

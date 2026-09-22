@@ -1,7 +1,7 @@
 # qtui 文档阅读引导（Index）
 
 > 本目录是 `qtoc_core`（headless opencode 内核）与 Qt/Native 客户端集成的唯一文档入口。
-> 基准版本：opencode `1.18.31`（channel `qt-headless`）；协议以 `packages/sdk/openapi.json`（188 端点）为准。
+> 基准版本：opencode `1.18.32`（channel `qt-headless`）；协议以 `packages/sdk/openapi.json`（188 端点）为准。
 
 ---
 

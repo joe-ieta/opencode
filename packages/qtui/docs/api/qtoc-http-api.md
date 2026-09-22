@@ -1,7 +1,7 @@
 # qtoc_core HTTP / SSE 接口全量清单
 
 > 适用产物：`qtoc_core`（headless opencode 内核，`qt-headless` 分支）。
-> 基准版本：opencode `1.18.31`（channel `qt-headless`）。
+> 基准版本：opencode `1.18.32`（channel `qt-headless`）。
 > 来源：`packages/sdk/openapi.json`（`opencode generate` 生成，共 **188** 个端点）与 `packages/server/src/**`。
 > 配套阅读：`guide/qt-shell-guide.md`（按功能分类的开发指南）、`integration/methodology.md`（协议面选择与决策）。
 

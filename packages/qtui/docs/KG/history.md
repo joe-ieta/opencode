@@ -7,7 +7,7 @@
 
 | 编号 | 问题 | 状态 | 提交 |
 |---|---|---|---|
-| KG-001 | 编译版发 prompt 崩溃（LayerNode undefined） | 已修复 | `9f3419b9da` |
+| KG-001 | 编译版发 prompt 崩溃（LayerNode undefined） | 已修复（已上游化 #50439） | `9f3419b9da` |
 | KG-002 | 插件依赖安装失败（自定义版本号不在 npm） | 已修复 | `9f3419b9da` |
 | KG-003 | Qt 客户端聊天窗口无反馈（SSE 缺目录头 + 错误解析） | 已修复 | `25f1983ca3` / `e938cc685a` / `7a07ea49ca` |
 | KG-004 | 构建与归档稳定性（EBUSY、调试构建） | 已修复 | `9f3419b9da` |
@@ -68,6 +68,8 @@ import type { FileSystem } from "../filesystem"
 Entry.make(...)
 Match.make(...)
 ```
+
+**上游化**：该修复已由上游 PR #50439（2026-09-21 合并，署名含 `frank`）进入 `upstream/dev`，随 1.18.32 发布；本地补丁已于 2026-09-22 同步时移除，采用上游版本。跟踪见 `upstream.md`。
 
 ### 验证
 
