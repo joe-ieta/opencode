@@ -117,17 +117,18 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 | 标签 | 内容 |
 |---|---|
-| `qt-headless-v1.18.31` | 当前发行线（始终指向最新裁剪 + 验证提交） |
-| `qt-headless-v1.18.31.1` | qtoc_core 构建模式、同步安全裁剪、Windows 安装验证 |
-| `qt-headless-v1.18.31.2` | qtui 包重组（docs/qtui、packages/qtui、Qt Creator 客户端）并合并上游 `upstream/dev` |
+| `qt-headless-v1.18.32` | 当前发行线（1.18.32，始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.18.32.1` | 上游同步 `70a24697ea..fe3f3a41f7`（含 #50439 上游化 `search.ts`）+ 1.18.32 构建与冒烟 |
+| `qt-headless-v1.18.31` | 上一发行线（1.18.31） |
+| `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪） |
 
-- 二进制内置版本来自构建时的 `Script.version`（形如 `0.0.0-qt-headless-<timestamp>`），`qtoc_core --version` 可查看。
+- 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.18.32`）。
 - 打标签流程：
   ```bash
-  git tag -f -a qt-headless-v1.18.31 -m "opencode headless distribution profile for Qt integration"
-  git push -f origin qt-headless-v1.18.31
-  git tag -a qt-headless-v1.18.31.2 -m "<本次迭代说明>"
-  git push origin qt-headless-v1.18.31.2
+  git tag -a qt-headless-v1.18.32 -m "opencode headless distribution profile for Qt integration"
+  git push origin qt-headless-v1.18.32
+  git tag -a qt-headless-v1.18.32.1 -m "<本次迭代说明>"
+  git push origin qt-headless-v1.18.32.1
   ```
 
 ## 8. 已知问题与修复（1.18.31 基线）

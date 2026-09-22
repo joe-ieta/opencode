@@ -60,6 +60,7 @@
 | `qt-headless-v1.18.31.4` | `qtoc:sync` 自动化、架构 KG、上游合并 | 构建 smoke 通过 |
 | `qt-headless-v1.18.31.5` | 上游同步（已最新）+ 重新构建 | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；真实 DeepSeek 回复完成（`finish: stop`）；无 ERROR |
 | `qt-headless-v1.18.31.6` | 上游同步 `b02acc1e30..3dd1b30539` + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪）；Bun 1.4.2 本地构建；标签指向 `616a6c0b03` | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；CI 三平台（Windows/Linux/macOS）构建通过（Linux smoke 首次 runner 偶发挂起，重跑通过） |
+| `qt-headless-v1.18.32.1` | 上游同步 `70a24697ea..fe3f3a41f7`（6 个提交，含 #50439 上游化 `search.ts`，本地补丁移除）+ 文档基线更新至 1.18.32；标签指向 `3a5adb45cc` | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常 |
 
 ## 本地 delta 与上游化状态
 
