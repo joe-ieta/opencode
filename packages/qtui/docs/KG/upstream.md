@@ -63,6 +63,7 @@
 | `qt-headless-v1.18.31.6` | 上游同步 `b02acc1e30..3dd1b30539` + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪）；Bun 1.4.2 本地构建；标签指向 `616a6c0b03` | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；CI 三平台（Windows/Linux/macOS）构建通过（Linux smoke 首次 runner 偶发挂起，重跑通过） |
 | `qt-headless-v1.18.32.1` | 上游同步 `70a24697ea..fe3f3a41f7`（6 个提交，含 #50439 上游化 `search.ts`，本地补丁移除）+ 文档基线更新至 1.18.32；标签指向 `3a5adb45cc` | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常 |
 | `qt-headless-v1.18.32.2` | **双核架构设计结点**：双引擎底座架构 v1（`integration/dual-engine-architecture.md`）+ Text-to-SQL 能力包设计（`capabilities/text2sql.md`，验证 Demo）+ 文档索引更新；标签指向 `d30bcdf233`（纯文档，无二进制变更） | 文档评审通过（设计里程碑） |
+| `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5`（7 个提交）+ 1.18.32 构建与冒烟；标签指向 `218bcad093`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空 |
 
 ## 本地 delta 与上游化状态
 
