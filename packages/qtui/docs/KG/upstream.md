@@ -52,6 +52,7 @@
 | 2026-09-20 | `upstream/dev` | `3dd1b30539..ebb7b76eca`（18 个提交） | `qtoc:sync` 自动解决 32 个删除冲突；trim 移除 packages/web、packages/console 的上游新增文件（2 处）；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-20 | `upstream/dev` | `ebb7b76eca..70a24697ea`（10 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游版本后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-22 | `upstream/dev` | `70a24697ea..fe3f3a41f7`（6 个提交，含上游 #50439 = 我方 #49683） | `qtoc:sync` 自动解决 57 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；`search.ts` 本地补丁移除（与上游一致）；版本同步至 `1.18.32`；构建 `qtoc_core-1.18.32-windows-x64.exe` 并冒烟通过 |
+| 2026-09-23 | `upstream/dev` | `fe3f3a41f7..18ef3cc7c5`（7 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 
 ## 发布记录
 
