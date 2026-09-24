@@ -121,6 +121,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.32.1` | 上游同步 `70a24697ea..fe3f3a41f7`（含 #50439 上游化 `search.ts`）+ 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.32.2` | **双核架构设计结点**：双引擎底座架构 v1 + Text-to-SQL 能力包设计（验证 Demo），纯文档 |
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5` + 1.18.32 构建与冒烟 |
+| `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee` + 裁剪版 `bun.lock` 重建 + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.31` | 上一发行线（1.18.31） |
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪） |
 
