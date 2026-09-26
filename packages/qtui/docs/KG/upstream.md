@@ -54,6 +54,7 @@
 | 2026-09-22 | `upstream/dev` | `70a24697ea..fe3f3a41f7`（6 个提交，含上游 #50439 = 我方 #49683） | `qtoc:sync` 自动解决 57 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；`search.ts` 本地补丁移除（与上游一致）；版本同步至 `1.18.32`；构建 `qtoc_core-1.18.32-windows-x64.exe` 并冒烟通过 |
 | 2026-09-23 | `upstream/dev` | `fe3f3a41f7..18ef3cc7c5`（7 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-24 | `upstream/dev` | `18ef3cc7c5..0f549842ee`（9 个提交） | `qtoc:sync` 自动解决 64 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `b2945b2a45`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
+| 2026-09-26 | `upstream/dev` | `18ef3cc7c5..a42f393c85`（9 个提交） | `qtoc:sync` 自动解决 62 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 清理 1 处上游新增 `packages/stats` 残留文件；typecheck 18/18；协议无变化（188 端点） |
 
 ## 发布记录
 
@@ -66,6 +67,7 @@
 | `qt-headless-v1.18.32.2` | **双核架构设计结点**：双引擎底座架构 v1（`integration/dual-engine-architecture.md`）+ Text-to-SQL 能力包设计（`capabilities/text2sql.md`，验证 Demo）+ 文档索引更新；标签指向 `d30bcdf233`（纯文档，无二进制变更） | 文档评审通过（设计里程碑） |
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5`（7 个提交）+ 1.18.32 构建与冒烟；标签指向 `218bcad093`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过；`qtoc_core-Linux/macOS/Windows`） |
 | `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee`（9 个提交）+ 裁剪版 `bun.lock` 重建；标签指向 `b2945b2a45`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过） |
+| `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85`（9 个提交）+ trim/lockfile 重建；标签指向 `e3060c9f1b`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.5` 运行三平台构建通过并上传产物（同提交主标签重复运行 Linux smoke 连发 3 次偶发挂起，Windows/macOS 正常；冒烟步骤已加固） |
 
 ## 本地 delta 与上游化状态
 

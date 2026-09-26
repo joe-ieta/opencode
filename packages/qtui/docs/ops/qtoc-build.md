@@ -122,6 +122,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.32.2` | **双核架构设计结点**：双引擎底座架构 v1 + Text-to-SQL 能力包设计（验证 Demo），纯文档 |
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5` + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee` + 裁剪版 `bun.lock` 重建 + 1.18.32 构建与冒烟 |
+| `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85` + trim/lockfile 重建 + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.31` | 上一发行线（1.18.31） |
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪） |
 
@@ -143,6 +144,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | 图层构建报错信息晦涩（`a.name` / `node.name`） | LayerNode 图未校验 `undefined` 依赖 | `packages/core/src/effect/layer-node.ts` 增加 `validateNodes`，报出节点名与索引 |
 | `qtoc:build` 归档 `EBUSY` | 目标文件被正在运行的内核进程占用 | 归档 `copyRetry`（10 次 × 1s 重试） |
 | 需要调试构建 | - | 构建脚本新增 `QTOC_MINIFY=0`（默认压缩） |
+| CI Linux smoke 偶发挂起：服务已监听但首个 HTTP 请求无响应（curl 空回复直至步骤超时） | GitHub runner 环境偶发（同提交其他 runner 均通过；2026-09-24/26 多次复现） | 冒烟步骤加固（`.github/workflows/qtoc.yml`）：`curl --connect-timeout 2 --max-time 5`、失败时输出内核日志、进程存活检查；失败后重跑 |
 
 ## 9. 常见问题
 
