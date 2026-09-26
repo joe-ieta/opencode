@@ -43,23 +43,29 @@ jobs:
 
       - name: Smoke test (serve + health)
         if: runner.os == 'Linux'
-        timeout-minutes: 3
+        timeout-minutes: 5
         env:
           OPENCODE_SERVER_PASSWORD: ci-secret
           OPENCODE_CLIENT: desktop
         run: |
           set -e
-          ./artifacts/qtoc/qtoc_core serve --hostname 127.0.0.1 --port 4096 &
+          ./artifacts/qtoc/qtoc_core serve --hostname 127.0.0.1 --port 4096 > qtoc-smoke.log 2>&1 &
           PID=$!
           trap "kill $PID 2>/dev/null || true" EXIT
           for i in $(seq 1 30); do
-            if curl -fsS -u opencode:ci-secret http://127.0.0.1:4096/global/health | grep -q '"healthy":true'; then
+            if curl -fsS --connect-timeout 2 --max-time 5 -u opencode:ci-secret http://127.0.0.1:4096/global/health | grep -q '"healthy":true'; then
               echo "health ok"
               exit 0
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then
+              echo "qtoc_core exited before becoming healthy" >&2
+              break
             fi
             sleep 1
           done
           echo "health check failed" >&2
+          echo "--- qtoc_core log ---" >&2
+          cat qtoc-smoke.log >&2 || true
           exit 1
 
       - name: Upload qtoc_core
