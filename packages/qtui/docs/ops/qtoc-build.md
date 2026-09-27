@@ -123,6 +123,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5` + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee` + 裁剪版 `bun.lock` 重建 + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85` + trim/lockfile 重建 + 1.18.32 构建与冒烟 |
+| `qt-headless-v1.18.32.6` | 上游同步 `a42f393c85..b471c2b449` + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.31` | 上一发行线（1.18.31） |
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪） |
 

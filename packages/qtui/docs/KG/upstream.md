@@ -69,6 +69,7 @@
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5`（7 个提交）+ 1.18.32 构建与冒烟；标签指向 `218bcad093`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过；`qtoc_core-Linux/macOS/Windows`） |
 | `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee`（9 个提交）+ 裁剪版 `bun.lock` 重建；标签指向 `b2945b2a45`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过） |
 | `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85`（9 个提交）+ trim/lockfile 重建；标签指向 `e3060c9f1b`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.5` 运行三平台构建通过并上传产物（同提交主标签重复运行 Linux smoke 连发 3 次偶发挂起，Windows/macOS 正常；冒烟步骤已加固） |
+| `qt-headless-v1.18.32.6` | 上游同步 `a42f393c85..b471c2b449`（1 个提交）+ 1.18.32 构建与冒烟；标签指向 `4a45554d05`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 结果待补 |
 
 ## 本地 delta 与上游化状态
 
