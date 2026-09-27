@@ -55,6 +55,7 @@
 | 2026-09-23 | `upstream/dev` | `fe3f3a41f7..18ef3cc7c5`（7 个提交） | `qtoc:sync` 自动解决 25 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-24 | `upstream/dev` | `18ef3cc7c5..0f549842ee`（9 个提交） | `qtoc:sync` 自动解决 64 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `b2945b2a45`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-26 | `upstream/dev` | `18ef3cc7c5..a42f393c85`（9 个提交） | `qtoc:sync` 自动解决 62 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 清理 1 处上游新增 `packages/stats` 残留文件；typecheck 18/18；协议无变化（188 端点） |
+| 2026-09-27 | `upstream/dev` | `a42f393c85..b471c2b449`（1 个提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 
 ## 发布记录
 
