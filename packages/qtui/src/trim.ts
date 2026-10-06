@@ -167,6 +167,10 @@ for (const file of REMOVED_PATCHES) await remove(file)
   )
   text = text.replace(/outfile: `dist\/\$\{name\}\/bin\/opencode`/, "outfile: `dist/${name}/bin/qtoc_core`")
   text = text.replace(/const binaryPath = `dist\/\$\{name\}\/bin\/opencode`/, "const binaryPath = `dist/${name}/bin/qtoc_core`")
+  text = text.replace(
+    /codesign --force --sign - dist\/\$\{name\}\/bin\/opencode/,
+    "codesign --force --sign - dist/${name}/bin/qtoc_core",
+  )
   if (text !== before) {
     await write(file, text)
     actions.push("build.ts: headless default + qtoc_core artifact")
@@ -174,6 +178,11 @@ for (const file of REMOVED_PATCHES) await remove(file)
   if (!text.includes("/bin/qtoc_core")) {
     throw new Error(
       "qtoc trim: packages/opencode/script/build.ts no longer matches the expected outfile pattern. Review the upstream build script and update packages/qtui/src/trim.ts.",
+    )
+  }
+  if (/bin\/opencode/.test(text)) {
+    throw new Error(
+      "qtoc trim: packages/opencode/script/build.ts still references bin/opencode. Review the upstream build script and update packages/qtui/src/trim.ts.",
     )
   }
 }
