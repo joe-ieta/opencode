@@ -3,7 +3,7 @@
 > 定位：`qt-headless` 分支上 `qtoc_core`（headless opencode 内核）发布的**唯一操作规范**：发布目的、标准步骤、脚本命令、产物存放与推送、CI 矩阵、多平台注意事项、使用模式与验收清单。
 > 适用范围：本仓库（fork `joe-ieta/opencode`）qt-headless 分支的所有发布；人工或按技能 `qtoc-release` 由 AI 代理执行均可。
 > 版本基线：opencode `1.18.34`（channel `qt-headless`）；流程自 1.18.31 起持续验证（2026-10-06 更新）。
-> 关联文档：`qtoc-build.md`（构建脚本/裁剪/冲突热点细节）、`qt-headless.md`（发行内容/冒烟清单）、`bun-install.md`（Bun 安装）、`../KG/upstream.md`（同步与发布记录）、`../KG/architecture.md`（维护策略）、`../KG/data-agent-faq.md`（单二进制多配置使用模式）。
+> 关联文档：`qtoc-build.md`（构建脚本/裁剪/冲突热点细节）、`qt-headless.md`（发行内容/冒烟清单）、`bun-install.md`（Bun 安装）、`../KB/upstream.md`（同步与发布记录）、`../KB/architecture.md`（维护策略）、`../KB/data-agent-faq.md`（单二进制多配置使用模式）。
 
 ---
 
@@ -177,13 +177,13 @@ gh run download <run-id> -R joe-ieta/opencode -n qtoc_core-Linux   # 下载产�
 
 更新并提交（记录是发布的一部分）：
 
-1. `../KG/upstream.md`
+1. `../KB/upstream.md`
    - 「上游合并记录」追加一行：日期、范围 `<起点>..<终点>`（提交数）、冲突/trim/typecheck/协议结论；
    - 「发布记录」追加迭代行：标签、内容（同步范围 + 构建/修复）、标签指向提交、冒烟与 CI 结果（失败迭代注明"未采用"）。
 2. `ops/qtoc-build.md`「版本与标签」表追加标签；新问题补「已知问题与修复」表。
 
 ```powershell
-git add packages/qtui/docs/KG/upstream.md packages/qtui/docs/ops/qtoc-build.md
+git add packages/qtui/docs/KB/upstream.md packages/qtui/docs/ops/qtoc-build.md
 git commit -m "docs(qtui): record <version> sync and release results"
 git push origin qt-headless
 git status -sb    # 最终必须干净
@@ -216,7 +216,7 @@ git status -sb    # 最终必须干净
 | 本地归档 | `artifacts/qtoc/qtoc_core[.exe]` + `qtoc_core-<version>-<os>-<arch>[.exe]`（gitignore `/artifacts/`） |
 | 代码与标签 | 推送 `origin/qt-headless` 分支 + `qt-headless-v*` 标签（触发 CI） |
 | CI 产物 | GitHub Actions Artifacts（`qtoc_core-<OS>`，14 天） |
-| 记录 | `KG/upstream.md`、`ops/qtoc-build.md` 随分支提交 |
+| 记录 | `KB/upstream.md`、`ops/qtoc-build.md` 随分支提交 |
 
 ---
 
@@ -244,7 +244,7 @@ qtoc_core serve --hostname 127.0.0.1 --port 0    # 0 = 随机端口，从 stdout
 - 同一二进制通过运行期配置区分用途：`OPENCODE_CONFIG_CONTENT`（内联 JSON，优先）/ `OPENCODE_CONFIG`（文件）/ 全局与项目配置；
 - 实例隔离：`OPENCODE_DB`、`XDG_*` 目录、随机端口、独立密码；同机可并存多实例；
 - 会话级切换：`POST /session` 的 `agent` 字段选择 agent profile（如 `build` 与 `data-analyst` 并存）。
-- 详见 `../KG/data-agent-faq.md` 与 `../integration/dual-engine-architecture.md`。
+- 详见 `../KB/data-agent-faq.md` 与 `../integration/dual-engine-architecture.md`。
 
 **Qt 客户端验证**：`packages/qtui/client`（Qt6 + CMake），`qtoc_core` 路径通过 `-DQTOC_CORE_PATH` / 环境变量 `QTOC_CORE_PATH` / 复制到 `client/fixtures/` 指定。
 
@@ -261,11 +261,13 @@ qtoc_core serve --hostname 127.0.0.1 --port 0    # 0 = 随机端口，从 stdout
 | trim fail-fast（模式漂移） | 上游改了 `build.ts`/`index.ts` 等模式 → 更新 `packages/qtui/src/trim.ts` 后重跑 |
 | Linux CI 冒烟偶发挂起 | runner 环境偶发（同提交其他 runner 通过）；冒烟已加固（`curl --connect-timeout/--max-time`、失败输出内核日志）；失败重跑即可 |
 | macOS codesign 路径漂移 | 上游新增签名步骤曾引用 `bin/opencode` 导致 macOS 构建失败；已修 `build.ts` 并由 `trim.ts` 守卫（残留 `bin/opencode` 即 fail-fast） |
-| 上游合并本地补丁 | 见 `../KG/upstream.md`「本地 delta」表；上游合并后删除本地补丁 |
+| 上游合并本地补丁 | 见 `../KB/upstream.md`「本地 delta」表；上游合并后删除本地补丁 |
 | 标签推送 500 | GitHub 偶发错误，重试推送 |
 | 归档 `EBUSY`（Windows） | 目标 exe 被运行中内核占用；脚本 `copyRetry`（10×1s），或先停止进程 |
 | 旧内核进程占用端口 | 冒烟后务必 `Stop-Process`/`kill`；发布构建与冒烟使用不同目录 |
 | CI 产物过期 | Actions Artifacts 保留 14 天；需要长期留存请及时下载 |
+
+> 本阶段问题的完整复盘（现象/根因/处理/预防）见 `../KB/release-issues.md`（KB-R01…KB-R09）。
 
 ---
 
@@ -277,5 +279,5 @@ qtoc_core serve --hostname 127.0.0.1 --port 0    # 0 = 随机端口，从 stdout
 - [ ] `qtoc_core` 构建成功，本地归档存在（稳定名 + 版本化名）；
 - [ ] 本地冒烟：`--version`、`/global/health`、`question`、SSE、stderr 空；
 - [ ] CI 三平台构建通过且产物已上传（Linux 冒烟通过）；
-- [ ] `KG/upstream.md`（同步记录 + 发布记录）与 `ops/qtoc-build.md`（标签表 + 已知问题）已更新并提交推送；
+- [ ] `KB/upstream.md`（同步记录 + 发布记录）与 `ops/qtoc-build.md`（标签表 + 已知问题）已更新并提交推送；
 - [ ] 发行线标签指向最新验证提交；失败迭代已标注"未采用"。

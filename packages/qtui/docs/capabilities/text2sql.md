@@ -2,7 +2,7 @@
 
 > 定位：双引擎底座架构的**第一个验证能力包（demo 工程）**，用于端到端验证能力包规范、文件注册、动态挂载、引擎隔离、共享 LLM 与委派闭环；**不作为生产首发能力**，生产化路径见第 12 节。
 > 版本基线：opencode `1.18.32`（channel `qt-headless`）；能力包规范 `qtoc.cap/v1`、注册索引 `qtoc.registry/v1`。
-> 关联文档：`../integration/dual-engine-architecture.md`（底座架构 v1）、`../integration/data-agent-design.md`（数据治理领域需求与宏观设计）、`../KG/data-agent-faq.md`（内核扩展边界决策）。
+> 关联文档：`../integration/dual-engine-architecture.md`（底座架构 v1）、`../integration/data-agent-design.md`（数据治理领域需求与宏观设计）、`../KB/data-agent-faq.md`（内核扩展边界决策）。
 
 ---
 

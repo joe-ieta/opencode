@@ -1,4 +1,4 @@
-# qtui 模块架构与维护策略（KG）
+# qtui 模块架构与维护策略（KB）
 
 > 本文记录 qtui 支撑模块的代码组织方式、与上游 OpenCode 的关系、同步成本评估，以及已确定的长期演进路线。
 > 基线：`qt-headless` 分支，opencode `1.18.32`（channel `qt-headless`），上游参照 `upstream/dev`。
@@ -28,7 +28,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 | 新增 A | 36 | `packages/qtui`（脚本/客户端/文档）+ `.github/workflows/qtoc.yml` |
 | 修改 M | 8 | 内核源码仅 2 个：`core/effect/layer-node.ts`、`opencode/script/build.ts`（`search.ts` 已上游化）；配置 6 个：`package.json`、`bun.lock`、`turbo.json`、`test.yml`、`.gitignore`、`opencode/src/index.ts` |
 
-内核改动清单（全部有 KG 记录）：
+内核改动清单（全部有 KB 记录）：
 
 | 文件 | 改动 | 性质 |
 |---|---|---|
@@ -45,7 +45,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 | 打包发行 | `qtui/src/build.ts`、`opencode/script/build.ts`、`.github/workflows/qtoc.yml` | 版本/通道注入、`QTOC_MINIFY`、产物命名、归档重试、CI 矩阵原生构建 |
 | 内核补丁 | `core/effect/layer-node.ts` | 图层依赖校验（`search.ts` 修复已上游化，本地无补丁） |
 | 独立客户端 | `qtui/client/**` | 进程管理、HTTP/SSE、事件路由、会话投影、权限/问答、设置窗口、Qt Test |
-| 文档 | `qtui/docs/**` | 阅读引导（README）、接口参考（api）、开发指南（guide）、集成方法（integration）、构建/同步（ops）、KG 历史 |
+| 文档 | `qtui/docs/**` | 阅读引导（README）、接口参考（api）、开发指南（guide）、集成方法（integration）、构建/同步（ops）、KB 历史 |
 
 ## 3. 同步成本分析
 
@@ -86,9 +86,9 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
 - [x] 已提交 PR 1：`fix(core): break filesystem search import cycle` — https://github.com/anomalyco/opencode/pull/49683
 - [x] 已提交 PR 2：`fix(core): validate layer node dependencies` — https://github.com/anomalyco/opencode/pull/49684
 - [x] PR 1 已由上游 #50439 合并（2026-09-21，署名含 `frank`）；`search.ts` 本地补丁已移除（2026-09-22）
-- [ ] PR 2（`layer-node.ts`）上游合并后，从本地 delta 中移除对应补丁，并在 KG 记录
+- [ ] PR 2（`layer-node.ts`）上游合并后，从本地 delta 中移除对应补丁，并在 KB 记录
 - 说明：两个 PR 均从 `upstream/dev` 拉出独立分支（`filesystem-search-cycle`、`layer-node-validation`），只包含对应修复（PR 2 含单测）
-- 长期跟踪：issue/PR/同步历史/上游政策统一记录在 `KG/upstream.md`
+- 长期跟踪：issue/PR/同步历史/上游政策统一记录在 `KB/upstream.md`
 
 ### 阶段 3（协议契约与版本策略）
 - [ ] 客户端只使用稳定面（`/session`、`/event`、`/permission`、`/question`、`/config`、`/config/providers`）
@@ -123,8 +123,8 @@ bun run qtoc:build
 
 | 风险 | 监控方式 | 触发动作 |
 |---|---|---|
-| trim 模式失配 | `qtoc:trim` 抛错 | 更新 `trim.ts` 模式，更新 KG |
+| trim 模式失配 | `qtoc:trim` 抛错 | 更新 `trim.ts` 模式，更新 KB |
 | 上游内核修复与本地补丁冲突 | `qtoc:sync` 报非删除冲突 | 合并时保留上游版本，删除本地补丁 |
-| 协议/事件变更 | 冒烟清单 + 客户端回归 | 更新客户端适配层与 KG |
+| 协议/事件变更 | 冒烟清单 + 客户端回归 | 更新客户端适配层与 KB |
 | 删除冲突数量增长 | `qtoc:sync` 输出统计 | 评估切换路线 B/C |
 | 插件实验钩子变更 | 业务注入冒烟 | 锁定内核版本或适配 |

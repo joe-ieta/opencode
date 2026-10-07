@@ -83,11 +83,11 @@ gh run rerun <id> -R joe-ieta/opencode --failed
 
 ### 6. 记录（发布的一部分，必须完成）
 
-- `packages/qtui/docs/KG/upstream.md`：追加「上游合并记录」与「发布记录」行（含失败迭代"未采用"）。
+- `packages/qtui/docs/KB/upstream.md`：追加「上游合并记录」与「发布记录」行（含失败迭代"未采用"）。
 - `packages/qtui/docs/ops/qtoc-build.md`：标签表追加；新问题补「已知问题与修复」。
 
 ```powershell
-git add packages/qtui/docs/KG/upstream.md packages/qtui/docs/ops/qtoc-build.md
+git add packages/qtui/docs/KB/upstream.md packages/qtui/docs/ops/qtoc-build.md
 git commit -m "docs(qtui): record <version> sync and release results"
 git push origin qt-headless
 ```
@@ -99,5 +99,5 @@ git push origin qt-headless
 ## 关键约束
 
 - 不交叉编译：发布产物一律 CI 矩阵原生构建；本机构建只产出当前平台。
-- 领域能力不参与编译：单一二进制 + 运行期配置（见 `packages/qtui/docs/KG/data-agent-faq.md`）。
+- 领域能力不参与编译：单一二进制 + 运行期配置（见 `packages/qtui/docs/KB/data-agent-faq.md`）。
 - 记录与验收清单以 `release-runbook.md` 第 8/9 节为准。

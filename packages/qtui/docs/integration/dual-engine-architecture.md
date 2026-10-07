@@ -3,7 +3,7 @@
 > 定位：在 `qtoc_core`（headless opencode）之上，定义一套可供 QtCreator 及同类 Native 开发环境使用的**双核智能体引擎底座**：编码引擎专注代码编写，业务引擎专注领域处理，两引擎相互独立、共享同一底层 LLM 与同一 `qtoc_core` 基础资源；业务引擎可按需把任务委派给编码引擎。
 > 本文是架构设计第一版（宏观），落地细节（SDK API、manifest 完整 Schema、taskSpec 字段全集）在后续设计文档中展开。
 > 版本基线：opencode `1.18.32`（channel `qt-headless`）。
-> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`data-agent-design.md`（数据治理领域设计）、`methodology.md`（集成方法）、`../KG/data-agent-faq.md`（扩展边界决策）、`../api/qtoc-http-api.md`（协议清单）。
+> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`data-agent-design.md`（数据治理领域设计）、`methodology.md`（集成方法）、`../KB/data-agent-faq.md`（扩展边界决策）、`../api/qtoc-http-api.md`（协议清单）。
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### 1.1 背景
 
-- `qtoc_core` 已验证：单一二进制 + 运行期配置即可承载不同领域 agent（见 `../KG/data-agent-faq.md`），内核零改动、可同步上游。
+- `qtoc_core` 已验证：单一二进制 + 运行期配置即可承载不同领域 agent（见 `../KB/data-agent-faq.md`），内核零改动、可同步上游。
 - 但当前 `packages/qtui` 的能力集中在"内核打包 + 演示客户端 + 文档"，缺少**多引擎编排、委派通道、能力宿主、可复用 SDK**，无法直接支撑 QtCreator 级别的 Native 应用。
 - 领域能力（如 Text-to-SQL）已形成设计（`data-agent-design.md`），但缺少统一的能力打包/注册标准与"能力缺口 → 委派实现"的闭环。
 
@@ -57,7 +57,7 @@
 | 内核裁剪/同步 | `packages/qtui/src/{trim,sync}.ts` | 幂等裁剪、上游合并、删除类冲突自动化 |
 | 打包发行 | `packages/qtui/src/build.ts` + `packages/opencode/script/build.ts` + CI 矩阵 | `qtoc_core` 单一二进制、版本注入、归档 |
 | 演示客户端 | `packages/qtui/client/**` | ServerProcess/ApiClient/SseClient/EventRouter/SessionModel + 演示 UI + 单测 |
-| 文档 | `packages/qtui/docs/**` | 接口/指南/集成/运维/KG |
+| 文档 | `packages/qtui/docs/**` | 接口/指南/集成/运维/KB |
 
 ### 3.2 做与不做（目标边界）
 

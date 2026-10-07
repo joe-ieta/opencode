@@ -1,7 +1,7 @@
 # qtui 与上游库跟踪（Upstream Tracker）
 
 > 长期维护：每次与上游交互（提交 issue/PR、合并上游、政策变化）后更新本文。
-> 相关背景见 `KG/architecture.md`（维护策略）与 `KG/history.md`（问题处理历史）。
+> 相关背景见 `KB/architecture.md`（维护策略）与 `KB/history.md`（问题处理历史）。
 
 ## 基本信息
 
@@ -25,8 +25,8 @@
 
 | Issue | 标题 | 状态 | 关联 PR | 备注 |
 |---|---|---|---|---|
-| [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | **CLOSED**（2026-09-21，由上游 #50439 修复） | #49683 | 编译版崩溃根因（KG-001），已上游化 |
-| [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | OPEN | #49684 | 诊断性改进（KG-001 的定位手段） |
+| [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | **CLOSED**（2026-09-21，由上游 #50439 修复） | #49683 | 编译版崩溃根因（KB-001），已上游化 |
+| [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | OPEN | #49684 | 诊断性改进（KB-001 的定位手段） |
 
 ## 我方 PRs
 
@@ -62,9 +62,9 @@
 
 | 版本标签 | 内容 | 冒烟结果 |
 |---|---|---|
-| `qt-headless-v1.18.31.4` | `qtoc:sync` 自动化、架构 KG、上游合并 | 构建 smoke 通过 |
+| `qt-headless-v1.18.31.4` | `qtoc:sync` 自动化、架构 KB、上游合并 | 构建 smoke 通过 |
 | `qt-headless-v1.18.31.5` | 上游同步（已最新）+ 重新构建 | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；真实 DeepSeek 回复完成（`finish: stop`）；无 ERROR |
-| `qt-headless-v1.18.31.6` | 上游同步 `b02acc1e30..3dd1b30539` + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪）；Bun 1.4.2 本地构建；标签指向 `616a6c0b03` | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；CI 三平台（Windows/Linux/macOS）构建通过（Linux smoke 首次 runner 偶发挂起，重跑通过） |
+| `qt-headless-v1.18.31.6` | 上游同步 `b02acc1e30..3dd1b30539` + 文档重组（docs 索引 / qtoc HTTP API 参考 / KB 上游跟踪）；Bun 1.4.2 本地构建；标签指向 `616a6c0b03` | `--version` 1.18.31；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；CI 三平台（Windows/Linux/macOS）构建通过（Linux smoke 首次 runner 偶发挂起，重跑通过） |
 | `qt-headless-v1.18.32.1` | 上游同步 `70a24697ea..fe3f3a41f7`（6 个提交，含 #50439 上游化 `search.ts`，本地补丁移除）+ 文档基线更新至 1.18.32；标签指向 `3a5adb45cc` | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常 |
 | `qt-headless-v1.18.32.2` | **双核架构设计结点**：双引擎底座架构 v1（`integration/dual-engine-architecture.md`）+ Text-to-SQL 能力包设计（`capabilities/text2sql.md`，验证 Demo）+ 文档索引更新；标签指向 `d30bcdf233`（纯文档，无二进制变更） | 文档评审通过（设计里程碑） |
 | `qt-headless-v1.18.32.3` | 上游同步 `fe3f3a41f7..18ef3cc7c5`（7 个提交）+ 1.18.32 构建与冒烟；标签指向 `218bcad093`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过；`qtoc_core-Linux/macOS/Windows`） |
@@ -91,7 +91,7 @@
 - [ ] 若上游提供官方打包/版本注入方案，评估替换本地 `build.ts` 定制
 - [ ] 每次同步后更新「上游合并记录」与「本地 delta」表
 - [ ] 关注上游 V2 API / 事件协议变化（客户端适配层）
-- [ ] 评估阶段 4：使用 npm 发布二进制 + 纯 Qt 客户端的可行性（见 `KG/architecture.md`）
+- [ ] 评估阶段 4：使用 npm 发布二进制 + 纯 Qt 客户端的可行性（见 `KB/architecture.md`）
 
 ## 监控命令
 

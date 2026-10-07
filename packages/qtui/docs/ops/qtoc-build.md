@@ -87,7 +87,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 然后按 `packages/qtui/docs/ops/qt-headless.md` 第 4 节做冒烟验证（健康检查、question 工具、SSE、二进制启动）。
 
-架构与长期维护策略见 `packages/qtui/docs/KG/architecture.md`。
+架构与长期维护策略见 `packages/qtui/docs/KB/architecture.md`。
 
 ## 5. 冲突热点清单
 
@@ -129,7 +129,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85` + trim/lockfile 重建 + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.32.6` | 上游同步 `a42f393c85..b471c2b449` + 1.18.32 构建与冒烟 |
 | `qt-headless-v1.18.31` | 更早发行线（1.18.31） |
-| `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KG 上游跟踪） |
+| `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KB 上游跟踪） |
 
 - 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.18.34`）。
 - 打标签流程：

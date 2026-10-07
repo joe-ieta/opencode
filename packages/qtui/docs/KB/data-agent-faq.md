@@ -1,4 +1,4 @@
-# 数据治理扩展问答（KG）：边界、交付形态与单一二进制配置
+# 数据治理扩展问答（KB）：边界、交付形态与单一二进制配置
 
 > 定位：记录 2026-09-20 关于「数据治理领域智能体如何落地」的问答与结论，作为 `../integration/data-agent-design.md` 的配套决策记录（不改设计，只固化理解）。
 > 基线：opencode `1.18.31`（channel `qt-headless`），分支 `qt-headless`；协议以 `packages/sdk/openapi.json`（188 端点）为准。

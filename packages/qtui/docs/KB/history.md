@@ -1,20 +1,21 @@
-# qtui 问题处理历史（KG）
+# qtui 问题处理历史（KB）
 
 > 记录 qtoc_core / Qt 客户端集成过程中定位并修复的问题，供后续同步上游、回归排查参考。
+> 编译/发布阶段的问题复盘另见 `release-issues.md`（KB-R01…KB-R09）。
 > 环境基线：Windows + Bun 1.4.2 + Qt 6.10.3 (MSVC2022 x64)，opencode 版本 `1.18.31`（channel `qt-headless`）。
 
 ## 索引
 
 | 编号 | 问题 | 状态 | 提交 |
 |---|---|---|---|
-| KG-001 | 编译版发 prompt 崩溃（LayerNode undefined） | 已修复（已上游化 #50439） | `9f3419b9da` |
-| KG-002 | 插件依赖安装失败（自定义版本号不在 npm） | 已修复 | `9f3419b9da` |
-| KG-003 | Qt 客户端聊天窗口无反馈（SSE 缺目录头 + 错误解析） | 已修复 | `25f1983ca3` / `e938cc685a` / `7a07ea49ca` |
-| KG-004 | 构建与归档稳定性（EBUSY、调试构建） | 已修复 | `9f3419b9da` |
+| KB-001 | 编译版发 prompt 崩溃（LayerNode undefined） | 已修复（已上游化 #50439） | `9f3419b9da` |
+| KB-002 | 插件依赖安装失败（自定义版本号不在 npm） | 已修复 | `9f3419b9da` |
+| KB-003 | Qt 客户端聊天窗口无反馈（SSE 缺目录头 + 错误解析） | 已修复 | `25f1983ca3` / `e938cc685a` / `7a07ea49ca` |
+| KB-004 | 构建与归档稳定性（EBUSY、调试构建） | 已修复 | `9f3419b9da` |
 
 ---
 
-## KG-001 编译版发 prompt 崩溃（LayerNode undefined）
+## KB-001 编译版发 prompt 崩溃（LayerNode undefined）
 
 ### 现象
 
@@ -85,7 +86,7 @@ Match.make(...)
 
 ---
 
-## KG-002 插件依赖安装失败（自定义版本号不在 npm）
+## KB-002 插件依赖安装失败（自定义版本号不在 npm）
 
 ### 现象
 
@@ -115,7 +116,7 @@ OPENCODE_VERSION=<仓库版本>        # 1.18.31，npm 已发布，插件安装�
 
 ---
 
-## KG-003 Qt 客户端聊天窗口无反馈
+## KB-003 Qt 客户端聊天窗口无反馈
 
 ### 现象
 
@@ -148,7 +149,7 @@ curl -N -u opencode:<pw> -H "x-opencode-directory: <urlencoded>" http://127.0.0.
 
 ---
 
-## KG-004 构建与归档稳定性
+## KB-004 构建与归档稳定性
 
 | 问题 | 处理 |
 |---|---|

@@ -32,7 +32,7 @@ docs/README.md（本文）
 docs/README.md（本文）
   → integration/data-agent-design.md  领域智能体总体架构、能力需求、样例链路、上游兼容策略
   → capabilities/text2sql.md          Text-to-SQL 能力包设计（双引擎验证 Demo）
-  → KG/data-agent-faq.md              扩展边界、网关交付形态、单一二进制配置区分
+  → KB/data-agent-faq.md              扩展边界、网关交付形态、单一二进制配置区分
   → integration/methodology.md        5.4 业务上下文注入（插件 + 业务服务）
   → guide/qt-shell-guide.md           客户端落地约定
 ```
@@ -43,7 +43,7 @@ docs/README.md（本文）
 docs/README.md（本文）
   → integration/dual-engine-architecture.md  双引擎底座、委派机制、能力包规范与注册、多仓组织（架构第一版）
   → integration/data-agent-design.md         第一个业务能力包（数据治理）设计
-  → KG/data-agent-faq.md                     内核扩展边界与单一二进制决策
+  → KB/data-agent-faq.md                     内核扩展边界与单一二进制决策
   → ops/qtoc-build.md                        内核版本与发行
 ```
 
@@ -55,15 +55,16 @@ docs/README.md（本文）
   → ops/qtoc-build.md             本地与 CI 构建、与上游同步、冲突处理
   → ops/qt-headless.md            发行内容、运行、验证清单
   → ops/bun-install.md            Bun 安装与疑难
-  → KG/architecture.md            代码组织、维护策略与长期路线
-  → KG/upstream.md                上游 PR/Issue 与同步记录
-  → KG/history.md                 已修复问题（回归参考）
+  → KB/architecture.md            代码组织、维护策略与长期路线
+  → KB/upstream.md                上游 PR/Issue 与同步记录
+  → KB/history.md                 已修复问题（回归参考）
+  → KB/release-issues.md          阶段编译发布问题记录（发布前速览）
 ```
 
 ### D. 排查线上问题
 
 ```
-KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour.md 第 6 节调试清单
+KB/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour.md 第 6 节调试清单
 ```
 
 ---
@@ -85,10 +86,11 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 运维发行 | `ops/` | `qtoc-build.md` | 构建编排、CI 矩阵、上游同步标准流程、冲突热点、标签流程 | 构建/维护 |
 | 运维发行 | `ops/` | `qt-headless.md` | 发行内容（保留/移除）、运行方式、验证清单、与上游同步注意 | 构建/维护 |
 | 运维发行 | `ops/` | `bun-install.md` | Bun 安装（Windows/Linux）、镜像、疑难（node-gyp/ENOSPC） | 构建/维护 |
-| 知识库 | `KG/` | `architecture.md` | 代码组织、上游差异、同步成本、长期路线、Roadmap | 维护者 |
-| 知识库 | `KG/` | `upstream.md` | 上游政策、我方 Issue/PR、合并与发布记录、delta 状态 | 维护者 |
-| 知识库 | `KG/` | `history.md` | 问题处理历史（KG-001…）、验证基线、关键提交 | 维护者/排查 |
-| 知识库 | `KG/` | `data-agent-faq.md` | 数据治理扩展边界、网关交付形态（MCP）、单一二进制配置区分（Q&A 决策记录） | 架构师/维护者 |
+| 知识库 | `KB/` | `architecture.md` | 代码组织、上游差异、同步成本、长期路线、Roadmap | 维护者 |
+| 知识库 | `KB/` | `upstream.md` | 上游政策、我方 Issue/PR、合并与发布记录、delta 状态 | 维护者 |
+| 知识库 | `KB/` | `history.md` | 问题处理历史（KB-001…）、验证基线、关键提交 | 维护者/排查 |
+| 知识库 | `KB/` | `data-agent-faq.md` | 数据治理扩展边界、网关交付形态（MCP）、单一二进制配置区分（Q&A 决策记录） | 架构师/维护者 |
+| 知识库 | `KB/` | `release-issues.md` | 阶段编译发布问题记录（KB-R01…）：Bun 版本、lockfile/.gitignore 冲突、git 身份、CI 偶发、macOS codesign、标签处理与流程经验 | 发布执行者/维护 |
 
 相关入口（不在本目录）：
 
@@ -120,8 +122,8 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 ## 4. 维护约定
 
 1. **协议变更**：先更新 `api/qtoc-http-api.md`（以 `packages/sdk/openapi.json` 与 `types.gen.ts` 为准），再同步 `guide/qt-shell-guide.md` 的相关章节。
-2. **构建/发行变更**：更新 `ops/` 下对应文档；标签与发布记录同时更新 `KG/upstream.md`。
-3. **问题修复**：在 `KG/history.md` 追加 KG-XXX 条目（现象/排查/修复/验证/经验）。
-4. **新增文档**：按分类放入 `api/`、`guide/`、`integration/`、`capabilities/`、`ops/`、`KG/`，并在本文第 2 节登记。
+2. **构建/发行变更**：更新 `ops/` 下对应文档；标签与发布记录同时更新 `KB/upstream.md`。
+3. **问题修复**：在 `KB/history.md` 追加 KB-XXX 条目（现象/排查/修复/验证/经验）。
+4. **新增文档**：按分类放入 `api/`、`guide/`、`integration/`、`capabilities/`、`ops/`、`KB/`，并在本文第 2 节登记。
 5. **版本基线**：文档头部注明适用的 opencode 版本与分支；跨版本不兼容时显式标注。
 6. **引用路径**：文档内引用使用 `packages/qtui/docs/...` 全路径，保证从仓库根目录可直接定位。

@@ -3,7 +3,7 @@
 > 定位：在**不 fork 内核、最小 delta、可持续同步 OpenCode 上游**的前提下，把 `qtoc_core` 扩展为面向数据分析、数据治理与数据语义化查询（Text-to-SQL）的领域智能体运行时。
 > 本文聚焦**宏观设计**（架构、边界、能力需求、流程与兼容策略）；实施细节（工具 Schema、提示词、评测集）在后续设计文档中展开。
 > 版本基线：opencode `1.18.32`（channel `qt-headless`）。
-> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）、`../KG/data-agent-faq.md`（扩展边界与交付形态决策）、`dual-engine-architecture.md`（双引擎底座架构 v1）、`../capabilities/text2sql.md`（Text-to-SQL 能力包设计，验证 Demo）。
+> 关联文档：`../guide/qt-shell-guide.md`（客户端接入）、`methodology.md`（集成方法与决策）、`implementation.md`（实施步骤）、`../api/qtoc-http-api.md`（协议清单）、`../KB/data-agent-faq.md`（扩展边界与交付形态决策）、`dual-engine-architecture.md`（双引擎底座架构 v1）、`../capabilities/text2sql.md`（Text-to-SQL 能力包设计，验证 Demo）。
 
 ---
 
@@ -64,7 +64,7 @@
 2. **概率环节有界**：生成与修复回路必须有重试上限、差异检查与升级路径。
 3. **数据不出域**：原始数据留在数据平面，模型侧只见到结构、统计与受控样本。
 4. **扩展只用稳定点**：agent 配置 + MCP/插件工具 + 结构化输出 + `question` 工具；实验钩子隔离使用并锁定版本。
-5. **内核零改动优先**：任何领域能力不得要求修改 `packages/{core,server,opencode}`；若必须修改，按 KG 流程评估上游化。
+5. **内核零改动优先**：任何领域能力不得要求修改 `packages/{core,server,opencode}`；若必须修改，按 KB 流程评估上游化。
 
 ---
 
@@ -359,7 +359,7 @@ Qt             qtoc_core(agent)          网关(工具)              数据平�
 
 ## 11. 决策记录与语义层定制
 
-> 本节将原"开放问题"固化为决策（2026-09-20），并给出语义层的选型与定制设计；决策记录同步见 `../KG/data-agent-faq.md`。
+> 本节将原"开放问题"固化为决策（2026-09-20），并给出语义层的选型与定制设计；决策记录同步见 `../KB/data-agent-faq.md`。
 
 ### 11.1 语义层：OpenMetadata 优先 + 定制异化能力
 
@@ -401,7 +401,7 @@ Qt             qtoc_core(agent)          网关(工具)              数据平�
 
 - OM 版本 pin（记录在部署清单），升级走独立窗口 + 网关契约测试；
 - 网关对 OM 的 API 依赖面收敛到少数接口（实体读取、搜索、血缘、测试结果、Webhook），禁止散落调用；
-- L4 薄 fork 仅在 L1–L3 无法满足时启用，且必须记录 patch 清单与 rebase 责任人（KG 流程）。
+- L4 薄 fork 仅在 L1–L3 无法满足时启用，且必须记录 patch 清单与 rebase 责任人（KB 流程）。
 
 #### 11.1.4 同步频率
 
@@ -446,7 +446,7 @@ Qt             qtoc_core(agent)          网关(工具)              数据平�
 
 **理由**：数据上下文大且动态，按需检索（工具）优于常驻系统提示；内核改动破坏零 delta 与上游同步；`experimental.chat.system.transform` 已可注入"小而稳定"的上下文。
 
-**复查触发点**（任一满足则重新评估，按 KG 流程评估上游化）：
+**复查触发点**（任一满足则重新评估，按 KB 流程评估上游化）：
 
 1. 出现每次请求都必须存在的稳定上下文（如租户策略摘要），且插件注入被证明 token/缓存成本不可接受；
 2. 合规要求对"上下文变更"做内核级审计；
