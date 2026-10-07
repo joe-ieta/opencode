@@ -1,7 +1,8 @@
 # opencode Headless 发行版（Qt 集成专用）
 
-> 分支：`qt-headless`（当前基线 `v1.18.32`，源自 `dev`）
+> 分支：`qt-headless`（当前基线 `v1.18.34`，源自 `dev`）
 > 用途：供 Qt/C++ 壳通过 HTTP + SSE 集成，无界面、无桌面/Web 应用。
+> 统一发布规范见 `release-runbook.md`。
 
 ## 1. 发行内容
 

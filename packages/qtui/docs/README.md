@@ -51,6 +51,7 @@ docs/README.md（本文）
 
 ```
 docs/README.md（本文）
+  → ops/release-runbook.md        统一发布规范（步骤/标签/CI/记录/验收）
   → ops/qtoc-build.md             本地与 CI 构建、与上游同步、冲突处理
   → ops/qt-headless.md            发行内容、运行、验证清单
   → ops/bun-install.md            Bun 安装与疑难
@@ -80,6 +81,7 @@ KG/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 领域设计 | `integration/` | `data-agent-design.md` | 数据治理/Text-to-SQL 领域智能体：目标范围、架构分层、能力需求、样例链路、扩展点映射、语义层选型与定制、决策记录、上游兼容策略、路线图 | 架构师/领域负责人 |
 | 底座架构 | `integration/` | `dual-engine-architecture.md` | 双引擎底座（编码 + 业务）v1：qtui 定位与边界、引擎隔离、共享 LLM、委派机制、能力缺口闭环、能力包规范与文件注册、多仓组织、决策与路线图 | 平台/领域团队负责人 |
 | 能力包设计 | `capabilities/` | `text2sql.md` | Text-to-SQL 能力包（双引擎验证 Demo）：manifest、工具契约分层、链路与修复回路、契约与规则、评测、安全、发布挂载、验证矩阵、生产化路径 | 领域团队/平台团队 |
+| 运维发行 | `ops/` | `release-runbook.md` | **统一发布规范**：发布目的、标准步骤、脚本命令、产物存放与推送、CI 矩阵、多平台注意、使用模式、注意事项、验收清单 | 发布执行者/维护 |
 | 运维发行 | `ops/` | `qtoc-build.md` | 构建编排、CI 矩阵、上游同步标准流程、冲突热点、标签流程 | 构建/维护 |
 | 运维发行 | `ops/` | `qt-headless.md` | 发行内容（保留/移除）、运行方式、验证清单、与上游同步注意 | 构建/维护 |
 | 运维发行 | `ops/` | `bun-install.md` | Bun 安装（Windows/Linux）、镜像、疑难（node-gyp/ENOSPC） | 构建/维护 |

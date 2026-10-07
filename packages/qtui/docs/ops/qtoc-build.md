@@ -2,6 +2,7 @@
 
 > 分支：`qt-headless`；产物：`qtoc_core`（由 headless opencode 构建）。
 > 目标：与官方库同步后，可重复地重新裁剪并产出同名可执行文件。
+> 统一发布规范（端到端步骤、标签、CI、记录、验收清单）见 `release-runbook.md`；本文聚焦构建脚本与同步细节。
 
 ## 0. 包与目录
 
