@@ -57,6 +57,7 @@
 | 2026-09-26 | `upstream/dev` | `18ef3cc7c5..a42f393c85`（9 个提交） | `qtoc:sync` 自动解决 62 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 清理 1 处上游新增 `packages/stats` 残留文件；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-27 | `upstream/dev` | `a42f393c85..b471c2b449`（1 个提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-10-06 | `upstream/dev` | `b471c2b449..4ac0d9c3d1`（58 个提交） | `qtoc:sync` 自动解决 133 个删除冲突；手动冲突 2 个：`.gitignore`（采用上游 `/artifacts/`，收敛本地 delta）、`bun.lock`（取上游后 `bun install` 重建）；trim 清理 console/stats 上游新增文件（19 个）；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.34` |
+| 2026-10-07 | `upstream/dev` | `4ac0d9c3d1..ecc4916b5a`（6 个提交） | `qtoc:sync` 自动解决 37 个删除冲突；手动冲突 `bun.lock`（取上游后 `bun install` 重建并提交 `6250d63db6`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.35` |
 
 ## 发布记录
 
@@ -73,6 +74,7 @@
 | `qt-headless-v1.18.32.6` | 上游同步 `a42f393c85..b471c2b449`（1 个提交）+ 1.18.32 构建与冒烟；标签指向 `4a45554d05`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 三平台**一次通过**并上传产物（`qtoc_core-Linux` 89.5 MB / `macOS` 68.9 MB / `Windows` 96.5 MB） |
 | `qt-headless-v1.18.34.1` | 首个 1.18.34 发布（上游同步 `b471c2b449..4ac0d9c3d1`（58 个提交）+ trim/lockfile 重建）；标签指向 `5222a954fc` | **CI 失败（未采用）**：上游新增 macOS ad-hoc `codesign` 引用 `bin/opencode`，与 `qtoc_core` 产物名冲突，macOS 构建报 `No such file or directory`；Windows/Linux 构建通过 |
 | `qt-headless-v1.18.34.2` | 修复 macOS codesign（`build.ts` 签名路径改为 `qtoc_core`；`trim.ts` 增加替换模式 + `bin/opencode` 残留守卫防再漂移）；标签指向 `66112673f9` | `--version` 1.18.34；CI `.2` 与主标签两次运行**三平台一次全通过**并上传产物（Linux 1m35s/1m10s、Windows 2m32s/2m36s、macOS 25m21s/27m44s）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
+| `qt-headless-v1.18.35.1` | 首个 1.18.35 发布（上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建）；标签指向 `6250d63db6` | `--version` 1.18.35；CI `.1` 与主标签两次运行三平台通过并上传产物（主标签 Linux 1m31s / Windows 2m26s / macOS 19m33s；`.1` Windows 首跑 Setup Bun `TypeError: fetch failed` 基础设施偶发，重跑通过）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 
 ## 本地 delta 与上游化状态
 

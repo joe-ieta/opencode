@@ -118,7 +118,9 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 | 标签 | 内容 |
 |---|---|
-| `qt-headless-v1.18.34` | 当前发行线（1.18.34，始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.18.35` | 当前发行线（1.18.35，始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.18.35.1` | 上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建 + 1.18.35 构建与冒烟 |
+| `qt-headless-v1.18.34` | 上一发行线（1.18.34） |
 | `qt-headless-v1.18.34.2` | 上游同步 `b471c2b449..4ac0d9c3d1` + trim/lockfile 重建 + macOS codesign 修复 + 1.18.34 构建与冒烟 |
 | `qt-headless-v1.18.34.1` | 首次 1.18.34 构建；macOS codesign 引用 `bin/opencode` 构建失败，未采用 |
 | `qt-headless-v1.18.32` | 上一发行线（1.18.32） |
@@ -131,13 +133,13 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.31` | 更早发行线（1.18.31） |
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KB 上游跟踪） |
 
-- 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.18.34`）。
+- 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.18.35`）。
 - 打标签流程：
   ```bash
-  git tag -a qt-headless-v1.18.34 -m "opencode headless distribution profile for Qt integration"
-  git push origin qt-headless-v1.18.34
-  git tag -a qt-headless-v1.18.34.1 -m "<本次迭代说明>"
-  git push origin qt-headless-v1.18.34.1
+  git tag -a qt-headless-v1.18.35 -m "opencode headless distribution profile for Qt integration"
+  git push origin qt-headless-v1.18.35
+  git tag -a qt-headless-v1.18.35.1 -m "<本次迭代说明>"
+  git push origin qt-headless-v1.18.35.1
   ```
 
 ## 8. 已知问题与修复（1.18.31 基线）
@@ -151,6 +153,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | 需要调试构建 | - | 构建脚本新增 `QTOC_MINIFY=0`（默认压缩） |
 | CI Linux smoke 偶发挂起：服务已监听但首个 HTTP 请求无响应（curl 空回复直至步骤超时） | GitHub runner 环境偶发（同提交其他 runner 均通过；2026-09-24/26 多次复现） | 冒烟步骤加固（`.github/workflows/qtoc.yml`）：`curl --connect-timeout 2 --max-time 5`、失败时输出内核日志、进程存活检查；失败后重跑 |
 | macOS CI 构建失败：`codesign ... dist/opencode-darwin-arm64/bin/opencode: No such file or directory` | 上游新增 macOS ad-hoc 签名步骤引用 `bin/opencode`，与发行定制产物名 `qtoc_core` 冲突（2026-10-06 同步引入） | `build.ts` 签名路径改为 `bin/qtoc_core`；`trim.ts` 增加 codesign 替换模式 + `bin/opencode` 残留守卫（fail-fast）；`v1.18.34.2` CI 三平台通过 |
+| CI Windows `Setup Bun` 偶发失败：`TypeError: fetch failed`（构建未开始） | runner 下载 Bun 失败（基础设施网络偶发） | 重跑失败任务（`gh run rerun --failed`）；同提交主标签运行三平台通过即判定偶发（`v1.18.35.1` 首次出现，重跑通过） |
 
 ## 9. 常见问题
 

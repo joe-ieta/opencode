@@ -2,7 +2,7 @@
 
 > 定位：`qt-headless` 分支上 `qtoc_core`（headless opencode 内核）发布的**唯一操作规范**：发布目的、标准步骤、脚本命令、产物存放与推送、CI 矩阵、多平台注意事项、使用模式与验收清单。
 > 适用范围：本仓库（fork `joe-ieta/opencode`）qt-headless 分支的所有发布；人工或按技能 `qtoc-release` 由 AI 代理执行均可。
-> 版本基线：opencode `1.18.34`（channel `qt-headless`）；流程自 1.18.31 起持续验证（2026-10-06 更新）。
+> 版本基线：opencode `1.18.35`（channel `qt-headless`）；流程自 1.18.31 起持续验证（2026-10-07 更新）。
 > 关联文档：`qtoc-build.md`（构建脚本/裁剪/冲突热点细节）、`qt-headless.md`（发行内容/冒烟清单）、`bun-install.md`（Bun 安装）、`../KB/upstream.md`（同步与发布记录）、`../KB/architecture.md`（维护策略）、`../KB/data-agent-faq.md`（单二进制多配置使用模式）。
 
 ---
