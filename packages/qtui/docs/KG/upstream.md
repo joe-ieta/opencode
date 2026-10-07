@@ -56,6 +56,7 @@
 | 2026-09-24 | `upstream/dev` | `18ef3cc7c5..0f549842ee`（9 个提交） | `qtoc:sync` 自动解决 64 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `b2945b2a45`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-26 | `upstream/dev` | `18ef3cc7c5..a42f393c85`（9 个提交） | `qtoc:sync` 自动解决 62 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建）；trim 清理 1 处上游新增 `packages/stats` 残留文件；typecheck 18/18；协议无变化（188 端点） |
 | 2026-09-27 | `upstream/dev` | `a42f393c85..b471c2b449`（1 个提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
+| 2026-10-06 | `upstream/dev` | `b471c2b449..4ac0d9c3d1`（58 个提交） | `qtoc:sync` 自动解决 133 个删除冲突；手动冲突 2 个：`.gitignore`（采用上游 `/artifacts/`，收敛本地 delta）、`bun.lock`（取上游后 `bun install` 重建）；trim 清理 console/stats 上游新增文件（19 个）；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.34` |
 
 ## 发布记录
 
@@ -70,6 +71,8 @@
 | `qt-headless-v1.18.32.4` | 上游同步 `18ef3cc7c5..0f549842ee`（9 个提交）+ 裁剪版 `bun.lock` 重建；标签指向 `b2945b2a45`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI 三平台构建通过并上传产物（Linux smoke 首跑偶发挂起，重跑通过） |
 | `qt-headless-v1.18.32.5` | 上游同步 `18ef3cc7c5..a42f393c85`（9 个提交）+ trim/lockfile 重建；标签指向 `e3060c9f1b`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.5` 运行三平台构建通过并上传产物（同提交主标签重复运行 Linux smoke 连发 3 次偶发挂起，Windows/macOS 正常；冒烟步骤已加固） |
 | `qt-headless-v1.18.32.6` | 上游同步 `a42f393c85..b471c2b449`（1 个提交）+ 1.18.32 构建与冒烟；标签指向 `4a45554d05`；推送标签触发 CI 矩阵（Linux/Windows/macOS）构建与产物上传 | `--version` 1.18.32；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；监听行正常；stderr 空；CI 三平台**一次通过**并上传产物（`qtoc_core-Linux` 89.5 MB / `macOS` 68.9 MB / `Windows` 96.5 MB） |
+| `qt-headless-v1.18.34.1` | 首个 1.18.34 发布（上游同步 `b471c2b449..4ac0d9c3d1`（58 个提交）+ trim/lockfile 重建）；标签指向 `5222a954fc` | **CI 失败（未采用）**：上游新增 macOS ad-hoc `codesign` 引用 `bin/opencode`，与 `qtoc_core` 产物名冲突，macOS 构建报 `No such file or directory`；Windows/Linux 构建通过 |
+| `qt-headless-v1.18.34.2` | 修复 macOS codesign（`build.ts` 签名路径改为 `qtoc_core`；`trim.ts` 增加替换模式 + `bin/opencode` 残留守卫防再漂移）；标签指向 `66112673f9` | `--version` 1.18.34；CI `.2` 与主标签两次运行**三平台一次全通过**并上传产物（Linux 1m35s/1m10s、Windows 2m32s/2m36s、macOS 25m21s/27m44s）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 
 ## 本地 delta 与上游化状态
 
@@ -77,7 +80,7 @@
 |---|---|---|---|
 | `packages/core/src/filesystem/search.ts` | 可上游化（bug fix） | **已上游化**（上游 #50439，2026-09-21 合并；内容与 #49683 一致） | 本地补丁已移除（2026-09-22），与上游一致 |
 | `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684（OPEN） | 上游合并后删除本地补丁 |
-| `packages/opencode/script/build.ts`（`QTOC_MINIFY` / `qtoc_core` 产物名 / headless 默认） | 发行定制 | 不上游 | 保留，由 `trim` 维护 |
+| `packages/opencode/script/build.ts`（`QTOC_MINIFY` / `qtoc_core` 产物名 / headless 默认 / macOS codesign 路径） | 发行定制 | 不上游 | 保留，由 `trim` 维护（2026-10-06 适配上游新增的 macOS ad-hoc 签名，trim 增加残留守卫） |
 | `packages/opencode/src/index.ts`（命令注销） | 裁剪 | 不上游 | 由 `trim` 维护 |
 | `package.json` / `turbo.json` / `test.yml` / workspaces | 裁剪配置 | 不上游 | 由 `trim` 维护 |
 
