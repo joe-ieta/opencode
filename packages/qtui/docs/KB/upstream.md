@@ -27,6 +27,7 @@
 |---|---|---|---|---|
 | [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | **CLOSED**（2026-09-21，由上游 #50439 修复） | #49683 | 编译版崩溃根因（KB-001），已上游化 |
 | [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | OPEN | #49684 | 诊断性改进（KB-001 的定位手段） |
+| [#54129](https://github.com/anomalyco/opencode/issues/54129) | Auto-compaction recovery still publishes session.error, so clients show a model error instead of the compaction notice | OPEN | #54131 | 桌面端误报模型错误；与 #39573 同根因（bot 关闭、未修复） |
 
 ## 我方 PRs
 
@@ -34,6 +35,7 @@
 |---|---|---|---|---|---|
 | [#49683](https://github.com/anomalyco/opencode/pull/49683) | `filesystem-search-cycle` | fix(core): break filesystem search import cycle | OPEN（已被上游 #50439 取代并合并，待关闭） | 合规检查通过 | 本地补丁已移除（2026-09-22） |
 | [#49684](https://github.com/anomalyco/opencode/pull/49684) | `layer-node-validation` | fix(core): validate layer node dependencies | OPEN（BLOCKED，待 review） | 合规检查通过；含单测 | 上游合并后删除本地补丁 |
+| [#54131](https://github.com/anomalyco/opencode/pull/54131) | `overflow-compaction-notice` | fix(opencode): stop flagging auto-compaction recovery as a session error | OPEN（待 review） | 4 项机器人检查全部通过 | 可恢复溢出不再发布 `session.error`；摘要溢出仍标记消息 error；本地溢出用例与 `bun typecheck` 通过 |
 
 上游代提交（我方修复）：
 | PR | 作者 | 标题 | 状态 | 备注 |
@@ -58,6 +60,7 @@
 | 2026-09-27 | `upstream/dev` | `a42f393c85..b471c2b449`（1 个提交） | `qtoc:sync` 无冲突；trim 0 变更；typecheck 18/18；协议无变化（188 端点） |
 | 2026-10-06 | `upstream/dev` | `b471c2b449..4ac0d9c3d1`（58 个提交） | `qtoc:sync` 自动解决 133 个删除冲突；手动冲突 2 个：`.gitignore`（采用上游 `/artifacts/`，收敛本地 delta）、`bun.lock`（取上游后 `bun install` 重建）；trim 清理 console/stats 上游新增文件（19 个）；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.34` |
 | 2026-10-07 | `upstream/dev` | `4ac0d9c3d1..ecc4916b5a`（6 个提交） | `qtoc:sync` 自动解决 37 个删除冲突；手动冲突 `bun.lock`（取上游后 `bun install` 重建并提交 `6250d63db6`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.35` |
+| 2026-10-09 | `upstream/dev` | `ecc4916b5a..388406238b`（15 个提交） | `qtoc:sync` 自动解决 66 个删除冲突；无手动冲突；trim 清理 `packages/console` 残留 1 文件（提交 `7dca58eab6`）；typecheck 18/18；协议无变化（188 端点）；版本保持 `1.18.35`；本地修复可恢复上下文溢出误报 session error（提交 `81f5b2cdef`，已上游化 PR #54131） |
 
 ## 发布记录
 
@@ -75,6 +78,7 @@
 | `qt-headless-v1.18.34.1` | 首个 1.18.34 发布（上游同步 `b471c2b449..4ac0d9c3d1`（58 个提交）+ trim/lockfile 重建）；标签指向 `5222a954fc` | **CI 失败（未采用）**：上游新增 macOS ad-hoc `codesign` 引用 `bin/opencode`，与 `qtoc_core` 产物名冲突，macOS 构建报 `No such file or directory`；Windows/Linux 构建通过 |
 | `qt-headless-v1.18.34.2` | 修复 macOS codesign（`build.ts` 签名路径改为 `qtoc_core`；`trim.ts` 增加替换模式 + `bin/opencode` 残留守卫防再漂移）；标签指向 `66112673f9` | `--version` 1.18.34；CI `.2` 与主标签两次运行**三平台一次全通过**并上传产物（Linux 1m35s/1m10s、Windows 2m32s/2m36s、macOS 25m21s/27m44s）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 | `qt-headless-v1.18.35.1` | 首个 1.18.35 发布（上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建）；标签指向 `6250d63db6` | `--version` 1.18.35；CI `.1` 与主标签两次运行三平台通过并上传产物（主标签 Linux 1m31s / Windows 2m26s / macOS 19m33s；`.1` Windows 首跑 Setup Bun `TypeError: fetch failed` 基础设施偶发，重跑通过）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
+| `qt-headless-v1.18.35.2` | 上游同步 `ecc4916b5a..388406238b`（15 个提交）+ 修复可恢复上下文溢出被误报为 session error（上游 PR #54131）；标签指向 `81f5b2cdef` | `--version` 1.18.35；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.2` 与主标签两次运行**三平台全通过**并上传产物（`.2`：Linux 1m30s / Windows 2m38s / macOS 14m10s；主标签：Linux 1m5s / Windows 2m37s / macOS 23m51s；产物 Linux 89.7 MB / macOS 68.1 MB / Windows 96.8 MB） |
 
 ## 本地 delta 与上游化状态
 

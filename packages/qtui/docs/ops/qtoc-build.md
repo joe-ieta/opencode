@@ -120,6 +120,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 |---|---|
 | `qt-headless-v1.18.35` | 当前发行线（1.18.35，始终指向最新裁剪 + 验证提交） |
 | `qt-headless-v1.18.35.1` | 上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建 + 1.18.35 构建与冒烟 |
+| `qt-headless-v1.18.35.2` | 上游同步 `ecc4916b5a..388406238b`（15 个提交）+ 修复可恢复上下文溢出误报 session error（上游 PR #54131）+ 1.18.35 构建与冒烟 |
 | `qt-headless-v1.18.34` | 上一发行线（1.18.34） |
 | `qt-headless-v1.18.34.2` | 上游同步 `b471c2b449..4ac0d9c3d1` + trim/lockfile 重建 + macOS codesign 修复 + 1.18.34 构建与冒烟 |
 | `qt-headless-v1.18.34.1` | 首次 1.18.34 构建；macOS codesign 引用 `bin/opencode` 构建失败，未采用 |
