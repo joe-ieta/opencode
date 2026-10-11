@@ -14,6 +14,7 @@
     "build": "bun run src/build.ts",
     "sync": "bun run src/sync.ts",
     "smoke": "bun run src/smoke.ts",
+    "contract": "bun run src/contract.ts",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {

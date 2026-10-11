@@ -38,6 +38,10 @@ jobs:
       - name: Trim guard
         run: bun run oc:trim
 
+      - name: Contract gate (linux)
+        if: runner.os == 'Linux'
+        run: bun run oc:contract
+
       - name: Typecheck (linux)
         if: runner.os == 'Linux'
         run: bun run typecheck

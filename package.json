@@ -21,6 +21,8 @@
     "oc:build": "bun run --cwd packages/qtui build",
     "oc:sync": "bun run --cwd packages/qtui sync",
     "oc:smoke": "bun run --cwd packages/qtui smoke",
+    "oc:contract": "bun run --cwd packages/qtui contract",
+    "oc:release": "bun run oc:sync && bun run oc:contract && bun run oc:build --skip-install --skip-typecheck && bun run oc:smoke",
     "bench:devex": "bun run --cwd packages/app test:bench:devex",
     "lint": "oxlint && ast-grep scan -c script/ast-grep/gui-extensions/sgconfig.yml && bun script/sdk-docs.ts",
     "lint:changed": "bun script/lint-changed.ts",
