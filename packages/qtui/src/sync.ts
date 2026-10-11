@@ -3,8 +3,8 @@
  * qtoc upstream sync.
  *
  * Usage (from repo root):
- *   bun run qtoc:sync                          # fetch + merge upstream/dev + trim + install + typecheck
- *   bun run qtoc:sync --remote upstream --branch dev
+ *   bun run qtoc:sync                          # fetch + merge upstream/v1 + trim + install + typecheck
+ *   bun run qtoc:sync --remote upstream --branch v1
  *   bun run qtoc:sync --no-trim --skip-install --skip-typecheck
  *   bun run qtoc:sync --no-commit              # stop after resolving, review the merge manually
  *
@@ -26,7 +26,7 @@ const value = (name: string, fallback: string) => {
 }
 
 const remote = value("--remote", "upstream")
-const branch = value("--branch", "dev")
+const branch = value("--branch", "v1")
 const skipTrim = flag("--no-trim")
 const skipInstall = flag("--skip-install")
 const skipTypecheck = flag("--skip-typecheck")

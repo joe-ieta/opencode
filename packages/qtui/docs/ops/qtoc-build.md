@@ -70,7 +70,7 @@ bun run qtoc:build
 
 ```bash
 git checkout qt-headless
-bun run qtoc:sync               # = fetch upstream/dev → merge → 自动解决 modify/delete → trim → install → typecheck
+bun run qtoc:sync               # = fetch upstream/v1 → merge → 自动解决 modify/delete → trim → install → typecheck
 bun run qtoc:build              # 构建 + 归档（CI 矩阵亦可）
 ```
 
@@ -80,7 +80,7 @@ bun run qtoc:build              # 构建 + 归档（CI 矩阵亦可）
 
 ```bash
 git fetch upstream
-git merge upstream/dev          # 解决冲突，见第 5 节
+git merge upstream/v1          # 解决冲突，见第 5 节
 bun run qtoc:trim               # 重新应用 headless 裁剪（幂等；模式不匹配会报错）
 bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 ```

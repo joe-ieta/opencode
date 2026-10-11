@@ -1,7 +1,7 @@
 # qtui 模块架构与维护策略（KB）
 
 > 本文记录 qtui 支撑模块的代码组织方式、与上游 OpenCode 的关系、同步成本评估，以及已确定的长期演进路线。
-> 基线：`qt-headless` 分支，opencode `1.18.32`（channel `qt-headless`），上游参照 `upstream/dev`。
+> 基线：`qt-headless` 分支，opencode `1.19.0`（channel `qt-headless`），上游同步源 `upstream/v1`（`upstream/dev` 已于 2026-10-10 晋升 V2/2.x）。
 
 ## 摘要
 
@@ -20,7 +20,7 @@ qtui 不是"一个打包脚本"，而是 **独立 Qt 客户端 + 幂等裁剪 + 
         └── packages/qtui/src/{trim,build,sync}.ts（仓库工具，内核不依赖）
 ```
 
-**相对 `upstream/dev` 的实际差异**
+**相对 `upstream/v1` 的实际差异**
 
 | 类型 | 数量 | 说明 |
 |---|---|---|

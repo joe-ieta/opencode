@@ -7,11 +7,12 @@
 
 | 项目 | 值 |
 |---|---|
-| 上游仓库 | https://github.com/anomalyco/opencode （remote `upstream`，默认分支 `dev`） |
+| 上游仓库 | https://github.com/anomalyco/opencode （remote `upstream`） |
 | 本仓库（fork） | https://github.com/joe-ieta/opencode （remote `origin`） |
 | 跟踪分支 | `qt-headless` |
 | 同步工具 | `bun run qtoc:sync`（见 `../ops/qtoc-build.md` 第 4 节） |
-| 当前内核版本 | `1.18.32`（channel `qt-headless`；上游 2026-09-22 同步） |
+| 上游同步源 | `upstream/v1`（V1 维护线，1.19.x）；`upstream/dev` 于 2026-10-10 晋升 V2/2.x（无 `packages/opencode`），本线不同步 |
+| 当前内核版本 | `1.19.0`（channel `qt-headless`；上游 2026-10-11 同步） |
 
 ## 上游政策备忘
 
@@ -20,6 +21,7 @@
 - **机器人检查**：`check-standards`、`check-compliance`、`check-duplicates`、`add-contributor-label`。
 - 首次贡献者的 `test` / `typecheck` 工作流可能需要维护者批准后才运行。
 - `mergeStateStatus: BLOCKED` 且无 reviewDecision 属于"等待维护者 review"的正常状态。
+- **分支策略（2026-10-10 起）**：`dev`/`production` 已晋升 V2（2.x，包结构重构，无 `packages/opencode`）；V1 线由 `v1` 分支维护（1.19.x）。本发行线同步源切换为 `upstream/v1`；V2 适配与补丁迁移由其他线程推进（见「本地 delta」）。
 
 ## 我方 Issues
 
@@ -85,7 +87,7 @@
 | 本地改动 | 类型 | 上游化状态 | 上游合并后的动作 |
 |---|---|---|---|
 | `packages/core/src/filesystem/search.ts` | 可上游化（bug fix） | **已上游化**（上游 #50439，2026-09-21 合并；内容与 #49683 一致） | 本地补丁已移除（2026-09-22），与上游一致 |
-| `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684（OPEN） | 上游合并后删除本地补丁 |
+| `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684（OPEN） | 上游合并后删除本地补丁；2026-10-11 其他线程已将补丁迁移至 V2（`packages/util/src/effect/layer-node.ts`，本地分支 `validate-layer-node`，待提交上游） |
 | `packages/opencode/script/build.ts`（`QTOC_MINIFY` / `qtoc_core` 产物名 / headless 默认 / macOS codesign 路径） | 发行定制 | 不上游 | 保留，由 `trim` 维护（2026-10-06 适配上游新增的 macOS ad-hoc 签名，trim 增加残留守卫） |
 | `packages/opencode/src/index.ts`（命令注销） | 裁剪 | 不上游 | 由 `trim` 维护 |
 | `package.json` / `turbo.json` / `test.yml` / workspaces | 裁剪配置 | 不上游 | 由 `trim` 维护 |
@@ -108,7 +110,7 @@ gh pr checks 49683 --repo anomalyco/opencode
 gh issue view 49685 --repo anomalyco/opencode --json state
 
 # 上游新提交（决定是否同步）
-git fetch upstream dev && git log --oneline qt-headless..upstream/dev
+git fetch upstream v1 && git log --oneline qt-headless..upstream/v1
 
 # 同步
 bun run qtoc:sync

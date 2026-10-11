@@ -1,6 +1,6 @@
 ---
 name: qtoc-release
-description: Use when performing an opencode qtoc_core release on the qt-headless branch (发布 qtoc_core / 新发布 / 同步并发布) — syncing upstream/dev, building the headless binary, tagging qt-headless-v*, monitoring the CI matrix and recording results. Triggers on qtoc:sync, qtoc:build, qt-headless-v* 标签, release runbook.
+description: Use when performing an opencode qtoc_core release on the qt-headless branch (发布 qtoc_core / 新发布 / 同步并发布) — syncing upstream/v1, building the headless binary, tagging qt-headless-v*, monitoring the CI matrix and recording results. Triggers on qtoc:sync, qtoc:build, qt-headless-v* 标签, release runbook.
 ---
 
 # qtoc_core 发布技能
@@ -9,7 +9,7 @@ description: Use when performing an opencode qtoc_core release on the qt-headles
 
 ## 前置检查
 
-- 分支 `qt-headless`、工作区干净；`origin`=joe-ieta/opencode（推送目标），`upstream`=anomalyco/opencode（同步来源）。
+- 分支 `qt-headless`、工作区干净；`origin`=joe-ieta/opencode（推送目标），`upstream`=anomalyco/opencode（同步源为 V1 维护线 `v1`；`dev` 已晋升 V2/2.x，勿用）。
 - Bun ≥ 1.3.14。
 - 本机无全局 git 身份，执行合并/附注标签前设置环境变量，否则报 `Committer identity unknown`：
 
@@ -29,7 +29,7 @@ $env:GIT_MERGE_AUTOEDIT="no"
 git status --short
 git fetch --all --prune
 git pull --ff-only
-git log --oneline HEAD..upstream/dev
+git log --oneline HEAD..upstream/v1
 ```
 
 ### 2. 同步上游

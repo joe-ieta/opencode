@@ -39,7 +39,7 @@
 | 项 | 要求 |
 |---|---|
 | 分支 | `qt-headless`，工作区干净 |
-| 远端 | `origin` = `joe-ieta/opencode`（推送目标）；`upstream` = `anomalyco/opencode`（同步来源） |
+| 远端 | `origin` = `joe-ieta/opencode`（推送目标）；`upstream` = `anomalyco/opencode`，同步源为 **`v1`**（V1 维护线，1.19.x；`dev` 已于 2026-10-10 晋升 V2/2.x，不可作为本线同步源） |
 | Bun | ≥ 1.3.14（仓库 `packageManager` 声明；CI 用 latest，本机验证 1.4.2）；安装见 `bun-install.md` |
 | Git 身份 | 本机未配置全局身份：合并提交与附注标签前必须设置 `GIT_AUTHOR_*` / `GIT_COMMITTER_*` 环境变量（见第 4 节 Step 1），否则报 `Committer identity unknown` |
 | gh CLI | 已登录（`gh auth status`）；监控/重跑 CI 时使用 `-R joe-ieta/opencode` |
@@ -52,7 +52,7 @@
 
 | 命令（仓库根执行） | 作用 |
 |---|---|
-| `bun run qtoc:sync` | 同步上游：fetch `upstream/dev` → merge → 自动解决 modify/delete（保持删除）→ trim → install → typecheck |
+| `bun run qtoc:sync` | 同步上游：fetch `upstream/v1` → merge → 自动解决 modify/delete（保持删除）→ trim → install → typecheck |
 | `bun run qtoc:trim` | 幂等重新应用 headless 裁剪（删除 UI/无关包、精简配置/命令/CI）；模式漂移时 fail-fast |
 | `bun run qtoc:build` | 构建编排：`bun install` → `bun run typecheck` → `script/build.ts --single --skip-install` → 归档 |
 | `bun run --cwd packages/opencode script/build.ts --single --skip-install` | 底层构建命令（多平台发布不单独使用，见第 5 节） |
@@ -82,7 +82,7 @@
 git status --short                 # 必须干净
 git fetch --all --prune
 git pull --ff-only
-git log --oneline HEAD..upstream/dev   # 查看待同步的上游提交
+git log --oneline HEAD..upstream/v1   # 查看待同步的上游提交
 ```
 
 ### Step 1 同步上游
