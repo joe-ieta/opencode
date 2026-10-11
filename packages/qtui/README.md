@@ -1,16 +1,18 @@
 # @opencode-ai/qtui
 
 > 分支：**`oc-headless`**（对齐上游 V2 `upstream/dev`），运行态产物 **`oc_core`**（与 `qtoc_core` 隔离）。
-> Qt 客户端已移植（命名隔离 `oc_core`）；V2 协议适配进行中（见路线图 P1）。
-> 基线与路线图：`docs/KB/roadmap.md`；双分支决策（D1–D7）：`docs/KB/branch-strategy.md`；API 漂移：`docs/KB/v2-api-drift.md`；发布规范：`docs/ops/release-runbook.md`；发布记录：`docs/KB/releases.md`。
+> V2 协议适配已完成（CMake 构建 24/24 + ctest 2/2，含真实 `oc_core` 进程测试；GUI 端到端待人工验收）。
+> 路线图：`docs/KB/v2-upgrade-roadmap.md`；双分支决策：`docs/KB/branch-strategy.md`；API 漂移：`docs/KB/v2-api-drift.md`；发布规范：`docs/ops/release-runbook.md`；双线发布对照：`docs/ops/dual-line-release.md`；契约门禁：`docs/ops/contract-gate.md`；发布记录：`docs/KB/releases.md`。
 
 ## 命令（仓库根目录执行）
 
 ```bash
+bun run oc:release  # 一键候选流水线：sync → contract → build → smoke
 bun run oc:sync     # 同步上游（upstream/dev V2：merge + trim + install + typecheck）
 bun run oc:trim     # V2 最小 delta 守卫（校验构建脚本 flags/产物路径，幂等，失败即停）
 bun run oc:build    # 构建 oc_core 并归档到 artifacts/oc/（含 .sha256）
 bun run oc:smoke    # 自动冒烟：启动 → /api/info（含 401 校验）→ /api/event
+bun run oc:contract # P3 契约门禁：openapi 基线快照 + 稳定面白名单校验
 ```
 
 可选参数：`oc:build --skip-install --skip-typecheck | --baseline`；`oc:smoke --binary <path> | --port <n>`。

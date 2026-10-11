@@ -1,7 +1,7 @@
 # oc_core 统一发布规范（V2 线 / oc-headless）
 
 > 定位：`oc-headless` 分支（同步源 `upstream/dev` V2）上 `oc_core` 发布的**唯一操作规范**：前置环境、标准步骤、脚本命令、产物与哈希、CI、标签与记录。
-> 关联：路线图与版本策略见 `../KB/roadmap.md`；API 漂移见 `../KB/v2-api-drift.md`；发布记录见 `../KB/releases.md`；V1 线规范（qt-headless）为另一分支的 `release-runbook.md`。
+> 关联：路线图与版本策略见 `../KB/v2-upgrade-roadmap.md`；API 漂移见 `../KB/v2-api-drift.md`；发布记录见 `../KB/releases.md`；双线发布对照见 `dual-line-release.md`；V1 线规范（qt-headless）为另一分支的 `release-runbook.md`。
 > 基线：`oc-headless-v2.0.26`（内核 opencode 2.0.26）。
 
 ## 1. 产物与版本
@@ -32,6 +32,8 @@
 | `bun run oc:trim` | 最小 delta 守卫：校验构建脚本仍支持 `--single/--skip-install/--skip-web-ui/--baseline` 与产物路径构造 |
 | `bun run oc:build` | install → typecheck → 单二进制构建 → 归档 `artifacts/oc/`（稳定 + 版本化 + `.sha256`） |
 | `bun run oc:smoke` | 自动冒烟：启动 → `/api/info`（认证 200 + 版本一致）→ 无凭据 401 → `/api/event` `server.connected` → 校验 stderr 空 |
+| `bun run oc:contract` | P3 契约门禁：openapi 基线快照 + 稳定面白名单校验（缺失即失败，`--update` 刷新基线） |
+| `bun run oc:release` | 一键候选流水线：sync → contract → build → smoke（标签/推送/记录仍按本文手动执行） |
 
 参数：`oc:build --skip-install --skip-typecheck | --baseline`；`oc:smoke --binary <path> | --port <n>`；`oc:sync --no-trim --skip-install --skip-typecheck | --no-commit`。
 
@@ -52,7 +54,8 @@ bun run oc:sync
 bun run oc:trim
 git status --short                                # 有变更（lockfile 等）提交：chore(qtui): ...
 
-# 2) 构建与冒烟
+# 2) 契约门禁 + 构建与冒烟
+bun run oc:contract
 bun run oc:build --skip-install --skip-typecheck
 bun run oc:smoke
 
@@ -68,7 +71,7 @@ gh run list -R joe-ieta/opencode --workflow=oc-headless.yml --limit 5
 gh run watch <id> -R joe-ieta/opencode --exit-status
 ```
 
-CI 通过标准：三平台构建成功并上传产物（含 `.sha256`）；Linux 冒烟通过；`bun run oc:trim` 与 Linux typecheck 通过。
+CI 通过标准：三平台构建成功并上传产物（含 `.sha256`）；Linux 冒烟通过；`bun run oc:trim`、`oc:contract` 与 Linux typecheck 通过。
 
 ## 5. 记录与验收
 
