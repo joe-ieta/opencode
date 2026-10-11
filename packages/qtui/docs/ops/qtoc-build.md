@@ -118,7 +118,9 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 
 | 标签 | 内容 |
 |---|---|
-| `qt-headless-v1.18.35` | 当前发行线（1.18.35，始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.19.0` | 当前发行线（1.19.0，始终指向最新裁剪 + 验证提交） |
+| `qt-headless-v1.19.0.1` | 首个 1.19.0 发布：上游 `upstream/v1` 同步 `388406238b..dfb56f76c7` + trim/lockfile 重建 + 同步源切换 v1（上游 `dev` 晋升 V2） |
+| `qt-headless-v1.18.35` | 上一发行线（1.18.35） |
 | `qt-headless-v1.18.35.1` | 上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建 + 1.18.35 构建与冒烟 |
 | `qt-headless-v1.18.35.2` | 上游同步 `ecc4916b5a..388406238b`（15 个提交）+ 修复可恢复上下文溢出误报 session error（上游 PR #54131）+ 1.18.35 构建与冒烟 |
 | `qt-headless-v1.18.34` | 上一发行线（1.18.34） |
@@ -134,13 +136,14 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.31` | 更早发行线（1.18.31） |
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KB 上游跟踪） |
 
-- 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.18.35`）。
+- 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.19.0`）。
+- 2026-10-10 起上游 `dev`/`production` 晋升 V2（2.x），本线同步源为 `upstream/v1`（1.19.x）；`qtoc:sync` 默认分支已改为 `v1`。
 - 打标签流程：
   ```bash
-  git tag -a qt-headless-v1.18.35 -m "opencode headless distribution profile for Qt integration"
-  git push origin qt-headless-v1.18.35
-  git tag -a qt-headless-v1.18.35.1 -m "<本次迭代说明>"
-  git push origin qt-headless-v1.18.35.1
+  git tag -a qt-headless-v1.19.0 -m "opencode headless distribution profile for Qt integration"
+  git push origin qt-headless-v1.19.0
+  git tag -a qt-headless-v1.19.0.1 -m "<本次迭代说明>"
+  git push origin qt-headless-v1.19.0.1
   ```
 
 ## 8. 已知问题与修复（1.18.31 基线）

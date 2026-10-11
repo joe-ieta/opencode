@@ -28,16 +28,17 @@
 | Issue | 标题 | 状态 | 关联 PR | 备注 |
 |---|---|---|---|---|
 | [#49685](https://github.com/anomalyco/opencode/issues/49685) | Compiled builds crash on first prompt: undefined layer node from filesystem search import cycle | **CLOSED**（2026-09-21，由上游 #50439 修复） | #49683 | 编译版崩溃根因（KB-001），已上游化 |
-| [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | OPEN | #49684 | 诊断性改进（KB-001 的定位手段） |
-| [#54129](https://github.com/anomalyco/opencode/issues/54129) | Auto-compaction recovery still publishes session.error, so clients show a model error instead of the compaction notice | OPEN | #54131 | 桌面端误报模型错误；与 #39573 同根因（bot 关闭、未修复） |
+| [#49686](https://github.com/anomalyco/opencode/issues/49686) | LayerNode graph should fail with a named error when a dependency is undefined | **OPEN** | **#54467（V2）** | 诊断性改进（KB-001 的定位手段）；V1 PR #49684 被政策关闭后改向 V2 移植；同类 #48819 一并覆盖 |
+| [#54129](https://github.com/anomalyco/opencode/issues/54129) | Auto-compaction recovery still publishes session.error, so clients show a model error instead of the compaction notice | **CLOSED**（2026-10-10，not planned：V1 政策） | #54131 | 桌面端误报模型错误；修复已本地化（`81f5b2cdef`，随 1.18.35.2 发布）；V2 语义已符合预期（仅摘要溢出时报错） |
 
 ## 我方 PRs
 
 | PR | 分支 | 标题 | 状态 | 检查 | 备注 |
 |---|---|---|---|---|---|
-| [#49683](https://github.com/anomalyco/opencode/pull/49683) | `filesystem-search-cycle` | fix(core): break filesystem search import cycle | OPEN（已被上游 #50439 取代并合并，待关闭） | 合规检查通过 | 本地补丁已移除（2026-09-22） |
-| [#49684](https://github.com/anomalyco/opencode/pull/49684) | `layer-node-validation` | fix(core): validate layer node dependencies | OPEN（BLOCKED，待 review） | 合规检查通过；含单测 | 上游合并后删除本地补丁 |
-| [#54131](https://github.com/anomalyco/opencode/pull/54131) | `overflow-compaction-notice` | fix(opencode): stop flagging auto-compaction recovery as a session error | OPEN（待 review） | 4 项机器人检查全部通过 | 可恢复溢出不再发布 `session.error`；摘要溢出仍标记消息 error；本地溢出用例与 `bun typecheck` 通过 |
+| [#49683](https://github.com/anomalyco/opencode/pull/49683) | `filesystem-search-cycle` | fix(core): break filesystem search import cycle | **CLOSED**（2026-10-11，V1 政策；修复已随上游 #50439 进入 V1） | 合规检查通过 | 本地补丁已移除（2026-09-22） |
+| [#49684](https://github.com/anomalyco/opencode/pull/49684) | `layer-node-validation` | fix(core): validate layer node dependencies | **CLOSED**（2026-10-11，V1 政策，要求移植 V2） | 合规检查通过；含单测 | 已由 #54467（V2）取代 |
+| [#54131](https://github.com/anomalyco/opencode/pull/54131) | `overflow-compaction-notice` | fix(opencode): stop flagging auto-compaction recovery as a session error | **CLOSED**（2026-10-09，V1 政策 `v1_not_accepted`） | 4 项机器人检查全部通过 | 修复已本地化 `81f5b2cdef`（随 1.18.35.2 发布）；V2 已具备预期语义 |
+| [#54467](https://github.com/anomalyco/opencode/pull/54467) | `validate-layer-node` | fix(util): validate layer node dependencies | **OPEN**（BLOCKED＝待 review） | 4 项机器人检查通过 | V2 移植（`packages/util/src/effect/layer-node.ts` + 单测）；`Closes #49686`；本地 25 pass / typecheck 干净；如需修改在 V2 worktree 追加提交 |
 
 上游代提交（我方修复）：
 | PR | 作者 | 标题 | 状态 | 备注 |
@@ -63,6 +64,7 @@
 | 2026-10-06 | `upstream/dev` | `b471c2b449..4ac0d9c3d1`（58 个提交） | `qtoc:sync` 自动解决 133 个删除冲突；手动冲突 2 个：`.gitignore`（采用上游 `/artifacts/`，收敛本地 delta）、`bun.lock`（取上游后 `bun install` 重建）；trim 清理 console/stats 上游新增文件（19 个）；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.34` |
 | 2026-10-07 | `upstream/dev` | `4ac0d9c3d1..ecc4916b5a`（6 个提交） | `qtoc:sync` 自动解决 37 个删除冲突；手动冲突 `bun.lock`（取上游后 `bun install` 重建并提交 `6250d63db6`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.35` |
 | 2026-10-09 | `upstream/dev` | `ecc4916b5a..388406238b`（15 个提交） | `qtoc:sync` 自动解决 66 个删除冲突；无手动冲突；trim 清理 `packages/console` 残留 1 文件（提交 `7dca58eab6`）；typecheck 18/18；协议无变化（188 端点）；版本保持 `1.18.35`；本地修复可恢复上下文溢出误报 session error（提交 `81f5b2cdef`，已上游化 PR #54131） |
+| 2026-10-11 | `upstream/v1` | `388406238b..dfb56f76c7`（10 个提交） | **同步源切换**：上游 `dev`/`production` 于 2026-10-10 晋升 V2（2.0.26，无 `packages/opencode`），本线改跟随 `upstream/v1`；`qtoc:sync --branch v1` 自动解决 23 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `6e8c1c4618`）；trim 0 变更；typecheck 18/18；协议 1 行描述文本变化（`autoupdate` 文案）；版本同步至 `1.19.0`；`qtoc:sync` 默认分支与流程文档同步切换（提交 `4816da8244`） |
 
 ## 发布记录
 
@@ -81,35 +83,40 @@
 | `qt-headless-v1.18.34.2` | 修复 macOS codesign（`build.ts` 签名路径改为 `qtoc_core`；`trim.ts` 增加替换模式 + `bin/opencode` 残留守卫防再漂移）；标签指向 `66112673f9` | `--version` 1.18.34；CI `.2` 与主标签两次运行**三平台一次全通过**并上传产物（Linux 1m35s/1m10s、Windows 2m32s/2m36s、macOS 25m21s/27m44s）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 | `qt-headless-v1.18.35.1` | 首个 1.18.35 发布（上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建）；标签指向 `6250d63db6` | `--version` 1.18.35；CI `.1` 与主标签两次运行三平台通过并上传产物（主标签 Linux 1m31s / Windows 2m26s / macOS 19m33s；`.1` Windows 首跑 Setup Bun `TypeError: fetch failed` 基础设施偶发，重跑通过）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 | `qt-headless-v1.18.35.2` | 上游同步 `ecc4916b5a..388406238b`（15 个提交）+ 修复可恢复上下文溢出被误报为 session error（上游 PR #54131）；标签指向 `81f5b2cdef` | `--version` 1.18.35；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.2` 与主标签两次运行**三平台全通过**并上传产物（`.2`：Linux 1m30s / Windows 2m38s / macOS 14m10s；主标签：Linux 1m5s / Windows 2m37s / macOS 23m51s；产物 Linux 89.7 MB / macOS 68.1 MB / Windows 96.8 MB） |
+| `qt-headless-v1.19.0.1` | 首个 1.19.0 发布（上游 `upstream/v1` 同步 `388406238b..dfb56f76c7`（10 个提交）+ trim/lockfile 重建 + 同步源切换 v1）；标签指向 `4816da8244` | `--version` 1.19.0；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.1` 与主标签两次运行**三平台一次全通过**并上传产物（`.1`：Linux 1m26s / Windows 3m30s / macOS 5m44s；主标签：Linux 1m23s / Windows 3m7s / macOS 17m52s）；本地构建 119.6 MB |
 
 ## 本地 delta 与上游化状态
 
 | 本地改动 | 类型 | 上游化状态 | 上游合并后的动作 |
 |---|---|---|---|
 | `packages/core/src/filesystem/search.ts` | 可上游化（bug fix） | **已上游化**（上游 #50439，2026-09-21 合并；内容与 #49683 一致） | 本地补丁已移除（2026-09-22），与上游一致 |
-| `packages/core/src/effect/layer-node.ts` | 可上游化（诊断） | PR #49684（OPEN） | 上游合并后删除本地补丁；2026-10-11 其他线程已将补丁迁移至 V2（`packages/util/src/effect/layer-node.ts`，本地分支 `validate-layer-node`，待提交上游） |
+| `packages/core/src/effect/layer-node.ts`（`validateNodes`，`9f3419b9da` 引入） | 可上游化（诊断） | V1 线不再接受（#49684 被政策关闭）；已移植 V2：**PR #54467（OPEN）** | 本地补丁保留（qt-headless 走 V1 线，V2 合并不回灌；若未来切 V2 线再对齐） |
 | `packages/opencode/script/build.ts`（`QTOC_MINIFY` / `qtoc_core` 产物名 / headless 默认 / macOS codesign 路径） | 发行定制 | 不上游 | 保留，由 `trim` 维护（2026-10-06 适配上游新增的 macOS ad-hoc 签名，trim 增加残留守卫） |
 | `packages/opencode/src/index.ts`（命令注销） | 裁剪 | 不上游 | 由 `trim` 维护 |
 | `package.json` / `turbo.json` / `test.yml` / workspaces | 裁剪配置 | 不上游 | 由 `trim` 维护 |
 
 ## 待办清单（长期）
 
-- [x] #49683：已由上游 #50439 合并，本地 `search.ts` 补丁已移除（2026-09-22）；待上游关闭我方 PR
-- [ ] 跟进 #49684 的 review 意见（分支：`layer-node-validation`）；合并后删除本地 `layer-node.ts` 补丁
+- [x] #49683：上游 #50439 已进入 V1；我方 PR 已关闭（2026-10-11）；本地 `search.ts` 补丁已移除（2026-09-22）
+- [ ] 跟进 V2 PR #54467（`validate-layer-node`，base `dev`）：review/合并；如需修改，在本地 V2 worktree（临时目录 `opencode-v2`）追加提交
+- [ ] #54467 合并后：确认 #49686、#48819 关闭；清理 V2 worktree（`git worktree remove`；如需后续 V2 移植可保留）
+- [ ] V1 维护线策略：同步固定 `upstream/v1`；V1 仅提 critical 修复，其余问题在 V2 处理
+- [ ] 1.19.0 收尾：补记 2026-10-11 V1 同步到「上游合并记录」（`388406238b..dfb56f76c7`），按发布规范决定是否发行并更新「发布记录」
 - [ ] 若上游提供官方打包/版本注入方案，评估替换本地 `build.ts` 定制
 - [ ] 每次同步后更新「上游合并记录」与「本地 delta」表
-- [ ] 关注上游 V2 API / 事件协议变化（客户端适配层）
+- [ ] 关注上游 V2 API / 事件协议变化（客户端适配层；V2 已上 dev，长期迁移另行立项）
 - [ ] 评估阶段 4：使用 npm 发布二进制 + 纯 Qt 客户端的可行性（见 `KB/architecture.md`）
 
 ## 监控命令
 
 ```bash
 # PR / Issue 状态
-gh pr view 49683 --repo anomalyco/opencode --json state,mergeStateStatus,reviewDecision
-gh pr checks 49683 --repo anomalyco/opencode
-gh issue view 49685 --repo anomalyco/opencode --json state
+gh pr view 54467 --repo anomalyco/opencode --json state,mergeStateStatus,reviewDecision
+gh pr checks 54467 --repo anomalyco/opencode
+gh issue view 49686 --repo anomalyco/opencode --json state
+gh issue view 48819 --repo anomalyco/opencode --json state
 
-# 上游新提交（决定是否同步）
+# 上游新提交（同步源：V1 维护线）
 git fetch upstream v1 && git log --oneline qt-headless..upstream/v1
 
 # 同步
