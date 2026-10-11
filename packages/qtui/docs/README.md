@@ -59,6 +59,7 @@ docs/README.md（本文）
   → KB/upstream.md                上游 PR/Issue 与同步记录
   → KB/history.md                 已修复问题（回归参考）
   → KB/release-issues.md          阶段编译发布问题记录（发布前速览）
+  → KB/branch-strategy.md         双分支策略（qt-headless / oc-headless 与 V2 对齐决策）
 ```
 
 ### D. 排查线上问题
@@ -91,6 +92,7 @@ KB/history.md → ops/qt-headless.md 第 4 节冒烟清单 → guide/client-tour
 | 知识库 | `KB/` | `history.md` | 问题处理历史（KB-001…）、验证基线、关键提交 | 维护者/排查 |
 | 知识库 | `KB/` | `data-agent-faq.md` | 数据治理扩展边界、网关交付形态（MCP）、单一二进制配置区分（Q&A 决策记录） | 架构师/维护者 |
 | 知识库 | `KB/` | `release-issues.md` | 阶段编译发布问题记录（KB-R01…）：Bun 版本、lockfile/.gitignore 冲突、git 身份、CI 偶发、macOS codesign、标签处理与流程经验 | 发布执行者/维护 |
+| 知识库 | `KB/` | `branch-strategy.md` | 双分支策略：qt-headless（upstream/v1）与 oc-headless（upstream/dev V2）对齐决策、V2 套壳调研、roadmap | 架构师/维护者 |
 
 相关入口（不在本目录）：
 
