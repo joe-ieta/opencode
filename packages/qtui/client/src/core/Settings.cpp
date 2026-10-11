@@ -1,5 +1,6 @@
 #include "Settings.h"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSettings>
@@ -56,21 +57,24 @@ QString OcSettings::configJson() const {
     if (!override.isEmpty()) return override;
 
     QJsonObject config{
-        {"permission", QJsonObject{{"edit", "ask"}, {"bash", "ask"}}},
+        {"permissions", QJsonArray{
+            QJsonObject{{"action", "edit"}, {"resource", "*"}, {"effect", "ask"}},
+            QJsonObject{{"action", "shell"}, {"resource", "*"}, {"effect", "ask"}},
+        }},
     };
 
     if (!provider.isEmpty()) {
-        QJsonObject options;
-        if (!baseUrl.isEmpty()) options.insert("baseURL", baseUrl);
-        if (!apiKey.isEmpty()) options.insert("apiKey", apiKey);
+        QJsonObject settings;
+        if (!baseUrl.isEmpty()) settings.insert("baseURL", baseUrl);
+        if (!apiKey.isEmpty()) settings.insert("apiKey", apiKey);
 
         QJsonObject entry;
-        if (!options.isEmpty()) entry.insert("options", options);
+        if (!settings.isEmpty()) entry.insert("settings", settings);
         if (isCustomProvider()) {
-            entry.insert("npm", "@ai-sdk/openai-compatible");
+            entry.insert("package", "aisdk:@ai-sdk/openai-compatible");
             if (!model.isEmpty()) entry.insert("models", QJsonObject{{model, QJsonObject{}}});
         }
-        config.insert("provider", QJsonObject{{provider, entry}});
+        config.insert("providers", QJsonObject{{provider, entry}});
     }
 
     const QString model = modelString();

@@ -19,14 +19,14 @@ SettingsDialog::SettingsDialog(const OcSettings &current, QWidget *parent) : QDi
     m_provider->addItems({"anthropic", "openai", "google", "openrouter", "openai-compatible", "custom"});
     m_provider->setCurrentText(current.provider);
     m_provider->setToolTip("LLM provider id. Built-in ids are used as-is; other ids are registered as a custom\n"
-                           "OpenAI-compatible provider (npm: @ai-sdk/openai-compatible).");
+                           "OpenAI-compatible provider (package: aisdk:@ai-sdk/openai-compatible).");
 
     m_baseUrl = new QLineEdit(current.baseUrl, this);
     m_baseUrl->setPlaceholderText("可选，例如 https://api.example.com/v1");
 
     m_apiKey = new QLineEdit(current.apiKey, this);
     m_apiKey->setEchoMode(QLineEdit::Password);
-    m_apiKey->setPlaceholderText("API Key（写入内核 provider options）");
+    m_apiKey->setPlaceholderText("API Key（写入内核 provider settings）");
 
     auto *showKey = new QCheckBox("显示", this);
     connect(showKey, &QCheckBox::toggled, this, [this](bool shown) {

@@ -42,7 +42,7 @@ void TstProcess::healthCheck() {
     QVERIFY2(readySpy.wait(60000), "server did not become ready within 60s");
 
     QNetworkAccessManager network;
-    QNetworkRequest request(QUrl(server.baseUrl().toString() + "/global/health"));
+    QNetworkRequest request(QUrl(server.baseUrl().toString() + "/api/info"));
     request.setRawHeader("Authorization", "Basic " + QByteArray("opencode:test-secret").toBase64());
 
     QNetworkReply *reply = network.get(request);
@@ -51,11 +51,12 @@ void TstProcess::healthCheck() {
     loop.exec();
 
     QCOMPARE(reply->error(), QNetworkReply::NoError);
-    const QJsonObject health = QJsonDocument::fromJson(reply->readAll()).object();
+    const QJsonObject info = QJsonDocument::fromJson(reply->readAll()).object();
     reply->deleteLater();
 
-    QCOMPARE(health.value("healthy").toBool(), true);
-    QVERIFY(!health.value("version").toString().isEmpty());
+    QVERIFY(!info.value("version").toString().isEmpty());
+    QVERIFY(info.value("pid").toInt() > 0);
+    QVERIFY(!info.value("urls").toArray().isEmpty());
 
     server.stop();
     QVERIFY(!server.isRunning());

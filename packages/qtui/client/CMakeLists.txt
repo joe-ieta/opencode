@@ -36,6 +36,8 @@ qt_add_executable(oc-client
   src/core/Settings.h
   src/ui/MainWindow.cpp
   src/ui/MainWindow.h
+  src/ui/FormDialog.cpp
+  src/ui/FormDialog.h
   src/ui/SettingsDialog.cpp
   src/ui/SettingsDialog.h
 )

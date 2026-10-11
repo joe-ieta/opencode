@@ -40,14 +40,9 @@ bool ServerProcess::start(const Options &options, QString *error) {
     QDir().mkpath(options.stateDir + "/config");
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("OPENCODE_SERVER_PASSWORD", options.password);
+    env.insert("OPENCODE_PASSWORD", options.password);
     env.insert("OPENCODE_CLIENT", "desktop");
     if (!options.configJson.isEmpty()) env.insert("OPENCODE_CONFIG_CONTENT", options.configJson);
-    // Convenience: OC_AUTH_JSON maps to the kernel's inline credential channel.
-    const QString authJson = env.value("OC_AUTH_JSON");
-    if (!authJson.isEmpty() && env.value("OPENCODE_AUTH_CONTENT").isEmpty()) {
-        env.insert("OPENCODE_AUTH_CONTENT", authJson);
-    }
     // Keep test state out of the user profile.
     env.insert("XDG_DATA_HOME", options.stateDir + "/data");
     env.insert("XDG_STATE_HOME", options.stateDir + "/state");
@@ -93,7 +88,8 @@ void ServerProcess::handleStdout() {
         emit logLine(line);
 
         if (m_ready) continue;
-        static const QRegularExpression re(QStringLiteral("listening on http://[^:]+:(\\d+)"));
+        // V2 prints `server listening on <url>`; V1 prefixed it with `opencode`.
+        static const QRegularExpression re(QStringLiteral("(?:opencode\\s+)?server listening on http://[^:]+:(\\d+)"));
         const QRegularExpressionMatch match = re.match(line);
         if (!match.hasMatch()) continue;
         m_port = static_cast<quint16>(match.captured(1).toUInt());

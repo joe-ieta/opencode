@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QJsonObject>
 #include <QMainWindow>
 #include <QTemporaryDir>
 
@@ -36,17 +37,17 @@ private slots:
     void onServerFailed(const QString &message);
     void onSseOpened();
     void onEvent(const QJsonObject &event);
-    void onPartUpdated(const QJsonObject &part);
-    void onPartDelta(const QString &partID, const QString &field, const QString &delta);
+    void onSessionIdle(const QString &sessionID);
     void onSessionStatus(const QString &sessionID, const QString &status);
     void onPermissionAsked(const QJsonObject &request);
-    void onQuestionAsked(const QJsonObject &request);
+    void onFormCreated(const QJsonObject &form);
     void refreshTranscript();
 
 private:
     QString corePath() const;
     QString configJson() const;
     void checkProviders();
+    void fetchMessages();
     void appendLog(const QString &line);
     void showSystem(const QString &line);
     void setStatus(const QString &text);
