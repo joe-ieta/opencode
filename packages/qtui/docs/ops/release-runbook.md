@@ -93,6 +93,7 @@ CI 通过标准：三平台构建成功并上传产物（含 `.sha256`）；Linu
 | 预推送钩子 oxlint 插件加载失败（`ERR_UNKNOWN_FILE_EXTENSION`） | 设置 `NODE_OPTIONS=--experimental-strip-types` |
 | 二进制体积（V2 2.0.26 Windows x64 ≈ 180 MiB，V1 120 MiB） | 实验结论（2026-10-11）：`bytecode: true` 约 49 MB（188,766,208 B → 关闭后 139,571,712 B ≈ 133 MiB），其余为 V2 功能集增长；当前保持上游默认，进一步瘦身需由 trim 管理开关（未采用）。另：构建**不可字节复现**（同尺寸不同哈希），发布以 `.sha256` 侧车为准 |
 | macOS 产物未签名/未公证 | 对外分发需另行 codesign + notarytool |
+| Zen 默认模型 `exo-free` 已弃用（410 `ModelDeprecated`） | 端到端/演示使用 `opencode/ling-3.1-flash-free`（免费）或自配模型；客户端 e2e 测试：`OC_TEST_E2E=1`（可选 `OC_TEST_MODEL`） |
 | `/api/*` 预览面变更 | 客户端只用稳定子集 + 未知事件容忍（路线图 P3 契约测试） |
 
 ## 变更记录

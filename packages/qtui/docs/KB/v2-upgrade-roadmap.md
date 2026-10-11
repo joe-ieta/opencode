@@ -108,7 +108,7 @@ upstream/dev ──oc:sync(merge + trim + install + typecheck)──▶ oc-headl
 8. **体积调查**：180 MiB 对比 V1 `qtoc_core` 120 MiB。已排除 web UI（skip 后 archive 为空）；测量 pty/ripgrep/tree-sitter/opentui 等编译资产占比，评估 strip 或上游 flags，结论记录后再决定动作。✅ 结论（2026-10-11）：`bytecode: true` ≈ 49 MB（关闭后 133 MiB），其余为 V2 功能集；暂保持上游默认（详见 `../ops/release-runbook.md` §6）。
 9. **发行手册（`ops/release-runbook.md`，V2 版）**：版本矩阵、tag 规范、产物存放与推送、发布记录模板、冒烟清单。
 
-### P2（长线铺垫）🟡 #10/#11 已完成；#12（同步演练）待首次真实同步执行
+### P2（长线铺垫）🟡 #10/#11 已完成；#12 已做无变更工具链验证（merge/trim/install 通过，typecheck 因本机 symlink 用 `--skip-typecheck`），待首次真实上游变更时完整演练
 
 10. **版本/标签规范**：`oc-headless-v<上游版本>`（如 `v2.0.26`），同一上游版本重发递增为 `v2.0.26.1`；`v0.1.0` 保留为 bootstrap 别名。
 11. **发布记录 `KB/releases.md`**：每次发布一行（tag / 源提交 / 内核 / 产物哈希 / 冒烟结论）。
@@ -119,7 +119,7 @@ upstream/dev ──oc:sync(merge + trim + install + typecheck)──▶ oc-headl
 | 阶段 | 交付 | 验收 | 状态 |
 |---|---|---|---|
 | P0 基线固化 | v0.1.0：工具链 + 漂移评估 + 构建/冒烟 | 本文 2.2 复测全过 | ✅ |
-| P1 客户端移植 | EventRouter/SessionModel 按 V2 事件重建；请求改 `/api/*`；form 替代 question；`OPENCODE_PASSWORD`；监听行解析；client README 重写 | Qt 客户端对 `oc_core` 真实模型端到端会话（含权限/表单） | 🟡 代码完成：CMake 构建 24/24 + ctest 2/2（含真实 `oc_core` 进程测试）；GUI 端到端（真实模型/权限/表单）待人工验收 |
+| P1 客户端移植 | EventRouter/SessionModel 按 V2 事件重建；请求改 `/api/*`；form 替代 question；`OPENCODE_PASSWORD`；监听行解析；client README 重写 | Qt 客户端对 `oc_core` 真实模型端到端会话（含权限/表单） | 🟢 传输层达成：CMake 24/24；ctest 3/3（`tst_v2_session` 真实模型会话 + 流式回复断言）；GUI 权限/表单交互人工验收待办 |
 | P2 CI 与发行 | `oc-headless.yml`；sha256；ops 手册；首个 `oc-headless-v2.0.26` 三平台产物 | tag 触发流水线全绿，产物可复核 | ✅（CI 38124055219 三平台全绿；Linux typecheck 37/37 + smoke PASS） |
 | P3 协议契约 | 稳定面白名单与兼容矩阵；未知事件容忍；实验钩子锁定单适配层；契约测试（http-recorder 基线） | 内核升级仅通过契约测试 + 冒烟即可判定兼容 | ✅（`oc:contract`：openapi 基线快照 + 稳定面门禁；未知事件忽略与单适配层策略见 `../ops/contract-gate.md`；http-recorder 运行时录制列为后续增强） |
 | P4 业务能力平台 | SDK 库化 + 双 daemon；委派服务；能力包规范/注册；Text-to-SQL；LLM Gateway（对齐 dual-engine P0–P4，重定基 V2） | 双引擎同内核版本共跑；能力包脚手架 → 发布 → 挂载全流程复现 | ⏸ 延期（后续讨论） |
@@ -163,3 +163,4 @@ upstream/dev ──oc:sync(merge + trim + install + typecheck)──▶ oc-headl
 |---|---|
 | 2026-10-11 | 首版：基线 v0.1.0 定义与独立复测、P0–P2 优化清单、P0–P5 路线图、版本与发布策略、风险清单 |
 | 2026-10-11 | 改名《oc-headless V2 升级路线图》并界定范围（非项目整体路线图）；P4/P5 延期讨论；P1/P2/P3 状态更新（P2/P3 完成，P1 待 GUI 端到端验收）；关联 `../ops/dual-line-release.md` |
+| 2026-10-11 | P1 传输层真实模型 e2e 通过（新增 `tst_v2_session`，Zen 免费模型流式回复断言）；P2#12 无变更工具链验证；记录 Zen 默认模型弃用备注（发布 `oc-headless-v2.0.26.1`） |

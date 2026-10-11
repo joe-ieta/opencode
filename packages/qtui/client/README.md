@@ -77,7 +77,15 @@ ctest --output-on-failure
 ```
 
 - `tst_sse_parser`：SSE 分帧单元测试（跨包、CRLF、心跳、非法 JSON）；
-- `tst_process`：真实启动 `oc_core`，以 Basic `opencode:<password>` 校验 `GET /api/info`（找不到内核时自动跳过）。
+- `tst_process`：真实启动 `oc_core`，以 Basic `opencode:<password>` 校验 `GET /api/info`（找不到内核时自动跳过）；
+- `tst_v2_session`：**真实模型端到端**（默认跳过）——启动 `oc_core`、订阅 `/api/event`、建会话、发 prompt、等待终端执行事件并断言流式文本。启用方式：
+
+```powershell
+# 需要网络访问内置 Zen 免费模型（或设置 OC_TEST_MODEL 指向其他 provider/model）
+$env:OC_TEST_E2E="1"; ctest -R v2_session --output-on-failure
+```
+
+说明：Zen 默认模型 `exo-free` 已弃用（410）；e2e/演示请使用 `opencode/ling-3.1-flash-free`（默认）或自配模型。
 
 ## 运行配置
 
