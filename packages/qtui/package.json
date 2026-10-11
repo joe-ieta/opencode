@@ -13,6 +13,7 @@
     "trim": "bun run src/trim.ts",
     "build": "bun run src/build.ts",
     "sync": "bun run src/sync.ts",
+    "smoke": "bun run src/smoke.ts",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {

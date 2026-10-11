@@ -9,8 +9,9 @@
  *   bun run oc:build --baseline      # build the baseline (non-AVX2) variant
  *
  * Output:
- *   artifacts/oc/oc_core[.exe]                              stable name
- *   artifacts/oc/oc_core-<version>-<os>-<arch>[.exe]        versioned copy
+ *   artifacts/oc/oc_core[.exe]                                   stable name (+ .sha256)
+ *   artifacts/oc/oc_core-<version>-<os>-<arch>[.exe]             versioned copy (+ .sha256)
+ *   --baseline variants append -baseline to both names
  */
 import { $ } from "bun"
 import fs from "node:fs/promises"
@@ -49,6 +50,7 @@ if (!skipTypecheck) {
 const cliPkg = await Bun.file(path.join(ROOT, "packages/cli/package.json")).json()
 process.env.OPENCODE_CHANNEL ??= "oc-headless"
 process.env.OPENCODE_VERSION ??= String(cliPkg.version ?? "0.0.0")
+const requestedVersion = process.env.OPENCODE_VERSION
 console.log(`oc: build oc_core (channel=${process.env.OPENCODE_CHANNEL} version=${process.env.OPENCODE_VERSION})`)
 const buildArgs = ["run", "--cwd", "packages/cli", "script/build.ts", "--single", "--skip-install", "--skip-web-ui"]
 if (baseline) buildArgs.push("--baseline")
@@ -65,16 +67,27 @@ if (!(await Bun.file(source).exists())) {
 const outDir = path.join(ROOT, "artifacts/oc")
 await fs.mkdir(outDir, { recursive: true })
 const distPkg = await Bun.file(path.join(distDir, "package.json")).json()
+// Single source of truth: the version the build script stamped into the artifact.
+// OPENCODE_VERSION (defaulted from packages/cli/package.json) must agree with it.
 const version = String(distPkg.version ?? "0.0.0")
-const stable = path.join(outDir, `oc_core${extension}`)
-const versioned = path.join(outDir, `oc_core-${version}-${osName}-${process.arch}${extension}`)
+if (version !== requestedVersion) {
+  throw new Error(`oc build: artifact version ${version} does not match OPENCODE_VERSION ${requestedVersion}`)
+}
+const variant = baseline ? "-baseline" : ""
+const stable = path.join(outDir, `oc_core${variant}${extension}`)
+const versioned = path.join(outDir, `oc_core-${version}-${osName}-${process.arch}${variant}${extension}`)
 await copyRetry(source, stable)
 await copyRetry(source, versioned)
+
+for (const file of [stable, versioned]) {
+  await Bun.write(`${file}.sha256`, `${await hashFile(file)}  ${path.basename(file)}\n`)
+}
 
 const size = ((await fs.stat(stable)).size / 1024 / 1024).toFixed(1)
 console.log("oc: done")
 console.log(`  ${path.relative(ROOT, stable)} (${size} MB)`)
 console.log(`  ${path.relative(ROOT, versioned)}`)
+console.log(`  ${path.relative(ROOT, stable)}.sha256`)
 
 // Windows can hold the destination briefly (antivirus, previous runs); retry.
 async function copyRetry(from: string, to: string) {
@@ -88,4 +101,15 @@ async function copyRetry(from: string, to: string) {
       await Bun.sleep(1000)
     }
   }
+}
+
+async function hashFile(file: string) {
+  const hasher = new Bun.CryptoHasher("sha256")
+  const reader = Bun.file(file).stream().getReader()
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    hasher.update(value)
+  }
+  return hasher.digest("hex")
 }

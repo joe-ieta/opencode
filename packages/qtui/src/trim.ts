@@ -15,12 +15,13 @@ process.chdir(ROOT)
 
 const file = "packages/cli/script/build.ts"
 const text = await Bun.file(file).text()
-const required = ["--single", "--skip-install", "--skip-web-ui"]
+const required = ["--single", "--skip-install", "--skip-web-ui", "--baseline"]
 const missing = required.filter((flag) => !text.includes(flag))
 if (missing.length) {
   throw new Error(`oc trim: ${file} no longer supports ${missing.join(", ")}; update packages/qtui/src/trim.ts`)
 }
-if (!text.includes("bin")) {
-  throw new Error(`oc trim: ${file} no longer writes the binary under bin/; update packages/qtui/src/trim.ts`)
+const outfile = 'path.join(outdir, name, "bin", binary)'
+if (!text.includes(outfile)) {
+  throw new Error(`oc trim: ${file} no longer writes the binary via ${outfile}; update packages/qtui/src/trim.ts`)
 }
 console.log("oc trim: V2 minimal-delta profile ok (no package deletions)")

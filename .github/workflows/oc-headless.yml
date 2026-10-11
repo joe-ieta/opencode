@@ -1,0 +1,59 @@
+name: oc-headless
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "oc-headless-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: oc_core (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: bun install
+
+      - name: Trim guard
+        run: bun run oc:trim
+
+      - name: Typecheck (linux)
+        if: runner.os == 'Linux'
+        run: bun run typecheck
+
+      - name: Build oc_core
+        run: bun run oc:build --skip-install --skip-typecheck
+
+      - name: Smoke test (linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 5
+        run: bun run oc:smoke
+
+      - name: Upload oc_core
+        uses: actions/upload-artifact@v4
+        with:
+          name: oc_core-${{ runner.os }}
+          path: artifacts/oc/*
+          if-no-files-found: error
+          retention-days: 14

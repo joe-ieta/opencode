@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 /**
- * qtoc upstream sync.
+ * oc-headless upstream sync (V2).
  *
  * Usage (from repo root):
  *   bun run oc:sync                          # fetch + merge upstream/dev (V2) + trim + install + typecheck
  *   bun run oc:sync --remote upstream --branch dev
- *   bun run qtoc:sync --no-trim --skip-install --skip-typecheck
- *   bun run qtoc:sync --no-commit              # stop after resolving, review the merge manually
+ *   bun run oc:sync --no-trim --skip-install --skip-typecheck
+ *   bun run oc:sync --no-commit              # stop after resolving, review the merge manually
  *
  * Modify/delete conflicts (files upstream still changes but this profile removed)
  * are resolved automatically by keeping the deletion. Any other conflict aborts
@@ -94,4 +94,4 @@ if (!skipTypecheck) {
 
 console.log("oc sync: done")
 console.log("  next: bun run oc:build")
-console.log("  then: run the smoke checklist in packages/qtui/docs/ops/qt-headless.md")
+console.log("  then: bun run oc:smoke (see packages/qtui/docs/ops/release-runbook.md)")
