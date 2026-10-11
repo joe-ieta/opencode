@@ -1,0 +1,6 @@
+build*/
+fixtures/oc_core
+fixtures/oc_core.exe
+CMakeLists.txt.user*
+.qtc_clangd/
+*.autosave
