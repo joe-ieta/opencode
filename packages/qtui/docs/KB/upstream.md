@@ -12,7 +12,7 @@
 | 跟踪分支 | `qt-headless` |
 | 同步工具 | `bun run qtoc:sync`（见 `../ops/qtoc-build.md` 第 4 节） |
 | 上游同步源 | `upstream/v1`（V1 维护线，1.19.x）；`upstream/dev` 于 2026-10-10 晋升 V2/2.x（无 `packages/opencode`），本线不同步 |
-| 当前内核版本 | `1.19.0`（channel `qt-headless`；上游 2026-10-11 同步） |
+| 当前内核版本 | `1.19.3`（channel `qt-headless`；上游 2026-10-18 同步） |
 
 ## 上游政策备忘
 
@@ -65,6 +65,7 @@
 | 2026-10-07 | `upstream/dev` | `4ac0d9c3d1..ecc4916b5a`（6 个提交） | `qtoc:sync` 自动解决 37 个删除冲突；手动冲突 `bun.lock`（取上游后 `bun install` 重建并提交 `6250d63db6`）；trim 0 变更；typecheck 18/18；协议无变化（188 端点）；版本同步至 `1.18.35` |
 | 2026-10-09 | `upstream/dev` | `ecc4916b5a..388406238b`（15 个提交） | `qtoc:sync` 自动解决 66 个删除冲突；无手动冲突；trim 清理 `packages/console` 残留 1 文件（提交 `7dca58eab6`）；typecheck 18/18；协议无变化（188 端点）；版本保持 `1.18.35`；本地修复可恢复上下文溢出误报 session error（提交 `81f5b2cdef`，已上游化 PR #54131） |
 | 2026-10-11 | `upstream/v1` | `388406238b..dfb56f76c7`（10 个提交） | **同步源切换**：上游 `dev`/`production` 于 2026-10-10 晋升 V2（2.0.26，无 `packages/opencode`），本线改跟随 `upstream/v1`；`qtoc:sync --branch v1` 自动解决 23 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `6e8c1c4618`）；trim 0 变更；typecheck 18/18；协议 1 行描述文本变化（`autoupdate` 文案）；版本同步至 `1.19.0`；`qtoc:sync` 默认分支与流程文档同步切换（提交 `4816da8244`） |
+| 2026-10-18 | `upstream/v1` | `dfb56f76c7..a1f604bbe0`（9 个提交） | `qtoc:sync` 自动解决 38 个删除冲突；`bun.lock` 手动冲突（取上游后 `bun install` 重建并提交 `ad5666f7da`）；trim 0 变更；typecheck 18/18；协议 162 端点不变，新增字段 `reasoning_options`（模型变体）；版本同步至 `1.19.3` |
 
 ## 发布记录
 
@@ -84,6 +85,7 @@
 | `qt-headless-v1.18.35.1` | 首个 1.18.35 发布（上游同步 `4ac0d9c3d1..ecc4916b5a`（6 个提交）+ trim/lockfile 重建）；标签指向 `6250d63db6` | `--version` 1.18.35；CI `.1` 与主标签两次运行三平台通过并上传产物（主标签 Linux 1m31s / Windows 2m26s / macOS 19m33s；`.1` Windows 首跑 Setup Bun `TypeError: fetch failed` 基础设施偶发，重跑通过）；本地构建 119.5 MB + health/question/SSE/stderr 空 |
 | `qt-headless-v1.18.35.2` | 上游同步 `ecc4916b5a..388406238b`（15 个提交）+ 修复可恢复上下文溢出被误报为 session error（上游 PR #54131）；标签指向 `81f5b2cdef` | `--version` 1.18.35；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.2` 与主标签两次运行**三平台全通过**并上传产物（`.2`：Linux 1m30s / Windows 2m38s / macOS 14m10s；主标签：Linux 1m5s / Windows 2m37s / macOS 23m51s；产物 Linux 89.7 MB / macOS 68.1 MB / Windows 96.8 MB） |
 | `qt-headless-v1.19.0.1` | 首个 1.19.0 发布（上游 `upstream/v1` 同步 `388406238b..dfb56f76c7`（10 个提交）+ trim/lockfile 重建 + 同步源切换 v1）；标签指向 `4816da8244` | `--version` 1.19.0；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；CI `.1` 与主标签两次运行**三平台一次全通过**并上传产物（`.1`：Linux 1m26s / Windows 3m30s / macOS 5m44s；主标签：Linux 1m23s / Windows 3m7s / macOS 17m52s）；本地构建 119.6 MB |
+| `qt-headless-v1.19.3.1` | 首个 1.19.3 发布（上游 `upstream/v1` 同步 `dfb56f76c7..a1f604bbe0`（9 个提交）+ trim/lockfile 重建）；标签指向 `ad5666f7da` | `--version` 1.19.3；构建内建 smoke 通过；`/global/health` 正常；tool ids 含 `question`；SSE `server.connected`；stderr 空；本地构建 120.3 MB；CI **待补**：仓库 GitHub Actions 被禁用（标签推送/手动 dispatch 均 HTTP 422），恢复后补跑 |
 
 ## 本地 delta 与上游化状态
 
