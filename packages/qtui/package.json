@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@opencode-ai/qtui",
-  "version": "2.0.26",
+  "version": "2.0.32",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -15,11 +15,11 @@
     "sync": "bun run src/sync.ts",
     "smoke": "bun run src/smoke.ts",
     "contract": "bun run src/contract.ts",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
-    "@typescript/native-preview": "catalog:"
+    "typescript": "catalog:"
   }
 }

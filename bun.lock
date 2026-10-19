@@ -594,11 +594,11 @@
     },
     "packages/qtui": {
       "name": "@opencode-ai/qtui",
-      "version": "2.0.26",
+      "version": "2.0.32",
       "devDependencies": {
         "@tsconfig/bun": "catalog:",
         "@types/bun": "catalog:",
-        "@typescript/native-preview": "catalog:",
+        "typescript": "catalog:",
       },
     },
     "packages/schema": {
