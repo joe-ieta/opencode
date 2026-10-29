@@ -95,6 +95,7 @@ test("sidebar and Home share projects and history without opening session tabs",
   await expect(titles).toHaveText([b.title])
   await expect(homeRow("Shared rename")).toHaveCount(0)
   await expect(sidebar.getByRole("heading", { level: 3 })).toHaveText(["Shared history", "Empty project"])
+  await expect(sidebar.getByText("1/1", { exact: true })).toBeVisible()
 })
 
 test("recent sessions caps each project at five and can reveal a selected overflow session", async ({ page }) => {
@@ -122,12 +123,18 @@ test("recent sessions caps each project at five and can reveal a selected overfl
   const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
   const titles = sidebar.locator("[data-titlebar-tab-title]")
   const names = (items: { title: string }[]) => items.map((item) => item.title)
+  const group = sidebar
+    .locator("div[title]")
+    .filter({ has: page.getByRole("heading", { name: "Large project", exact: true }) })
   await expect(titles).toHaveText(names([...large.slice(0, 5), ...small]))
+  await expect(group.getByText("10/10", { exact: true })).toBeVisible()
+  await expect(group).toHaveAttribute("title", /5 shown · 10 recent · 10 sessions in project history/)
   const more = sidebar.getByRole("button", { name: "Show 5 more sessions in Large project", exact: true })
   await expect(more).toHaveText("More (5)")
   await expect(more).toHaveAttribute("aria-expanded", "false")
   await more.click()
   await expect(titles).toHaveText(names([...large, ...small]))
+  await expect(group).toHaveAttribute("title", /10 shown · 10 recent · 10 sessions in project history/)
   const less = sidebar.getByRole("button", { name: "Collapse sessions in Large project", exact: true })
   await expect(less).toHaveAttribute("aria-expanded", "true")
   await less.click()
@@ -138,6 +145,7 @@ test("recent sessions caps each project at five and can reveal a selected overfl
     .getByRole("button", { name: "Hide from recent sessions", exact: true })
     .click()
   await expect(titles).toHaveText(names([...large.slice(1, 6), ...small]))
+  await expect(group.getByText("9/10", { exact: true })).toBeVisible()
   await expect(
     sidebar.getByRole("button", { name: "Show 4 more sessions in Large project", exact: true }),
   ).toBeVisible()
@@ -150,6 +158,30 @@ test("recent sessions caps each project at five and can reveal a selected overfl
   await expect(sidebar.locator(`[data-titlebar-tab-link][href="${sessionHref(large[9]!.id)}"]`)).toBeVisible()
   await expect(titles).toHaveCount(8)
   await expect(sidebar.locator(`[data-titlebar-tab-link][href="${sessionHref(large[0]!.id)}"]`)).toHaveCount(0)
+})
+
+test("recent sessions follow last activity and preview the previous run completion", async ({ page }) => {
+  const ended = 1700000100000
+  await mockWorkspace(page, {
+    name: "Activity order",
+    sessions: [
+      { ...a, time: { created: ended - 10000, updated: ended - 3000 } },
+      { ...b, time: { created: ended - 10000, updated: ended, idle: ended } },
+      { ...c, time: { created: ended - 10000, updated: ended - 2000 } },
+    ],
+    seed: { tabs: [], settings: { appearance: { tabLayout: "vertical" } } },
+  })
+  await page.goto("/")
+  const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
+  await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveText([b.title, c.title, a.title])
+  const tab = sidebar.locator(`[data-titlebar-tab-slot]:has(a[href="${sessionHref(b.id)}"])`)
+  await tab.hover()
+  const preview = page.locator('[data-component="session-tab-popover"]')
+  await expect(preview).toContainText(b.title)
+  await expect(preview).toContainText("Last run ended:")
+  await expect(preview).toContainText(
+    new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "medium" }).format(ended),
+  )
 })
 
 test("sidebar loads history before Home mounts and shares live additions and removals", async ({ page }) => {
@@ -231,15 +263,24 @@ test("the running shelf includes unopened sessions across projects and servers i
   await page.setViewportSize({ width: 1280, height: 720 })
   const directory = "C:/OpenCode/Local"
   const remoteDirectory = "C:/OpenCode/Remote"
+  const sandbox = "C:/OpenCode/Local-feature"
+  const now = 1800000000000
+  await page.clock.install({ time: now })
 
   const local = Array.from({ length: 5 }, (_, index) =>
-    session({ id: `ses_running_local_${index}`, title: `Local task ${index}`, directory, projectID: "proj_local" }),
+    session({
+      id: `ses_running_local_${index}`,
+      title: `Local task ${index}`,
+      directory,
+      projectID: "proj_local",
+      time: { created: now - 3600000, updated: now, busy: now - 109000, idle: now - 1800000 },
+    }),
   )
 
   const child = session({
     id: "ses_running_child",
     title: "Local subagent",
-    directory,
+    directory: sandbox,
     projectID: "proj_local",
     parentID: local[1]!.id,
   })
@@ -257,7 +298,8 @@ test("the running shelf includes unopened sessions across projects and servers i
   await mockServers(page, {
     [SERVER]: {
       directory,
-      project: project({ id: "proj_local", directory, name: "Local project" }),
+      project: project({ id: "proj_local", directory, name: "Local project", sandboxes: [sandbox] }),
+      vcs: (location) => ({ current: location === sandbox ? "feature/sidebar" : "main", default: "main" }),
       provider: NO_PROVIDER,
       sessions: [
         session({ ...a, directory }),
@@ -289,6 +331,7 @@ test("the running shelf includes unopened sessions across projects and servers i
       directory: remoteDirectory,
       project: project({ id: "proj_remote", directory: remoteDirectory, name: "Remote project" }),
       provider: NO_PROVIDER,
+      vcs: { current: "dev-my", default: "main" },
       sessions: remote,
       sessionStatus: Object.fromEntries(remote.map((value) => [value.id, { type: "running" }])),
       pageMessages: () => ({ items: [] }),
@@ -308,6 +351,14 @@ test("the running shelf includes unopened sessions across projects and servers i
   await expect(shelf.getByLabel("12 running sessions", { exact: true })).toHaveText("12")
   await expect(shelf.getByText("Local subagent", { exact: true })).toBeVisible()
   await expect(shelf.getByRole("button").filter({ hasText: "Local task 0" })).toContainText("Approval")
+  const working = shelf.getByRole("button").filter({ hasText: "Local task 1" })
+  await expect(working).toContainText("main")
+  await page.clock.pauseAt(now + 10000)
+  await expect(working.locator('[data-slot="active-session-status"]')).toHaveText("Working1m")
+  await page.clock.runFor(1000)
+  await expect(working.locator('[data-slot="active-session-status"]')).toHaveText("Working2m")
+  await expect(working).toHaveAttribute("title", /Last run ended:/)
+  await expect(shelf.getByRole("button").filter({ hasText: "Local subagent" })).toContainText("feature/sidebar")
   const scroll = shelf.locator("[data-scrollable]")
 
   const rows = await scroll.evaluate(
@@ -321,6 +372,7 @@ test("the running shelf includes unopened sessions across projects and servers i
   const target = shelf.getByRole("button").filter({ hasText: "Remote task 5" })
   await expect(target).toBeInViewport()
   await expect(target).toContainText("Remote project")
+  await expect(target).toContainText("dev-my")
   await target.click()
   await expectPath(page, sessionHref(remote[5]!.id, REMOTE_SERVER))
   await expectSessionTitle(page, remote[5]!.title)

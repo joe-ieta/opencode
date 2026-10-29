@@ -1,5 +1,7 @@
-import { createEffect, createMemo, createUniqueId, For, Show, startTransition } from "solid-js"
+import { createEffect, createMemo, createUniqueId, For, onCleanup, Show, startTransition } from "solid-js"
+import { createStore } from "solid-js/store"
 import { ActivityRing } from "@opencode/ui/activity-ring"
+import { Icon } from "@opencode/ui/icon"
 import { displayName } from "@opencode/ui/project-avatar"
 import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection, serverName } from "@/runtime/server/registry"
@@ -8,7 +10,10 @@ import { projectSettingsKey, useSettings } from "@/settings/model"
 import { sessionRequests } from "@/shell/layout/project-avatar-state"
 import { useLayout } from "@/shell/state/layout"
 import { useTabs } from "@/shell/tabs/tabs"
-import { sessionTabTitle } from "./tab-title"
+import { sessionLastRunLabel, sessionTabTitle } from "./tab-title"
+import { workingDuration } from "./inbox-working"
+import { createSessionBranches } from "./session-branches"
+import { pathKey } from "@/workspaces/path-key"
 import "./active-sessions.css"
 
 /** The server-wide active index includes running sessions without an open tab, including child sessions. */
@@ -19,6 +24,8 @@ export function ActiveSessions() {
   const layout = useLayout()
   const tabs = useTabs()
   const heading = createUniqueId()
+  const branches = createSessionBranches()
+  const [clock, setClock] = createStore({ now: Date.now() })
 
   const connections = createMemo(() =>
     global.servers.list().map((conn) => ({ conn, ctx: global.serverCtx(ServerConnection.key(conn)) })),
@@ -42,6 +49,22 @@ export function ActiveSessions() {
 
   const byKey = createMemo(() => new Map(entries().map((entry) => [entry.key, entry])))
   const disconnected = () => connections().some((item) => item.ctx?.sdk.connection.status() !== "connected")
+
+  createEffect(() => {
+    if (!entries().length) return
+    setClock("now", Date.now())
+    const timer = setInterval(() => setClock("now", Date.now()), 1_000)
+    onCleanup(() => clearInterval(timer))
+  })
+
+  createEffect(() => {
+    branches.load(
+      entries().flatMap((entry) => {
+        const session = entry.ctx.data.session.get(entry.id)
+        return session ? [{ server: entry.server, ctx: entry.ctx, session }] : []
+      }),
+    )
+  })
 
   // Read metadata and requests for active IDs only; this overview never loads transcripts or historical indexes.
   createEffect(() => {
@@ -80,6 +103,23 @@ export function ActiveSessions() {
                     : undefined
                 })
 
+                const projectName = () => displayName(project() ?? { worktree: session()?.location.directory ?? "" })
+                const branch = () => {
+                  const value = session()
+                  return value
+                    ? branches.branch({ server: entry().server, ctx: entry().ctx, session: value })
+                    : undefined
+                }
+                const worktree = () => {
+                  const root = project()?.worktree
+                  const directory = session()?.location.directory
+                  return !!root && !!directory && pathKey(root) !== pathKey(directory)
+                }
+                const duration = () => {
+                  const value = session()
+                  return value ? workingDuration(value, clock.now, language) : undefined
+                }
+
                 const status = createMemo(() => {
                   const value = entry()
 
@@ -109,7 +149,15 @@ export function ActiveSessions() {
                     data-slot="active-session"
                     data-state={selected() ? "active" : undefined}
                     aria-current={selected() ? "page" : undefined}
-                    title={session()?.location.directory}
+                    title={[
+                      session()?.title,
+                      projectName(),
+                      branch(),
+                      session()?.location.directory,
+                      sessionLastRunLabel(session()?.time, language),
+                    ]
+                      .filter(Boolean)
+                      .join("\n")}
                     onClick={() => {
                       const value = entry()
                       void startTransition(() => {
@@ -125,15 +173,37 @@ export function ActiveSessions() {
                         <ActivityRing />
                       </Show>
                     </span>
-                    <span data-slot="active-session-title" dir="auto" title={session()?.title}>
+                    <span data-slot="active-session-title" dir="auto">
                       {sessionTabTitle(session()?.title, language.t("session.tab.session"))}
                     </span>
-                    <span data-slot="active-session-status" data-waiting={status() !== "working" ? "" : undefined}>
-                      {language.t(`sidebar.inbox.status.${status()}`)}
+                    <span
+                      data-slot="active-session-status"
+                      data-waiting={status() !== "working" ? "" : undefined}
+                      title={
+                        status() === "working" && duration()
+                          ? language.t("sidebar.inbox.status.workingFor", { duration: duration()! })
+                          : language.t(`sidebar.inbox.status.${status()}`)
+                      }
+                    >
+                      <span class="sr-only">{language.t(`sidebar.inbox.status.${status()}`)}</span>
+                      <span aria-hidden="true">
+                        {status() === "working"
+                          ? (duration() ?? language.t("sidebar.inbox.status.working"))
+                          : language.t(`sidebar.inbox.status.${status()}`)}
+                      </span>
                     </span>
                     <span data-slot="active-session-project" dir="auto">
                       <Show when={project()} fallback={language.t("common.loading")}>
-                        {(value) => displayName(value())}
+                        <span class="min-w-0 truncate">{projectName()}</span>
+                      </Show>
+                      <Show when={branch() || worktree()}>
+                        <span aria-hidden="true">·</span>
+                        <span class="flex min-w-0 items-center gap-1">
+                          <Icon name={worktree() ? "outline-worktree" : "branch"} size="small" class="shrink-0" />
+                          <span class="min-w-0 truncate" dir="ltr">
+                            {branch()}
+                          </span>
+                        </span>
                       </Show>
                       <Show when={connections().length > 1}>
                         <span class="ms-1.5">{serverName(entry().conn)}</span>

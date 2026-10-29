@@ -13,7 +13,7 @@ import { ServerConnection, useServers } from "@/runtime/server/registry"
 import { displayName } from "@opencode/ui/project-avatar"
 import { SessionTabAvatarView } from "@/shell/layout/session-tab-avatar"
 import type { SessionInfo } from "@opencode/client/promise"
-import { sessionTabTitle } from "./tab-title"
+import { sessionLastRunLabel, sessionTabTitle } from "./tab-title"
 import { TabPreviewPopover } from "./tab-popover"
 import "./tab-nav.css"
 
@@ -408,6 +408,7 @@ export function TabNavItem(props: {
           title: props.session?.title,
           path: previewPath(),
           serverName: serverLabel(),
+          lastRun: sessionLastRunLabel(props.session?.time, language),
         }}
       />
       <Menu.Context.Portal>

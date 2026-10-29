@@ -474,6 +474,7 @@ export function TitlebarTabStrip(props: {
           ),
       ),
   )
+  const positions = new Map<string, number>()
   // Keep row identities and display order when a tab opens or closes. History is never copied into the tab store.
   const displayedTabs = createMemo((previous: Tab[]) => {
     if (!sidebar) return props.tabs
@@ -485,14 +486,44 @@ export function TitlebarTabStrip(props: {
       const tab = before.get(key) ?? { type: "session" as const, server: entry.server, sessionId: entry.session.id }
       if (!tabs.sidebar.hidden(tab)) candidates.set(key, tab)
     })
-    return [...new Set([...(sidebarOrder?.[0] ?? []), ...before.keys(), ...candidates.keys()])].flatMap(
-      (key) => candidates.get(key) ?? [],
-    )
+    // Equal timestamps keep their original order even while server metadata arrives at different times.
+    candidates.forEach((_, key) => {
+      if (!positions.has(key)) positions.set(key, positions.size)
+    })
+    const recent = [...candidates.values()]
+      .filter((tab) => tab.type === "session")
+      .map((tab) => ({
+        key: tabKey(tab),
+        updated:
+          (global.serverCtx(tab.server)?.data.session.get(tab.sessionId) ?? indexed().get(tabKey(tab))?.session)?.time
+            .updated ?? 0,
+      }))
+      .toSorted(
+        (a, b) =>
+          b.updated - a.updated || (positions.get(a.key) ?? positions.size) - (positions.get(b.key) ?? positions.size),
+      )
+      .map((item) => item.key)
+      .values()
+    const order = [...candidates.values()].map((tab) => (tab.type === "draft" ? tabKey(tab) : recent.next().value!))
+    return [...new Set([...(sidebarOrder?.[0] ?? []), ...order])].flatMap((key) => candidates.get(key) ?? [])
   }, [])
   const opened = createMemo(() => new Set(props.tabs.map(tabKey)))
   const groups = createMemo(() => {
     if (!grouped()) return []
     const result = new Map<string, { key: string; name: string; directory?: string; server?: string; tabs: Tab[] }>()
+    const totals = new Map<string, string[]>()
+    sidebar?.sources().forEach((source) =>
+      source.inventory.forEach((session) => {
+        const root = source.ctx.projects.forSession(session)?.worktree ?? session.location.directory
+        const key = JSON.stringify([ServerConnection.key(source.conn), pathKey(root)])
+        const sessions = totals.get(key)
+        if (sessions) {
+          sessions.push(session.id)
+          return
+        }
+        totals.set(key, [session.id])
+      }),
+    )
     sidebar?.sources().forEach((source) => {
       const server = ServerConnection.key(source.conn)
       source.ctx.projects.used().forEach((project) => {
@@ -539,7 +570,14 @@ export function TitlebarTabStrip(props: {
         tabs: [tab],
       })
     })
-    return [...result.values()]
+    return [...result.values()].map((group) => {
+      const sessions = group.tabs.filter((tab) => tab.type === "session")
+      return {
+        ...group,
+        recent: sessions.length,
+        total: new Set([...(totals.get(group.key) ?? []), ...sessions.map((tab) => tab.sessionId)]).size,
+      }
+    })
   })
   const groupsByKey = createMemo(() => new Map(groups().map((group) => [group.key, group])))
   const projectTabs = createMemo(
@@ -813,10 +851,34 @@ export function TitlebarTabStrip(props: {
                 <>
                   <Show when={grouped() && groupsByKey().get(key)}>
                     {(group) => (
-                      <div class="min-w-0 px-1.5 pt-3 pb-1" title={group().directory}>
-                        <h3 dir="auto" class="truncate text-[13px] leading-4 font-medium text-v2-text-text-muted">
-                          {group().name}
-                        </h3>
+                      <div
+                        class="mt-3 mb-1 min-w-0 rounded-md bg-v2-background-bg-layer-02 px-1.5 py-1"
+                        title={[
+                          group().name,
+                          group().directory,
+                          group().server,
+                          language.plural("sidebar.recent.count", group().total, {
+                            recent: group().recent,
+                            shown:
+                              projectTabs()
+                                .get(key)
+                                ?.filter((tab) => tab.type === "session").length ?? 0,
+                          }),
+                        ]
+                          .filter(Boolean)
+                          .join("\n")}
+                      >
+                        <div class="flex min-w-0 items-center gap-2">
+                          <h3
+                            dir="auto"
+                            class="min-w-0 flex-1 truncate text-[13px] leading-4 font-medium text-v2-text-text-base"
+                          >
+                            {group().name}
+                          </h3>
+                          <span class="shrink-0 rounded px-1 text-[11px] leading-4 tabular-nums text-v2-text-text-faint">
+                            {group().recent}/{group().total}
+                          </span>
+                        </div>
                         <Show when={group().server}>
                           <div dir="auto" class="truncate text-[12px] leading-4 text-v2-text-text-faint">
                             {group().server}
@@ -825,7 +887,11 @@ export function TitlebarTabStrip(props: {
                       </div>
                     )}
                   </Show>
-                  <For each={grouped() ? projectTabs().get(key) : displayedTabs()}>{renderTab}</For>
+                  <Show when={grouped()} fallback={<For each={displayedTabs()}>{renderTab}</For>}>
+                    <div class="flex min-w-0 flex-col gap-1 ps-2">
+                      <For each={projectTabs().get(key)}>{renderTab}</For>
+                    </div>
+                  </Show>
                   <Show when={grouped() && groupsByKey().get(key)}>
                     {(group) => (
                       <Show when={group().tabs.length > PROJECT_SESSION_LIMIT}>

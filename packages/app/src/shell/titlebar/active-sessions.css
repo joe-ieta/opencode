@@ -78,6 +78,7 @@
   [data-slot="active-session-status"] {
     color: var(--v2-text-text-faint);
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
 
     &[data-waiting] {
       color: var(--v2-state-fg-warning);
@@ -85,6 +86,9 @@
   }
 
   [data-slot="active-session-project"] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     grid-column: 2 / 4;
     color: var(--v2-text-text-faint);
     font-size: 12px;
