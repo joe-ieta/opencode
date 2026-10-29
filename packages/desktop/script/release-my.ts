@@ -24,7 +24,8 @@ await mkdir(output, { recursive: true })
 process.chdir(root)
 
 process.env.OPENCODE_VERSION = version
-process.env.OPENCODE_CHANNEL = "dev-my"
+// dev-my is the source branch. Desktop discovery and V1 history use the official dev runtime profile.
+process.env.OPENCODE_CHANNEL = "dev"
 process.env.OPENCODE_DESKTOP_APP_ID = "ai.opencode.desktop.dev-my"
 process.env.OPENCODE_DESKTOP_PRODUCT_NAME = "OpenCode My"
 process.env.OPENCODE_DESKTOP_UPDATE_URL = `https://github.com/joe-ieta/opencode/releases/download/${tag}/`
@@ -41,6 +42,7 @@ const cli = path.join(root, "packages/cli/dist/cli-windows-x64-baseline/bin/open
 if ((await $`${cli} --version`.text()).trim() !== `opencode v${version}`)
   throw new Error("Built CLI version does not match release")
 await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
+await $`bun packages/cli/script/desktop-smoke.ts ${cli}`
 
 process.env.OPENCODE_TARGET = "windows-x64"
 await $`bun run --cwd packages/desktop build`
@@ -83,6 +85,7 @@ await Bun.write(
       tag,
       commit: (await $`git rev-parse HEAD`.text()).trim(),
       target: "windows-x64",
+      channel: "dev",
       bun: process.versions.bun,
       signed: false,
       appId: process.env.OPENCODE_DESKTOP_APP_ID,
