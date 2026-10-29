@@ -27,6 +27,136 @@ const c = { id: "ses_tab_c", title: "Tab C session" }
 
 test.use({ serviceWorkers: "block" })
 
+test("sidebar and Home share projects and history without opening session tabs", async ({ page }) => {
+  await mockWorkspace(page, {
+    name: "SharedHistory",
+    sessions: [a, b],
+    projects: [
+      project({ id: "proj_sharedhistory", directory: "C:/OpenCode/SharedHistory", name: "Shared history" }),
+      project({ id: "proj_empty", directory: "C:/OpenCode/Empty", name: "Empty project" }),
+    ],
+    seed: {
+      tabs: [],
+      usedProjects: { local: ["proj_sharedhistory", "proj_empty"] },
+      settings: { appearance: { tabLayout: "vertical", tabGrouping: "project" } },
+    },
+  })
+  await page.goto("/")
+  const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
+  const home = page.locator('[data-slot="home-panel"]')
+  const titles = sidebar.locator("[data-titlebar-tab-title]")
+  const homeRow = (title: string) => home.locator('[data-component="home-session-row"]').filter({ hasText: title })
+  await expect(homeRow(a.title)).toBeVisible()
+  await expect(homeRow(b.title)).toBeVisible()
+  await expect(titles).toHaveText([a.title, b.title])
+  await expect(sidebar.getByRole("heading", { level: 3 })).toHaveText(["Shared history", "Empty project"])
+  await expect(sidebar.getByRole("button", { name: "Close tab", exact: true })).toHaveCount(0)
+
+  for (const mode of ["Top tabs", "Side tabs"]) {
+    await page.keyboard.press("Control+,")
+    const settings = page.getByTestId("settings-screen")
+    await settings.getByRole("group", { name: "Interface", exact: true }).getByText(mode, { exact: true }).click()
+    await expect(settings.getByRole("radio", { name: mode, exact: true })).toBeChecked()
+    await settings.getByRole("button", { name: "Back to app", exact: true }).click()
+    await expect(homeRow(a.title)).toBeVisible()
+  }
+  await expect(titles).toHaveText([a.title, b.title])
+
+  await homeRow(a.title).click({ button: "right" })
+  await page.getByRole("menuitem", { name: "Rename", exact: true }).click()
+  const rename = home.locator('[data-component="home-session-rename"]')
+  await rename.fill("Shared rename")
+  await rename.press("Enter")
+  await expect(titles).toHaveText(["Shared rename", b.title])
+  await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(b.id)}"]`).click()
+  await expectPath(page, sessionHref(b.id))
+  await expectSessionTitle(page, b.title)
+  await sidebar.getByRole("button", { name: "Close tab", exact: true }).click()
+  await expectPath(page, "/")
+  await expect(titles).toHaveText(["Shared rename", b.title])
+  await expect(homeRow(b.title)).toBeVisible()
+
+  await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(a.id)}"]`).click({ button: "right" })
+  await page.getByRole("menuitem", { name: "Delete session…", exact: true }).click()
+  await page.getByRole("dialog").getByRole("button", { name: "Delete session", exact: true }).click()
+  await expect(titles).toHaveText([b.title])
+  await expect(homeRow("Shared rename")).toHaveCount(0)
+  await expect(sidebar.getByRole("heading", { level: 3 })).toHaveText(["Shared history", "Empty project"])
+})
+
+test("sidebar loads history before Home mounts and shares live additions and removals", async ({ page }) => {
+  const directory = "C:/OpenCode/SidebarLive"
+  const records = [
+    session({ ...a, directory, projectID: "proj_live" }),
+    session({ ...b, directory, projectID: "proj_live" }),
+  ]
+  const messages: string[] = []
+  const mock = await mockServers(page, {
+    [SERVER]: {
+      directory,
+      project: project({ id: "proj_live", directory, name: "Live project" }),
+      provider: NO_PROVIDER,
+      sessions: records,
+      pageMessages: () => ({ items: [] }),
+      onMessages: (input) => {
+        if (input.phase === "start") messages.push(input.sessionID)
+      },
+    },
+  })
+  await seed(page, {
+    usedProjects: { local: ["proj_live"] },
+    tabs: [a.id],
+    settings: { appearance: { tabLayout: "vertical" } },
+  })
+  await page.goto(sessionHref(a.id))
+  await expectSessionTitle(page, a.title)
+  const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
+  const titles = sidebar.locator("[data-titlebar-tab-title]")
+  await expect(titles).toHaveText([a.title, b.title])
+  await expect(sidebar.getByRole("button", { name: "Close tab", exact: true })).toHaveCount(1)
+  expect(messages.filter((id) => id !== a.id)).toEqual([])
+  const added = session({ ...c, directory, projectID: "proj_live" })
+  records.push(added)
+  await mock[SERVER]!.transport.burst([
+    {
+      id: "evt_sidebar_created",
+      created: 1700000001000,
+      type: "session.created",
+      durable: { aggregateID: c.id, seq: 0, version: 1 },
+      location: { directory },
+      data: {
+        sessionID: c.id,
+        projectID: "proj_live",
+        location: { directory },
+        slug: added.slug,
+        title: added.title,
+        version: added.version,
+      },
+    },
+  ])
+  await expect(titles).toHaveText([a.title, b.title, c.title])
+  await sidebar.getByRole("button", { name: "Home", exact: true }).click()
+  await expectPath(page, "/")
+  const home = page.locator('[data-slot="home-panel"]')
+  await expect(home.locator('[data-component="home-session-row"]').filter({ hasText: c.title })).toBeVisible()
+  records.splice(
+    records.findIndex((item) => item.id === b.id),
+    1,
+  )
+  await mock[SERVER]!.transport.burst([
+    {
+      id: "evt_sidebar_deleted",
+      created: 1700000002000,
+      type: "session.deleted",
+      durable: { aggregateID: b.id, seq: 1, version: 2 },
+      location: { directory },
+      data: { sessionID: b.id },
+    },
+  ])
+  await expect(titles).toHaveText([a.title, c.title])
+  await expect(home.locator('[data-component="home-session-row"]').filter({ hasText: b.title })).toHaveCount(0)
+})
+
 test("the running shelf includes unopened sessions across projects and servers in a bounded scrolling area", async ({
   page,
 }) => {
@@ -207,12 +337,20 @@ test("sidebar grouping keeps servers separate and reorders only the chosen proje
   await expect(sidebar.getByRole("heading", { level: 3 })).toHaveText(["Tabs", "Tabs"])
   await expect(sidebar.getByText("Remote", { exact: true })).toBeVisible()
   await expect(titles).toHaveText([a.title, c.title, b.title])
+  await expectSessionTitle(page, a.title)
   const source = await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(c.id)}"]`).boundingBox()
   const target = await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(a.id)}"]`).boundingBox()
 
   if (!source || !target) throw new Error("session tab has no bounding box")
   await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2)
   await page.mouse.down()
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2 - 8, { steps: 2 })
+  await expect(
+    sidebar
+      .getByRole("link")
+      .filter({ has: page.locator(`a[data-titlebar-tab-link][href="${sessionHref(c.id)}"]`) })
+      .locator("[data-titlebar-tab]"),
+  ).toHaveAttribute("data-dragging", "true")
   await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 12 })
   await page.mouse.up()
   await expect(titles).toHaveText([c.title, a.title, b.title])
@@ -261,7 +399,7 @@ test("sidebar project grouping preserves the flat order and navigates in display
     .locator(`[data-titlebar-tab-slot]:has(a[href="${sessionHref(c.id)}"])`)
     .getByRole("button", { name: "Close tab", exact: true })
     .click()
-  await expect(titles).toHaveText([a.title, b.title, "Session"])
+  await expect(titles).toHaveText([a.title, b.title, c.title, "Session"])
 })
 
 test("recently closed shows ten sessions and searches older closures in close order", async ({ page }) => {
@@ -905,7 +1043,7 @@ test("vertical tab gaps hover and select the nearest row", async ({ page }) => {
   await expect(rows.locator("[data-titlebar-tab-title]")).toHaveText([a.title, c.title, b.title])
 
   await tabB.getByRole("button", { name: "Close tab", exact: true }).click()
-  await expect(rows.locator("[data-titlebar-tab-title]")).toHaveText([a.title, c.title])
+  await expect(rows.locator("[data-titlebar-tab-title]")).toHaveText([a.title, c.title, b.title])
   await expectPath(page, sessionHref(c.id))
 
   const list = await sidebar.locator("[data-titlebar-tab-list]").boundingBox()

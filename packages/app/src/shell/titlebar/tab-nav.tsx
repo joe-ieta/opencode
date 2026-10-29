@@ -33,6 +33,7 @@ export function TabNavItem(props: {
   fallbackDirectory?: string
   onRename: (title: string) => Promise<void>
   onClose: () => void
+  closable?: boolean
   onDelete: () => void
   onNavigate: () => void
   active?: boolean
@@ -53,6 +54,7 @@ export function TabNavItem(props: {
   const closeTab = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
+    if (props.closable === false) return
     props.onClose()
   }
 
@@ -365,18 +367,20 @@ export function TabNavItem(props: {
           <span data-mark="attention" data-slot="tab-status-dot" />
           <span data-mark="unread" data-slot="tab-status-dot" />
         </span>
-        <IconButton
-          size="small"
-          variant="ghost-muted"
-          class="hover-reveal relative z-10"
-          onPointerDown={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-          }}
-          onClick={closeTab}
-          icon={<Icon name="xmark-small" />}
-          aria-label={language.t("common.closeTab")}
-        />
+        <Show when={props.closable !== false}>
+          <IconButton
+            size="small"
+            variant="ghost-muted"
+            class="hover-reveal relative z-10"
+            onPointerDown={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
+            onClick={closeTab}
+            icon={<Icon name="xmark-small" />}
+            aria-label={language.t("common.closeTab")}
+          />
+        </Show>
       </div>
     </div>
   )
@@ -417,7 +421,9 @@ export function TabNavItem(props: {
           <Menu.Item disabled={!props.session} onSelect={() => setMenu("rename", true)}>
             {language.t("common.rename")}
           </Menu.Item>
-          <Menu.Item onSelect={props.onClose}>{language.t("common.closeTab")}</Menu.Item>
+          <Show when={props.closable !== false}>
+            <Menu.Item onSelect={props.onClose}>{language.t("common.closeTab")}</Menu.Item>
+          </Show>
           <Menu.Separator />
           <Menu.Item data-variant="critical" disabled={!props.session} onSelect={props.onDelete}>
             {language.t("session.delete.title")}…
