@@ -34,6 +34,21 @@ downloads the published dev CLI, `beta` downloads the beta CLI, and `prod`/`late
 `bun dev` is separate from packaging: it uses local renderer/server mode, the dev app identity, and the CLI source by
 default. `bun dev --download-server <version>` instead downloads that CLI version for local development.
 
+## Fork Windows releases
+
+From `dev-my`, on Windows x64 with the root `packageManager` Bun version:
+
+```powershell
+bun install --frozen-lockfile
+bun run release:desktop:my --version=2.2.0-dev-my.1
+```
+
+This follows the official CLI build, Electron build, unpacked app and NSIS packaging stages. It builds the CLI from the same checkout and verifies its version and bundled model catalog. The fork has no signing service configured, so the installer is unsigned.
+
+The app is named **OpenCode My**, uses `ai.opencode.desktop.dev-my`, and reads its updater manifest from its own GitHub release tag. It never uses the official desktop update feed. This initial release feed is pinned to its tag; install subsequent fork releases manually.
+
+The installer, `latest.yml`, `SHA256SUMS` and source commit metadata are written to `dist/releases/v<version>/`. After checking those files, tag the built commit as `v<version>` and attach the four files to the corresponding GitHub release.
+
 ## Beta channel
 
 Every push to the `beta` branch publishes OpenCode Beta (`ai.opencode.desktop.beta`) as version `0.0.0-beta-<run>` to

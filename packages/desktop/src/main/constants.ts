@@ -21,6 +21,10 @@ const appIDs: Record<string, string> = {
 }
 
 // Local renderer/server mode keeps the dev application identity.
-export const APP_NAME = app.isPackaged ? appNames[CHANNEL] : "OpenCode Dev"
+export const APP_NAME = app.isPackaged
+  ? (import.meta.env.OPENCODE_DESKTOP_PRODUCT_NAME ?? appNames[CHANNEL])
+  : "OpenCode Dev"
 
-export const APP_ID = app.isPackaged ? appIDs[CHANNEL] : "ai.opencode.desktop.dev"
+export const APP_ID = app.isPackaged
+  ? (import.meta.env.OPENCODE_DESKTOP_APP_ID ?? appIDs[CHANNEL])
+  : "ai.opencode.desktop.dev"

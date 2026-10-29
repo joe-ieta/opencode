@@ -80,6 +80,34 @@ test.each(channels)("channel identity for $channel", ({ channel, appId, feed }) 
   expect(config.deb?.fpm).not.toContain("--rpm-rpmbuild-define=_build_id_links none")
 })
 
+test.each(channels)("fork packaging overrides identity and update source for $channel", ({ channel }) => {
+  const names = ["OPENCODE_DESKTOP_APP_ID", "OPENCODE_DESKTOP_PRODUCT_NAME", "OPENCODE_DESKTOP_UPDATE_URL"] as const
+  const previous = names.map((name) => process.env[name])
+  process.env.OPENCODE_DESKTOP_APP_ID = "ai.opencode.desktop.dev-my"
+  process.env.OPENCODE_DESKTOP_PRODUCT_NAME = "OpenCode My"
+  process.env.OPENCODE_DESKTOP_UPDATE_URL = "https://github.com/joe-ieta/opencode/releases/download/v2.2.0-dev-my.1/"
+
+  try {
+    const config = load(channel, "windows-x64")
+    expect(config.appId).toBe("ai.opencode.desktop.dev-my")
+    expect(config.productName).toBe("OpenCode My")
+    expect(config.extraMetadata?.desktopName).toBe("ai.opencode.desktop.dev-my.desktop")
+    expect(config.publish).toEqual({
+      provider: "generic",
+      url: "https://github.com/joe-ieta/opencode/releases/download/v2.2.0-dev-my.1/",
+      channel: "latest",
+    })
+  } finally {
+    names.forEach((name, index) => {
+      if (previous[index] === undefined) {
+        delete process.env[name]
+        return
+      }
+      process.env[name] = previous[index]
+    })
+  }
+})
+
 test("legacy Linux launcher stays hidden", async () => {
   const desktop = await Bun.file(path.join(import.meta.dirname, "resources/linux/opencode-desktop.desktop")).text()
   expect(desktop).toContain("Exec=/opt/OpenCode/ai.opencode %U")

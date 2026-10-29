@@ -198,7 +198,7 @@ const getBase = (appId: string): Configuration => {
 
 export function getConfig() {
   const channel = resolveChannel()
-  const appId = APP_IDS[channel]
+  const appId = process.env.OPENCODE_DESKTOP_APP_ID ?? APP_IDS[channel]
   const base = getBase(appId)
 
   switch (channel) {
@@ -206,10 +206,10 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Dev",
+        productName: process.env.OPENCODE_DESKTOP_PRODUCT_NAME ?? "OpenCode Dev",
         publish: {
           provider: "generic",
-          url: "https://opencode.ai/update/api/dev/desktop/opencode/",
+          url: process.env.OPENCODE_DESKTOP_UPDATE_URL ?? "https://opencode.ai/update/api/dev/desktop/opencode/",
           channel: "latest",
         },
         deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
@@ -224,11 +224,11 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Beta",
+        productName: process.env.OPENCODE_DESKTOP_PRODUCT_NAME ?? "OpenCode Beta",
         protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
         publish: {
           provider: "generic",
-          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
+          url: process.env.OPENCODE_DESKTOP_UPDATE_URL ?? "https://opencode.ai/update/api/beta/desktop/opencode/",
           channel: "latest",
         },
         deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
@@ -243,11 +243,11 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode",
+        productName: process.env.OPENCODE_DESKTOP_PRODUCT_NAME ?? "OpenCode",
         protocols: { name: "OpenCode", schemes: ["opencode"] },
         publish: {
           provider: "generic",
-          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
+          url: process.env.OPENCODE_DESKTOP_UPDATE_URL ?? "https://opencode.ai/update/api/latest/desktop/opencode/",
           channel: "latest",
         },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
