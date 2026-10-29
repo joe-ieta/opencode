@@ -15,7 +15,7 @@ import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { LayerNode } from "@opencode/util/effect/layer-node"
 import { FSUtil } from "@opencode/util/fs-util"
 import { Global } from "@opencode/util/global"
-import { Effect, Fiber, Layer, Logger, Schedule, Schema, Scope } from "effect"
+import { Cause, Effect, Fiber, Layer, Logger, Schedule, Schema, Scope } from "effect"
 import { eq, sql } from "drizzle-orm"
 import type { SqlClient } from "effect/sql/SqlClient"
 import { tmpdir } from "./fixture/tmpdir"
@@ -1008,7 +1008,7 @@ describe("V1Migration database workflow", () => {
       Effect.runPromise(
         effect.pipe(
           Effect.provide(
-            AppNodeBuilder.build(LayerNode.group([Project.node, Database.node, FSUtil.node]), [
+            AppNodeBuilder.build(LayerNode.group([Global.node, Project.node, Database.node, FSUtil.node]), [
               Database.node.replace(Database.configured({ path: path.join(tmp.path, "opencode.db") })),
               Global.node.replace(Layer.succeed(Global.Service, Global.make({ data: tmp.path }))),
             ]),
@@ -1048,8 +1048,10 @@ describe("V1Migration database workflow", () => {
           CREATE TRIGGER fail_cleanup BEFORE DELETE ON event WHEN OLD.id = 'event_1001'
           BEGIN SELECT RAISE(ABORT, 'cleanup interrupted'); END
         `)
+        yield* V1Migration.accept()
         const result = yield* V1Migration.run().pipe(Effect.exit)
         expect(result._tag).toBe("Failure")
+        if (result._tag === "Failure") expect(Cause.pretty(result.cause)).toContain("cleanup interrupted")
       }),
     )
 
