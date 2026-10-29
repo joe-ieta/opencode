@@ -97,6 +97,7 @@ describe("settings schema", () => {
         timelineWidth: "comfortable",
         newIcons: false,
         foldUserMessages: false,
+        newQuestionUI: false,
         mobileTitlebarPosition: "top",
         followUpBehavior: "steer",
       },
@@ -135,6 +136,7 @@ describe("settings schema", () => {
         followUpBehavior: "invalid",
         backgroundActivity: "invalid",
         timelineWidth: "invalid",
+        newQuestionUI: "invalid",
       },
       appearance: {
         fontSize: "large",
@@ -157,6 +159,7 @@ describe("settings schema", () => {
       followUpBehavior: "steer",
       backgroundActivity: "left",
       timelineWidth: "comfortable",
+      newQuestionUI: false,
     })
     expect(settings.appearance).toEqual({
       fontSize: 14,
