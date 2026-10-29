@@ -87,7 +87,7 @@ export function createSessionIndexes(connections: Accessor<{ conn: ServerConnect
         })
         return {
           ...item,
-          inventory: [...inventory.values()],
+          inventory: item.ctx.data.session.filterRemoved([...inventory.values()]),
           sessions: retainHomeSessions(
             item.ctx.data.session.apply(
               mergeHomeSessionIndex(

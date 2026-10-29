@@ -494,9 +494,10 @@ export function TitlebarTabStrip(props: {
       .filter((tab) => tab.type === "session")
       .map((tab) => ({
         key: tabKey(tab),
-        updated:
-          (global.serverCtx(tab.server)?.data.session.get(tab.sessionId) ?? indexed().get(tabKey(tab))?.session)?.time
-            .updated ?? 0,
+        updated: Math.max(
+          global.serverCtx(tab.server)?.data.session.get(tab.sessionId)?.time.updated ?? 0,
+          indexed().get(tabKey(tab))?.session.time.updated ?? 0,
+        ),
       }))
       .toSorted(
         (a, b) =>

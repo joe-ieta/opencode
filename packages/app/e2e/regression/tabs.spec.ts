@@ -162,14 +162,16 @@ test("recent sessions caps each project at five and can reveal a selected overfl
 
 test("recent sessions follow last activity and preview the previous run completion", async ({ page }) => {
   const ended = 1700000100000
-  await mockWorkspace(page, {
+  const loaded: string[] = []
+  const workspace = await mockWorkspace(page, {
     name: "Activity order",
     sessions: [
       { ...a, time: { created: ended - 10000, updated: ended - 3000 } },
       { ...b, time: { created: ended - 10000, updated: ended, idle: ended } },
       { ...c, time: { created: ended - 10000, updated: ended - 2000 } },
     ],
-    seed: { tabs: [], settings: { appearance: { tabLayout: "vertical" } } },
+    onSession: (id) => loaded.push(id),
+    seed: { tabs: [a.id], settings: { appearance: { tabLayout: "vertical" } } },
   })
   await page.goto("/")
   const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
@@ -182,6 +184,17 @@ test("recent sessions follow last activity and preview the previous run completi
   await expect(preview).toContainText(
     new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "medium" }).format(ended),
   )
+  await expect.poll(() => loaded.includes(a.id)).toBe(true)
+  await workspace.push([
+    {
+      id: "evt_sidebar_last_activity",
+      created: ended + 5000,
+      type: "session.agent.selected",
+      durable: { aggregateID: a.id, seq: 1, version: 1 },
+      data: { sessionID: a.id, agent: "plan" },
+    },
+  ])
+  await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveText([a.title, b.title, c.title])
 })
 
 test("sidebar loads history before Home mounts and shares live additions and removals", async ({ page }) => {
