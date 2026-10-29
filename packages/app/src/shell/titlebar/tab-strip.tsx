@@ -40,6 +40,8 @@ export const previousSessionCommand = { id: "session.previous", keybind: "alt+ar
 
 export const nextSessionCommand = { id: "session.next", keybind: "alt+arrowdown" }
 
+const PROJECT_SESSION_LIMIT = 5
+
 function SessionTabSlot(props: {
   tab: SessionTab
   id: string
@@ -48,6 +50,7 @@ function SessionTabSlot(props: {
   orientation: "horizontal" | "vertical"
   sortGroup?: string
   closable?: boolean
+  closeLabel?: string
   session: SessionInfo | undefined
   preparing: boolean
   unread: boolean
@@ -111,6 +114,7 @@ function SessionTabSlot(props: {
         onNavigate={() => props.onNavigate(ref)}
         onClose={props.onClose}
         closable={props.closable}
+        closeLabel={props.closeLabel}
         active={props.active}
         dragging={sortable.isDragSource()}
         orientation={props.orientation}
@@ -129,6 +133,7 @@ function SessionTabEntry(props: {
   sortGroup?: string
   indexed?: SessionInfo
   opened?: boolean
+  dismissible?: boolean
   serverCtx: ServerCtx | undefined
   onVisibleChange: (visible: boolean) => void
   onUnreadChange: (unread: boolean) => void
@@ -345,7 +350,8 @@ function SessionTabEntry(props: {
         active={props.active}
         orientation={props.orientation}
         sortGroup={props.sortGroup}
-        closable={props.opened !== false}
+        closable={props.opened !== false || props.dismissible}
+        closeLabel={props.opened === false ? language.t("sidebar.recent.hide") : undefined}
         session={session()}
         preparing={!!pending()}
         unread={unread()}
@@ -443,6 +449,7 @@ export function TitlebarTabStrip(props: {
   let listRef!: HTMLDivElement
   const [visibility, setVisibility] = createStore<Record<string, boolean>>({})
   const [unread, setUnread] = createStore<Record<string, boolean>>({})
+  const [expanded, setExpanded] = createStore<Record<string, boolean>>({})
 
   const servers = useServers()
   const sidebar = props.grouping
@@ -470,11 +477,13 @@ export function TitlebarTabStrip(props: {
   // Keep row identities and display order when a tab opens or closes. History is never copied into the tab store.
   const displayedTabs = createMemo((previous: Tab[]) => {
     if (!sidebar) return props.tabs
+    if (!tabs.sidebar.ready()) return []
     const before = new Map(previous.map((tab) => [tabKey(tab), tab]))
-    const candidates = new Map(props.tabs.map((tab) => [tabKey(tab), tab]))
+    const candidates = new Map(props.tabs.filter((tab) => !tabs.sidebar.hidden(tab)).map((tab) => [tabKey(tab), tab]))
     indexed().forEach((entry, key) => {
       if (candidates.has(key)) return
-      candidates.set(key, before.get(key) ?? { type: "session", server: entry.server, sessionId: entry.session.id })
+      const tab = before.get(key) ?? { type: "session" as const, server: entry.server, sessionId: entry.session.id }
+      if (!tabs.sidebar.hidden(tab)) candidates.set(key, tab)
     })
     return [...new Set([...(sidebarOrder?.[0] ?? []), ...before.keys(), ...candidates.keys()])].flatMap(
       (key) => candidates.get(key) ?? [],
@@ -533,11 +542,24 @@ export function TitlebarTabStrip(props: {
     return [...result.values()]
   })
   const groupsByKey = createMemo(() => new Map(groups().map((group) => [group.key, group])))
+  const projectTabs = createMemo(
+    () =>
+      new Map(
+        groups().map((group) => {
+          if (expanded[group.key]) return [group.key, group.tabs] as const
+          const current = props.currentTab
+          const active = current && group.tabs.find((tab) => tabKey(tab) === tabKey(current))
+          const first = group.tabs.slice(0, PROJECT_SESSION_LIMIT)
+          // Keep the selected session in view without letting a large project expand the sidebar automatically.
+          return [group.key, active && !first.includes(active) ? [...first.slice(0, -1), active] : first] as const
+        }),
+      ),
+  )
   const tabGroups = createMemo(
     () => new Map(groups().flatMap((group) => group.tabs.map((tab) => [tabKey(tab), group] as const))),
   )
 
-  const orderedTabs = createMemo(() => (grouped() ? groups().flatMap((group) => group.tabs) : displayedTabs()))
+  const orderedTabs = createMemo(() => (grouped() ? [...projectTabs().values()].flat() : displayedTabs()))
   const visibleTabs = createMemo(() => orderedTabs().filter((tab) => tab.type === "draft" || visibility[tabKey(tab)]))
   const visibleTabIds = () => visibleTabs().map(tabKey)
 
@@ -658,13 +680,17 @@ export function TitlebarTabStrip(props: {
             serverCtx={serverCtx()}
             indexed={indexed().get(id)?.session}
             opened={!sidebar || opened().has(id)}
+            dismissible={!!sidebar}
             onVisibleChange={(visible) => setVisibility(id, visible)}
             onUnreadChange={(value) => setUnread(id, value)}
             onNavigate={(element) => {
               ref = element
               navigate(tab, element)
             }}
-            onClose={() => props.onClose(tab)}
+            onClose={() => {
+              if (sidebar && !opened().has(id)) return tabs.sidebar.hide(tab)
+              props.onClose(tab)
+            }}
           />
         </>
       )
@@ -698,14 +724,17 @@ export function TitlebarTabStrip(props: {
       classList={{ "min-h-0 overflow-hidden": vertical() }}
     >
       <Show when={vertical() && props.grouping}>
-        <div class="mb-2 flex shrink-0 [app-region:no-drag]">
+        <div class="mb-2 flex shrink-0 items-center gap-2 [app-region:no-drag]">
+          <h2 class="shrink-0 text-[13px] leading-4 font-medium text-v2-text-text-muted">
+            {language.t("sidebar.recent.title")}
+          </h2>
           <Select
             options={["none", "project"] as const}
             current={settings.appearance.tabGrouping()}
             aria-label={language.t("sidebar.grouping.label")}
             label={(option) => language.t(`sidebar.grouping.${option}`)}
             onSelect={(option) => option && settings.appearance.setTabGrouping(option)}
-            class="w-full min-w-0"
+            class="min-w-0 flex-1"
           />
         </div>
       </Show>
@@ -796,7 +825,31 @@ export function TitlebarTabStrip(props: {
                       </div>
                     )}
                   </Show>
-                  <For each={grouped() ? groupsByKey().get(key)?.tabs : displayedTabs()}>{renderTab}</For>
+                  <For each={grouped() ? projectTabs().get(key) : displayedTabs()}>{renderTab}</For>
+                  <Show when={grouped() && groupsByKey().get(key)}>
+                    {(group) => (
+                      <Show when={group().tabs.length > PROJECT_SESSION_LIMIT}>
+                        <Button
+                          variant="ghost-muted"
+                          size="small"
+                          class="h-7 shrink-0 justify-start"
+                          aria-expanded={!!expanded[key]}
+                          aria-label={
+                            expanded[key]
+                              ? language.t("sidebar.recent.collapse", { project: group().name })
+                              : language.plural("sidebar.recent.expand", group().tabs.length - PROJECT_SESSION_LIMIT, {
+                                  project: group().name,
+                                })
+                          }
+                          onClick={() => setExpanded(key, !expanded[key])}
+                        >
+                          {expanded[key]
+                            ? language.t("sidebar.recent.less")
+                            : language.plural("sidebar.recent.more", group().tabs.length - PROJECT_SESSION_LIMIT)}
+                        </Button>
+                      </Show>
+                    )}
+                  </Show>
                 </>
               )}
             </For>

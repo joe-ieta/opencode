@@ -34,6 +34,7 @@ export function TabNavItem(props: {
   onRename: (title: string) => Promise<void>
   onClose: () => void
   closable?: boolean
+  closeLabel?: string
   onDelete: () => void
   onNavigate: () => void
   active?: boolean
@@ -378,7 +379,7 @@ export function TabNavItem(props: {
             }}
             onClick={closeTab}
             icon={<Icon name="xmark-small" />}
-            aria-label={language.t("common.closeTab")}
+            aria-label={props.closeLabel ?? language.t("common.closeTab")}
           />
         </Show>
       </div>
@@ -422,7 +423,7 @@ export function TabNavItem(props: {
             {language.t("common.rename")}
           </Menu.Item>
           <Show when={props.closable !== false}>
-            <Menu.Item onSelect={props.onClose}>{language.t("common.closeTab")}</Menu.Item>
+            <Menu.Item onSelect={props.onClose}>{props.closeLabel ?? language.t("common.closeTab")}</Menu.Item>
           </Show>
           <Menu.Separator />
           <Menu.Item data-variant="critical" disabled={!props.session} onSelect={props.onDelete}>

@@ -310,7 +310,7 @@ export const defaultSettings: Settings = {
     sans: "",
     terminal: "",
     tabLayout: "horizontal",
-    tabGrouping: "none",
+    tabGrouping: "project",
     reduceMotion: "system",
   },
   keybinds: {},
