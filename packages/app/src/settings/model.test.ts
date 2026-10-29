@@ -107,6 +107,7 @@ describe("settings schema", () => {
         sans: "",
         terminal: "",
         tabLayout: "horizontal",
+        tabGrouping: "none",
         reduceMotion: "system",
       },
       keybinds: {},
@@ -136,7 +137,13 @@ describe("settings schema", () => {
         backgroundActivity: "invalid",
         timelineWidth: "invalid",
       },
-      appearance: { fontSize: "large", mono: "Custom Mono", tabLayout: "vertical", showProjectName: true },
+      appearance: {
+        fontSize: "large",
+        mono: "Custom Mono",
+        tabLayout: "vertical",
+        tabGrouping: "invalid",
+        showProjectName: true,
+      },
       permissions: { autoApprove: true, autoApproveProjects: { on: true, off: false, bad: "yes" } },
       workspaces: { defaultDestination: "new", lastUsed: { good: "workspace", bad: true } },
       keybinds: { good: "ctrl+k", bad: 3 },
@@ -158,6 +165,7 @@ describe("settings schema", () => {
       sans: "",
       terminal: "",
       tabLayout: "vertical",
+      tabGrouping: "none",
       reduceMotion: "system",
     })
     expect(settings.permissions).toEqual({ autoApprove: true, autoApproveProjects: { on: true, off: false } })
