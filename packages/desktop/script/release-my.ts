@@ -4,10 +4,13 @@ import { createHash } from "node:crypto"
 import { cp, mkdir, mkdtemp, stat } from "node:fs/promises"
 import path from "node:path"
 import semver from "semver"
+import rootPackage from "../../../package.json"
 
 // The official workflow builds the CLI and Electron app before wrapping the app in NSIS.
 // This fork uses the same scripts without the official signing and publishing services.
 if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Run this release on Windows x64")
+if (process.versions.bun !== rootPackage.packageManager.slice("bun@".length))
+  throw new Error(`Use the pinned ${rootPackage.packageManager} runtime for release builds`)
 const version = process.argv.find((argument) => argument.startsWith("--version="))?.slice("--version=".length)
 if (!version || !semver.valid(version) || !/^\d+\.\d+\.\d+-dev-my\.\d+$/.test(version))
   throw new Error("Pass --version=<major>.<minor>.<patch>-dev-my.<release>")
@@ -31,7 +34,8 @@ process.env.NODE_OPTIONS = "--max-old-space-size=4096"
 
 await $`bun packages/core/script/update-models-snapshot.ts ${process.env.OPENCODE_MODELS_SNAPSHOT}`
 process.env.OPENCODE_TARGET = "windows-x64-baseline"
-process.env.BUN_COMPILE_RELEASE = "bun-v1.4.4"
+// The pinned native Bun runtime can compile itself; no second runtime download is needed.
+delete process.env.BUN_COMPILE_RELEASE
 await $`bun run --cwd packages/cli build --single --baseline --skip-install`
 const cli = path.join(root, "packages/cli/dist/cli-windows-x64-baseline/bin/opencode.exe")
 if ((await $`${cli} --version`.text()).trim() !== version) throw new Error("Built CLI version does not match release")
