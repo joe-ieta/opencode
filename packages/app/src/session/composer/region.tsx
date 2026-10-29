@@ -37,6 +37,7 @@ import { useSessionFork } from "../fork"
 import { SessionComposerRegion } from "./session-composer-region"
 import { createSessionComposerController, type SessionComposerController } from "./controller"
 import { SessionQueuePanel } from "./queue-panel"
+import { SessionGoLimitTray } from "./go-limit-tray"
 import { SessionActivityChips, type SessionActivityItem } from "./activity-chips"
 import { SessionComposerLane, useComposerLaneAlignment } from "./composer-lane"
 import { SessionTodoPill } from "./todo-pill"
@@ -229,13 +230,16 @@ export function createActiveSessionRegion(input: {
 
   const recalled = new Set<string>()
 
-  // The free allowance stops a prompt after it was sent. Hand its text back so switching models and resending is one
-  // step, unless the user has already started typing something else.
+  // The free allowance or a Go usage limit stops a prompt after it was sent. Hand its text back so switching models and
+  // resending is one step, unless the user has already started typing something else.
   onCleanup(
     location().event.on("session.step.failed", (event) => {
       const sessionID = input.session.identity.params.id
+      const type = event.data.error.type
 
-      if (!sessionID || event.data.sessionID !== sessionID || event.data.error.type !== "provider.free-limit") return
+      if (!sessionID || event.data.sessionID !== sessionID) return
+
+      if (type !== "provider.free-limit" && type !== "provider.go-limit") return
 
       if (recalled.has(event.data.assistantMessageID)) return
       recalled.add(event.data.assistantMessageID)
@@ -575,6 +579,10 @@ export function ActiveSessionComposerRegion(props: {
             <SessionPluginPills session={props.view()} screen={props.screen} alignment={alignment} />
           </SessionComposerLane>
           <SessionQueuePanel queue={props.model.queue} hidden={props.model.region.state.blocked()} />
+          <SessionGoLimitTray
+            sessionID={props.session.identity.params.id}
+            selection={() => props.model.composer.model.selection}
+          />
         </Show>
       }
       composer={
