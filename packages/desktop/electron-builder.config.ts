@@ -46,6 +46,14 @@ const APP_IDS = {
   prod: "ai.opencode.desktop",
 } as const
 
+// Ubuntu hosts commonly lack rpmbuild, so fork releases can narrow the Linux targets.
+const linuxTargets = (process.env.OPENCODE_DESKTOP_LINUX_TARGETS ?? "AppImage,deb,rpm")
+  .split(",")
+  .map((target) => target.trim())
+  .filter(
+    (target): target is "AppImage" | "deb" | "rpm" => target === "AppImage" || target === "deb" || target === "rpm",
+  )
+
 // libappimage (used by AppImageLauncher) resolves the .desktop entry inside an
 // AppImage by globbing `*.desktop` at the squashfs root. If the main
 // executable itself ends in `.desktop` (prod appId `ai.opencode.desktop`), the
@@ -191,7 +199,7 @@ const getBase = (appId: string): Configuration => {
           StartupWMClass: appId,
         },
       },
-      target: ["AppImage", "deb", "rpm"],
+      target: linuxTargets,
     },
   }
 }
