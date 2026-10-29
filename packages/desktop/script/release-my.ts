@@ -38,7 +38,8 @@ process.env.OPENCODE_TARGET = "windows-x64-baseline"
 delete process.env.BUN_COMPILE_RELEASE
 await $`bun run --cwd packages/cli build --single --baseline --skip-install`
 const cli = path.join(root, "packages/cli/dist/cli-windows-x64-baseline/bin/opencode.exe")
-if ((await $`${cli} --version`.text()).trim() !== version) throw new Error("Built CLI version does not match release")
+if ((await $`${cli} --version`.text()).trim() !== `opencode v${version}`)
+  throw new Error("Built CLI version does not match release")
 await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
 
 process.env.OPENCODE_TARGET = "windows-x64"
