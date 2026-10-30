@@ -4,14 +4,15 @@
 
 此目录集中收纳三个独立维护分支的定位、进度、上游贡献、构建发布和 Qt 集成资料。文档语言以中文为主；不在上游官网或包的通用说明里继续追加 fork 操作手册。
 
-| 入口                                 | 用途                                                |
-| ------------------------------------ | --------------------------------------------------- |
-| [维护与发布方法](maintenance.md)     | 日常跟踪、上游同步、验证门禁、标签和发行操作        |
-| [PR 与 Issue 跟踪](upstream-prs.md)  | 当前状态、合并策略、历史关闭项和产品设计建议        |
-| [dev-my](dev-my/README.md)           | V2 桌面发行、Side tabs、迁移补丁、配置和运行时渠道  |
-| [oc-headless](oc-headless/README.md) | V2 oc_core、Qt 适配、API 漂移、契约门禁和发行记录   |
-| [qt-headless](qt-headless/README.md) | V1 qtoc_core、Qt 集成设计、HTTP/SSE、维护和历史记录 |
-| [来源清单](sources.md)               | 从哪个分支、哪个提交、哪个路径整理而来              |
+| 入口                                                | 用途                                                |
+| --------------------------------------------------- | --------------------------------------------------- |
+| [Worktree 与多任务并行](KB/worktree-parallelism.md) | 项目、分支、工作区、会话及非 Git 项目的隔离边界     |
+| [维护与发布方法](maintenance.md)                    | 日常跟踪、上游同步、验证门禁、标签和发行操作        |
+| [PR 与 Issue 跟踪](upstream-prs.md)                 | 当前状态、合并策略、历史关闭项和产品设计建议        |
+| [dev-my](dev-my/README.md)                          | V2 桌面发行、Side tabs、迁移补丁、配置和运行时渠道  |
+| [oc-headless](oc-headless/README.md)                | V2 oc_core、Qt 适配、API 漂移、契约门禁和发行记录   |
+| [qt-headless](qt-headless/README.md)                | V1 qtoc_core、Qt 集成设计、HTTP/SSE、维护和历史记录 |
+| [来源清单](sources.md)                              | 从哪个分支、哪个提交、哪个路径整理而来              |
 
 ## 阅读规则
 
