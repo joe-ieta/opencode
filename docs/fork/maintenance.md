@@ -47,6 +47,8 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 
 ### dev-my
 
+桌面应用的唯一维护与发行主线是 `dev-my`；Side tabs 的上游贡献单独维护在 `sidetab-overview`。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。
+
 在该分支的干净工作区中：
 
 ```powershell

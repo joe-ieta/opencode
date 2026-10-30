@@ -4,7 +4,7 @@
 
 跟随官方 `upstream/dev`，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码已同步官方 `dev@92b2ca0dd727942e00aba3523ed141d53e78ea28`，内核基于 V2 2.2.2；源码同步标签 `v2.2.2-dev-my.1`；最新 Windows 发行 `v2.2.2-dev-my.2` 包含后续项目历史与 Side tabs 改进。二进制与源码同步记录见 [releases.md](releases.md)。
+- 源码已同步官方 `dev@e7acf85bb7`，内核基于 V2 2.2.3；保留共享项目历史、Side tabs、升级迁移及独立桌面发行补丁。`dev-my` 是桌面应用的唯一维护主线，旧 `sidebar-projects` 仅作历史参考。二进制与源码同步记录见 [releases.md](releases.md)。
 - 最近 Windows amd64 发行：[v2.2.2-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.2-dev-my.2)，2026-10-30，源码 `8a63200923`，包含共享项目历史、项目新建会话入口与分支/工作树提示。
 - 最近 Linux x64 发行：[v2.2.1-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.1)，2026-10-29，含 Ubuntu AppImage/deb。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 当前仅支持 Windows/Linux x64。

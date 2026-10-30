@@ -9,7 +9,7 @@
 | [#60496](https://github.com/anomalyco/opencode/pull/60496) · `model-release-date` | **MERGED**，2026-10-30；最终 head `88d92af959`；合并提交 `986221af346f8f71d0133f2c08130cedc17ab097` | fork Windows `v2.2.1-dev-my.2` 已有本地修复。已在 `v2.2.2-dev-my.1` 源码同步中吸收最终上游实现与测试；本地旧提交留在发行历史，不重复移植同一补丁 |
 | [#56929](https://github.com/anomalyco/opencode/pull/56929) · `upstream-migration` | **OPEN**，非 Draft；核对时可合并；期间曾关闭，当前已重新打开                                        | V1 迁移清理分批提交的可靠性修复；`dev-my`、`oc-headless` 按实际需求保留，继续跟进审核                                                            |
 | [#60084](https://github.com/anomalyco/opencode/pull/60084) · `v2-upgrade-notice`  | **OPEN / Draft**                                                                                    | 单向 V1→V2 升级确认；本地桌面发行保留。对照上游升级流程和反馈继续完善，不因 Draft 状态移除                                                       |
-| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **OPEN / Draft**；`mergeable=CONFLICTING`                                                           | 纯 Side tabs 实现稿：共享项目/历史索引、Running 与 Recent、分组和 hint。等待设计审核；处理最新 dev 冲突并重跑 UI 验证后再转 Ready                |
+| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **OPEN / Draft**；head `1f20601184`，API 返回 `mergeable=true`                                      | 已同步贡献稿的官方基线为 `6b4329c885`；保留纯 Side tabs 范围，继续等待设计审核。发行线 `dev-my` 独立同步最新上游，不将发行补丁混入此 PR          |
 
 `mergeable` 只是查询时的合并能力，不代表通过审核、CI 或已经获准合并。上游维护者修改过 #60496 的提交，最终 head 与本地初始 `8eb64b9416` 不同；本地发行修复是 `d28cf55b08`，不能仅凭提交哈希不同认定上游缺失。
 
