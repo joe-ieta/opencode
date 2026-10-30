@@ -1,0 +1,50 @@
+> **分支资料归档（2026-10-30）**：来自 `qt-headless` 提交 [`81c50bd59a`](https://github.com/joe-ieta/opencode/blob/81c50bd59afb419c7fd3da1a0553b3d59d3cd473/packages/qtui/README.md)，原路径 `packages/qtui/README.md`。正文保留原记录及当时状态，仅调整文档链接；当前分支进度以上级 [项目总览](../../../FORK.md)、[维护与发布方法](../maintenance.md)及 [PR 跟踪](../upstream-prs.md)为准。本文命令须在对应分支运行，不能直接套用到另一代内核。
+
+# @opencode-ai/qtui
+
+Qt/C++ 集成包：封装 `qtoc_core`（headless opencode 内核）的裁剪、构建与 Qt 客户端演示/测试工程。
+
+## 目录结构
+
+```
+packages/qtui/
+├─ src/
+│  ├─ trim.ts              # 幂等重新裁剪（同步上游后执行）
+│  └─ build.ts             # 构建编排：install → typecheck → qtoc_core → 归档
+├─ client/                 # Qt Creator + CMake 演示/测试工程（C++）
+│  ├─ CMakeLists.txt
+│  ├─ fixtures/            # 放置 qtoc_core[.exe]（不提交）
+│  ├─ src/                 # ServerProcess / ApiClient / SseClient / UI
+│  └─ tests/               # Qt Test：SSE 解析、进程与健康检查
+└─ package.json
+```
+
+## 命令（仓库根目录执行）
+
+```bash
+bun run qtoc:trim        # 同步上游后重新应用 headless 裁剪（幂等，失败即停）
+bun run qtoc:build       # 构建 qtoc_core 并归档到 artifacts/qtoc/
+```
+
+可选参数：`--skip-install`、`--skip-typecheck`、`--baseline`。
+
+发布产物走 **CI 矩阵原生构建**（`.github/workflows/qtoc.yml`：Linux/Windows/macOS 各自原生构建 + 冒烟 + 上传产物），
+本地 `qtoc:build` 只产出当前平台版本。详见 [packages/qtui/docs/ops/qtoc-build.md](ops/qtoc-build.md) 3.1 节。
+
+## Qt 客户端工程
+
+用 Qt Creator 打开 `client/CMakeLists.txt`，按 [client/README.md](client/README.md) 配置运行（指定 `qtoc_core` 路径或复制到 `client/fixtures/`）。
+
+## 文档
+
+完整索引与阅读路径见 [packages/qtui/docs/README.md](archive-index.md)：
+
+- 阅读引导：[packages/qtui/docs/README.md](archive-index.md)
+- 接口参考（188 端点 + SSE 事件）：[packages/qtui/docs/api/qtoc-http-api.md](api/qtoc-http-api.md)
+- Qt 壳开发指南：[packages/qtui/docs/guide/qt-shell-guide.md](guide/qt-shell-guide.md)
+- 客户端工程导读：[packages/qtui/docs/guide/client-tour.md](guide/client-tour.md)
+- 集成方法与决策：[packages/qtui/docs/integration/methodology.md](integration/methodology.md)
+- 实施步骤：[packages/qtui/docs/integration/implementation.md](integration/implementation.md)
+- Headless 发行与验证：[packages/qtui/docs/ops/qt-headless.md](ops/qt-headless.md)
+- 构建与上游同步：[packages/qtui/docs/ops/qtoc-build.md](ops/qtoc-build.md)
+- Bun 安装（Windows/Linux）：[packages/qtui/docs/ops/bun-install.md](ops/bun-install.md)

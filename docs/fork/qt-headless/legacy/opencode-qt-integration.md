@@ -1,3 +1,5 @@
+> **历史 V1 文档**：原路径 `docs/opencode-qt-integration.md`，来源 `dev-my@d28cf55b08`，内容基于 V1 1.18.31。作为设计记录保留，不作为当前 V2 协议规范。当前进度见 [V1 概览](../README.md)，操作方法见 [维护方法](../../maintenance.md)。
+
 # opencode × Qt 集成文档
 
 > 目标：将 opencode 裁剪为 headless 内核（HTTP + SSE），由现有 Qt/C++ 原生客户端接管全部 UI。
@@ -65,12 +67,12 @@ opencode server listening on http://127.0.0.1:4096
 
 **其他有用环境变量**：
 
-| 变量 | 用途 |
-|---|---|
-| `OPENCODE_SERVER_PASSWORD` | 服务密码（必设） |
-| `OPENCODE_CONFIG_CONTENT` | 内联 JSON 配置（agents/permission/model/mcp/plugin 等） |
-| `OPENCODE_PURE=1` | 禁用外部插件（`--pure` 等价） |
-| `OPENCODE_PRINT_LOGS=1` / `OPENCODE_LOG_LEVEL=DEBUG` | 调试日志 |
+| 变量                                                 | 用途                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------- |
+| `OPENCODE_SERVER_PASSWORD`                           | 服务密码（必设）                                        |
+| `OPENCODE_CONFIG_CONTENT`                            | 内联 JSON 配置（agents/permission/model/mcp/plugin 等） |
+| `OPENCODE_PURE=1`                                    | 禁用外部插件（`--pure` 等价）                           |
+| `OPENCODE_PRINT_LOGS=1` / `OPENCODE_LOG_LEVEL=DEBUG` | 调试日志                                                |
 
 ### 2.2 目录作用域（多项目）
 
@@ -83,32 +85,32 @@ opencode server listening on http://127.0.0.1:4096
 
 ### 2.3 REST 端点速查（已验证）
 
-| 用途 | 方法与路径 | 请求体 / 参数 | 响应 |
-|---|---|---|---|
-| 健康检查 | `GET /global/health` | - | `{ healthy: true, version: string }` |
-| 事件订阅 | `GET /event` | SSE | `text/event-stream` |
-| 建会话 | `POST /session` | `{ parentID?, title?, agent?, model?{id,providerID,variant?}, metadata?, permission?, workspaceID? }` | `Session` |
-| 会话列表 | `GET /session` | - | `Session[]` |
-| 会话详情 | `GET /session/{sessionID}` | - | `Session` |
-| 删除会话 | `DELETE /session/{sessionID}` | - | - |
-| 发消息（同步） | `POST /session/{sessionID}/message` | `{ messageID?, model?{providerID,modelID}, agent?, noReply?, tools?, format?, system?, variant?, parts: PartInput[] }` | `{ info: AssistantMessage, parts: Part[] }`（阻塞到完成） |
-| 发消息（异步） | `POST /session/{sessionID}/prompt_async` | 同上 | `204`，结果走事件流 |
-| 历史消息 | `GET /session/{sessionID}/message` | - | `{ data: SessionMessage[], cursor: { previous?, next? } }` |
-| 中止 | `POST /session/{sessionID}/abort` | - | `boolean` |
-| 待决权限 | `GET /permission` | - | 权限请求列表 |
-| 权限应答 | `POST /permission/{requestID}/reply` | `{ reply: "once" \| "always" \| "reject", message? }` | `boolean` |
-| 问答应答 | `POST /question/{requestID}/reply` / `/reject` | `{ answers: string[][] }`（按问题顺序，每个答案为所选标签数组） | - |
-| 模型列表 | `GET /config/providers` 或 `GET /provider` | - | Provider/Model 列表 |
-| Agent 列表 | `GET /agent` | - | Agent[] |
-| 配置读取 | `GET /config` | - | Config |
-| 文件搜索 | `GET /find/file` | `?query=...&type=file\|directory&limit=` | 路径列表 |
-| 文件内容 | `GET /file/content` | `?path=<绝对路径>` | 内容 |
-| 文件状态 | `GET /file/status` | - | 变更文件 |
-| 会话 diff | `GET /session/{sessionID}/diff` | - | diff |
-| 会话 todo | `GET /session/{sessionID}/todo` | - | Todo[] |
-| 会话 shell | `POST /session/{sessionID}/shell` | `{ agent, command, model?, messageID? }` | 命令结果 |
-| revert | `POST /session/{sessionID}/revert` / `unrevert` | `{ messageID }` 等 | Session |
-| PTY 终端 | `GET /pty`、`POST /pty`、`GET /pty/{ptyID}/connect-token` + WebSocket `/pty/{ptyID}` | - | 见 2.7 |
+| 用途           | 方法与路径                                                                           | 请求体 / 参数                                                                                                          | 响应                                                       |
+| -------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 健康检查       | `GET /global/health`                                                                 | -                                                                                                                      | `{ healthy: true, version: string }`                       |
+| 事件订阅       | `GET /event`                                                                         | SSE                                                                                                                    | `text/event-stream`                                        |
+| 建会话         | `POST /session`                                                                      | `{ parentID?, title?, agent?, model?{id,providerID,variant?}, metadata?, permission?, workspaceID? }`                  | `Session`                                                  |
+| 会话列表       | `GET /session`                                                                       | -                                                                                                                      | `Session[]`                                                |
+| 会话详情       | `GET /session/{sessionID}`                                                           | -                                                                                                                      | `Session`                                                  |
+| 删除会话       | `DELETE /session/{sessionID}`                                                        | -                                                                                                                      | -                                                          |
+| 发消息（同步） | `POST /session/{sessionID}/message`                                                  | `{ messageID?, model?{providerID,modelID}, agent?, noReply?, tools?, format?, system?, variant?, parts: PartInput[] }` | `{ info: AssistantMessage, parts: Part[] }`（阻塞到完成）  |
+| 发消息（异步） | `POST /session/{sessionID}/prompt_async`                                             | 同上                                                                                                                   | `204`，结果走事件流                                        |
+| 历史消息       | `GET /session/{sessionID}/message`                                                   | -                                                                                                                      | `{ data: SessionMessage[], cursor: { previous?, next? } }` |
+| 中止           | `POST /session/{sessionID}/abort`                                                    | -                                                                                                                      | `boolean`                                                  |
+| 待决权限       | `GET /permission`                                                                    | -                                                                                                                      | 权限请求列表                                               |
+| 权限应答       | `POST /permission/{requestID}/reply`                                                 | `{ reply: "once" \| "always" \| "reject", message? }`                                                                  | `boolean`                                                  |
+| 问答应答       | `POST /question/{requestID}/reply` / `/reject`                                       | `{ answers: string[][] }`（按问题顺序，每个答案为所选标签数组）                                                        | -                                                          |
+| 模型列表       | `GET /config/providers` 或 `GET /provider`                                           | -                                                                                                                      | Provider/Model 列表                                        |
+| Agent 列表     | `GET /agent`                                                                         | -                                                                                                                      | Agent[]                                                    |
+| 配置读取       | `GET /config`                                                                        | -                                                                                                                      | Config                                                     |
+| 文件搜索       | `GET /find/file`                                                                     | `?query=...&type=file\|directory&limit=`                                                                               | 路径列表                                                   |
+| 文件内容       | `GET /file/content`                                                                  | `?path=<绝对路径>`                                                                                                     | 内容                                                       |
+| 文件状态       | `GET /file/status`                                                                   | -                                                                                                                      | 变更文件                                                   |
+| 会话 diff      | `GET /session/{sessionID}/diff`                                                      | -                                                                                                                      | diff                                                       |
+| 会话 todo      | `GET /session/{sessionID}/todo`                                                      | -                                                                                                                      | Todo[]                                                     |
+| 会话 shell     | `POST /session/{sessionID}/shell`                                                    | `{ agent, command, model?, messageID? }`                                                                               | 命令结果                                                   |
+| revert         | `POST /session/{sessionID}/revert` / `unrevert`                                      | `{ messageID }` 等                                                                                                     | Session                                                    |
+| PTY 终端       | `GET /pty`、`POST /pty`、`GET /pty/{ptyID}/connect-token` + WebSocket `/pty/{ptyID}` | -                                                                                                                      | 见 2.7                                                     |
 
 > 完整清单（162+ 路径）以 `packages/sdk/openapi.json` 为准；Qt 侧建议只生成/实现所需子集。
 
@@ -185,21 +187,21 @@ void SseClient::onReadyRead() {
 
 **主要事件类型**（完整联合类型见 `types.gen.ts` 的 `Event`）：
 
-| 事件 | properties | 用途 |
-|---|---|---|
-| `session.created` / `session.updated` / `session.deleted` | `sessionID, info` | 会话列表/标题同步 |
-| `message.updated` | `sessionID, info, time` | 消息元数据（role、状态、token） |
-| `message.part.updated` | `sessionID, part, time` | part 快照（文本、推理、工具调用） |
-| `message.part.delta` | `sessionID, messageID, partID, field, delta` | 增量（优先用于流式） |
-| `message.part.removed` | `sessionID, messageID, partID` | 移除 part |
-| `session.status` | `sessionID, status` | busy/idle/retry 状态 |
-| `session.idle` | `sessionID` | 一轮完成 |
-| `session.error` | `sessionID?, error` | 错误（ProviderAuth/Aborted/Overflow 等） |
-| `session.diff` | `sessionID, diff` | 文件变更汇总 |
-| `todo.updated` | `sessionID, todos` | 任务清单 |
-| `permission.asked` / `permission.replied` | 权限请求信息 | 权限弹窗 |
-| `question.asked` / `question.replied` / `question.rejected` | `id, sessionID, questions` | 问答弹窗 |
-| `file.edited`、`lsp.updated`、`installation.*` | - | 可选 UI 联动 |
+| 事件                                                        | properties                                   | 用途                                     |
+| ----------------------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
+| `session.created` / `session.updated` / `session.deleted`   | `sessionID, info`                            | 会话列表/标题同步                        |
+| `message.updated`                                           | `sessionID, info, time`                      | 消息元数据（role、状态、token）          |
+| `message.part.updated`                                      | `sessionID, part, time`                      | part 快照（文本、推理、工具调用）        |
+| `message.part.delta`                                        | `sessionID, messageID, partID, field, delta` | 增量（优先用于流式）                     |
+| `message.part.removed`                                      | `sessionID, messageID, partID`               | 移除 part                                |
+| `session.status`                                            | `sessionID, status`                          | busy/idle/retry 状态                     |
+| `session.idle`                                              | `sessionID`                                  | 一轮完成                                 |
+| `session.error`                                             | `sessionID?, error`                          | 错误（ProviderAuth/Aborted/Overflow 等） |
+| `session.diff`                                              | `sessionID, diff`                            | 文件变更汇总                             |
+| `todo.updated`                                              | `sessionID, todos`                           | 任务清单                                 |
+| `permission.asked` / `permission.replied`                   | 权限请求信息                                 | 权限弹窗                                 |
+| `question.asked` / `question.replied` / `question.rejected` | `id, sessionID, questions`                   | 问答弹窗                                 |
+| `file.edited`、`lsp.updated`、`installation.*`              | -                                            | 可选 UI 联动                             |
 
 流式渲染策略（兼容两种模式）：
 
@@ -368,15 +370,15 @@ bun run --cwd packages/opencode script/build.ts --skip-embed-web-ui
 
 ### 5.1 模块划分
 
-| 模块 | 职责 |
-|---|---|
-| `ServerProcess` | QProcess 管理 opencode 生命周期、端口/密码、健康检查、重启 |
-| `ApiClient` | QNetworkAccessManager 封装：Basic Auth、目录头、JSON 编解码、错误映射 |
-| `SseClient` | `/event` 长连接、分帧解析、心跳过滤、断线重连 |
-| `EventRouter` | 事件 JSON → Qt 信号（session/message/part/permission/question） |
-| `SessionModel` | 消息与 part 状态机（含增量合并）、会话列表 |
-| `PermissionBridge` | 权限/问答弹窗与应答 |
-| `ChatView` | 现有聊天窗口接入 SessionModel（流式 Markdown） |
+| 模块               | 职责                                                                  |
+| ------------------ | --------------------------------------------------------------------- |
+| `ServerProcess`    | QProcess 管理 opencode 生命周期、端口/密码、健康检查、重启            |
+| `ApiClient`        | QNetworkAccessManager 封装：Basic Auth、目录头、JSON 编解码、错误映射 |
+| `SseClient`        | `/event` 长连接、分帧解析、心跳过滤、断线重连                         |
+| `EventRouter`      | 事件 JSON → Qt 信号（session/message/part/permission/question）       |
+| `SessionModel`     | 消息与 part 状态机（含增量合并）、会话列表                            |
+| `PermissionBridge` | 权限/问答弹窗与应答                                                   |
+| `ChatView`         | 现有聊天窗口接入 SessionModel（流式 Markdown）                        |
 
 ### 5.2 进程管理（QProcess）
 
@@ -443,7 +445,7 @@ session.error                   → 错误提示
 
 ### 5.8 业务上下文注入（插件 + 业务服务，已确定）
 
-架构与钩子细节见 `docs/opencode-qt-integration-methodology.md` 5.4；Qt 端点与流程清单见同文档第 7 节。实施步骤：
+架构与钩子细节见 `docs/fork/qt-headless/legacy/opencode-qt-integration-methodology.md` 5.4；Qt 端点与流程清单见同文档第 7 节。实施步骤：
 
 1. 业务侧提供分析接口（建议 `127.0.0.1` + 随机端口 + 一次性 token，契约见方法文档 5.4）；
 2. 编写插件 `.opencode/plugin/business-context.ts`：
@@ -461,37 +463,37 @@ session.error                   → 错误提示
 
 ### A. 关键源码索引
 
-| 内容 | 路径 |
-|---|---|
-| serve 命令与参数 | `packages/opencode/src/cli/cmd/serve.ts`、`packages/opencode/src/cli/network.ts` |
-| Basic Auth | `packages/server/src/auth.ts` |
-| SSE 端点与心跳 | `packages/server/src/handlers/event.ts` |
-| SSE 解析参考实现 | `packages/client/src/generated/client.ts:192-247` |
-| 目录头处理 | `packages/sdk/js/src/v2/client.ts:20-75` |
-| 事件/请求类型定义 | `packages/sdk/js/src/v2/gen/types.gen.ts` |
-| OpenAPI 全量描述 | `packages/sdk/openapi.json`（162+ 路径） |
-| 会话处理 | `packages/server/src/handlers/session.ts` |
-| 权限处理 | `packages/server/src/handlers/permission.ts` |
-| PTY/WebSocket | `packages/server/src/handlers/pty.ts` |
-| 构建脚本（`--skip-embed-web-ui`） | `packages/opencode/script/build.ts` |
-| 桌面端进程管理参考 | `packages/desktop/src/main/sidecar.ts`、`background-cli.ts` |
+| 内容                              | 路径                                                                             |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| serve 命令与参数                  | `packages/opencode/src/cli/cmd/serve.ts`、`packages/opencode/src/cli/network.ts` |
+| Basic Auth                        | `packages/server/src/auth.ts`                                                    |
+| SSE 端点与心跳                    | `packages/server/src/handlers/event.ts`                                          |
+| SSE 解析参考实现                  | `packages/client/src/generated/client.ts:192-247`                                |
+| 目录头处理                        | `packages/sdk/js/src/v2/client.ts:20-75`                                         |
+| 事件/请求类型定义                 | `packages/sdk/js/src/v2/gen/types.gen.ts`                                        |
+| OpenAPI 全量描述                  | `packages/sdk/openapi.json`（162+ 路径）                                         |
+| 会话处理                          | `packages/server/src/handlers/session.ts`                                        |
+| 权限处理                          | `packages/server/src/handlers/permission.ts`                                     |
+| PTY/WebSocket                     | `packages/server/src/handlers/pty.ts`                                            |
+| 构建脚本（`--skip-embed-web-ui`） | `packages/opencode/script/build.ts`                                              |
+| 桌面端进程管理参考                | `packages/desktop/src/main/sidecar.ts`、`background-cli.ts`                      |
 
 ### B. 故障排查
 
-| 现象 | 排查方向 |
-|---|---|
-| 401 | `Authorization` 头或密码错误；确认 `OPENCODE_SERVER_PASSWORD` 已注入子进程 |
-| 连接被拒 | 端口解析失败或进程未起；检查 stdout 的 listening 行与 stderr 日志 |
-| SSE 无事件 | 确认 `Content-Type: text/event-stream`、没有代理缓冲；先只订阅 `/event` 观察 |
-| 请求目录不对 | 检查 `x-opencode-directory` 是否 URL 编码、路径是否存在 |
-| shell 工具失败（Windows） | 安装 Git（Git Bash），或改用其他工具 |
-| 流式卡顿 | 检查是否每个事件都触发 Markdown 全量重排；加节流/增量渲染 |
-| 同步 prompt 超时 | 改用 `prompt_async` + SSE |
+| 现象                      | 排查方向                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| 401                       | `Authorization` 头或密码错误；确认 `OPENCODE_SERVER_PASSWORD` 已注入子进程   |
+| 连接被拒                  | 端口解析失败或进程未起；检查 stdout 的 listening 行与 stderr 日志            |
+| SSE 无事件                | 确认 `Content-Type: text/event-stream`、没有代理缓冲；先只订阅 `/event` 观察 |
+| 请求目录不对              | 检查 `x-opencode-directory` 是否 URL 编码、路径是否存在                      |
+| shell 工具失败（Windows） | 安装 Git（Git Bash），或改用其他工具                                         |
+| 流式卡顿                  | 检查是否每个事件都触发 Markdown 全量重排；加节流/增量渲染                    |
+| 同步 prompt 超时          | 改用 `prompt_async` + SSE                                                    |
 
 ### C. 阶段验收总表
 
-| 阶段 | 交付物 | 验收 |
-|---|---|---|
-| 0 | Qt 能连接官方 serve 并完成一轮对话 | 冒烟清单 3.3 全绿 |
-| 1 | 裁剪后的 headless 仓库 + 构建产物 | 4.6 全绿，包体积/构建时间明显下降 |
-| 2 | Qt 集成模块与聊天窗口接入 | 流式渲染、工具卡片、权限弹窗、断线恢复可用 |
+| 阶段 | 交付物                             | 验收                                       |
+| ---- | ---------------------------------- | ------------------------------------------ |
+| 0    | Qt 能连接官方 serve 并完成一轮对话 | 冒烟清单 3.3 全绿                          |
+| 1    | 裁剪后的 headless 仓库 + 构建产物  | 4.6 全绿，包体积/构建时间明显下降          |
+| 2    | Qt 集成模块与聊天窗口接入          | 流式渲染、工具卡片、权限弹窗、断线恢复可用 |

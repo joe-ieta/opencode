@@ -43,19 +43,9 @@
 
 ---
 
-### Fork branches
+### This fork
 
-This fork maintains three independent release lines:
-
-| Branch        | Upstream       | Purpose                                                                             |
-| ------------- | -------------- | ----------------------------------------------------------------------------------- |
-| `dev-my`      | `upstream/dev` | Full desktop builds for Windows, macOS and Linux, with this fork's pending patches. |
-| `oc-headless` | `upstream/dev` | V2 `oc_core` releases and the Qt client tooling.                                    |
-| `qt-headless` | `upstream/v1`  | V1 `qtoc_core` releases and the Qt client tooling.                                  |
-
-`dev-my` retains sidebar project grouping and running sessions, explicit V1 upgrade acknowledgment, resumable migration cleanup, SQLite error handling and Layer dependency validation. Keep these patches when synchronizing official `dev` until their behavior is included upstream. The older Qt integration guides in `docs/` remain available for reference.
-
-For desktop packaging, follow [the desktop build instructions](packages/desktop/README.md). Build the CLI from the same checkout first (`bun run --cwd packages/cli build --single`) so the desktop bundles this fork's server fixes. Fork Windows releases use `bun run release:desktop:my --version=2.2.0-dev-my.1`, which follows the official build stages with an independent app identity and release update feed.
+For this fork’s three maintained release branches, progress, upstream PRs and build/release methods, see [FORK.md](FORK.md) and [docs/fork](docs/fork/README.md).
 
 ### Installation
 
