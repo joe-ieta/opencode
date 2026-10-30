@@ -4,8 +4,8 @@
 
 跟随官方 `upstream/dev`，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码已同步官方 `dev@92b2ca0dd727942e00aba3523ed141d53e78ea28`，内核基于 V2 2.2.2；本次源码标签 `v2.2.2-dev-my.1`，尚无该标签的新安装包。二进制与源码同步记录见 [releases.md](releases.md)。
-- 最近 Windows amd64 发行：[v2.2.1-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.2)，2026-10-30，修复无发布日期的自定义模型默认隐藏。
+- 源码已同步官方 `dev@92b2ca0dd727942e00aba3523ed141d53e78ea28`，内核基于 V2 2.2.2；源码同步标签 `v2.2.2-dev-my.1`；最新 Windows 发行 `v2.2.2-dev-my.2` 包含后续项目历史与 Side tabs 改进。二进制与源码同步记录见 [releases.md](releases.md)。
+- 最近 Windows amd64 发行：[v2.2.2-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.2-dev-my.2)，2026-10-30，源码 `8a63200923`，包含共享项目历史、项目新建会话入口与分支/工作树提示。
 - 最近 Linux x64 发行：[v2.2.1-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.1)，2026-10-29，含 Ubuntu AppImage/deb。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 当前仅支持 Windows/Linux x64。
 - 最近 Windows 验证：应用单元测试 933 项、根检查 35 个任务、应用正式 TypeScript 检查通过；正式构建的默认显示/手动隐藏/手动显示、旧日期筛选及模型选择流程通过。CLI 模型目录、服务发现及 V1 迁移冒烟通过。详细日志留在本地 `.cache/model-date-*.log`，不纳入 Git。
@@ -22,7 +22,7 @@ Side tabs 上游稿在 #60446，设计建议在 #60241；“新用户默认使�
 
 多任务并行沿用官方 worktree 机制：同一工作目录里的会话共享代码和当前分支；独立 worktree 才隔离文件。新建 worktree 的分支选择是起点，内置 Git 策略默认 detached HEAD，不自动创建命名任务分支。Side tabs 展示这些任务，不改变其 Git 归属。
 
-当前工作区的后续优化（尚未发行）：线程 hint 按需读取所在工作目录的当前分支，并展示所属工作树路径；项目分组计数后可直接新建预选该项目的会话。Recent sessions 只列主会话，恢复的子智能体标签也不再作为独立历史行，子智能体仍从父会话进入，Running sessions 保留运行任务观察能力。Home 与侧栏均显示服务器项目历史，避免官方客户端与本 fork 的 GUI 本地状态独立导致 Home 缺项目；显式隐藏项目会被单独记忆，重新使用该项目后恢复显示。
+`v2.2.2-dev-my.2` 的后续优化：线程 hint 按需读取所在工作目录的当前分支，并展示所属工作树路径；项目分组计数后可直接新建预选该项目的会话。Recent sessions 只列主会话，恢复的子智能体标签也不再作为独立历史行，子智能体仍从父会话进入，Running sessions 保留运行任务观察能力。Home 与侧栏均显示服务器项目历史，避免官方客户端与本 fork 的 GUI 本地状态独立导致 Home 缺项目；显式隐藏项目会被单独记忆，重新使用该项目后恢复显示。
 
 ### V1 升级与可靠性
 
