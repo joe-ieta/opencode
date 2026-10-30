@@ -5,10 +5,10 @@
 跟随官方 `upstream/dev`，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
 - 源码已同步官方 `dev@e7acf85bb7`，内核基于 V2 2.2.3；保留共享项目历史、Side tabs、升级迁移及独立桌面发行补丁。`dev-my` 是桌面应用的唯一维护主线，旧 `sidebar-projects` 仅作历史参考。二进制与源码同步记录见 [releases.md](releases.md)。
-- 最近 Windows amd64 发行：[v2.2.2-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.2-dev-my.2)，2026-10-30，源码 `8a63200923`，包含共享项目历史、项目新建会话入口与分支/工作树提示。
+- 最近 Windows x64 测试版：[v2.2.3-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.1)，2026-10-31，构建源码 `52e000fc52`，包含最新上游同步及完整 Side tabs 后续优化；以预发行公开，稳定版 Latest 保持不变。
 - 最近 Linux x64 发行：[v2.2.1-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.1)，2026-10-29，含 Ubuntu AppImage/deb。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 当前仅支持 Windows/Linux x64。
-- 最近 Windows 验证：应用单元测试 933 项、根检查 35 个任务、应用正式 TypeScript 检查通过；正式构建的默认显示/手动隐藏/手动显示、旧日期筛选及模型选择流程通过。CLI 模型目录、服务发现及 V1 迁移冒烟通过。详细日志留在本地 `.cache/model-date-*.log`，不纳入 Git。
+- 最近 Windows 验证：根检查 35/35、应用单元测试 945 项、browser 条件测试 303 项、迁移/SQLite/Layer 重点测试 45 项、桌面打包配置 14 项、应用与桌面正式 TypeScript 检查通过；生产构建首页/标签/终端回归 83/83、两个时序修正场景重复 20/20。CLI 冒烟、实际包版本与内容、安装包完整性，以及四个上传资产的服务端 SHA256 均已核对。详细结果与 Windows 跳过项见 [releases.md](releases.md)，日志在本地 `.cache/dev-my-223-*`。
 
 ## 已维护的行为
 
