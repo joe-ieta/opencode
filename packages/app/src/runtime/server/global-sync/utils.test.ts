@@ -39,7 +39,10 @@ describe("normalizeAgentList", () => {
 })
 
 describe("normalizeProviderList", () => {
-  test("groups current models into the app provider catalog", () => {
+  test.each([
+    [0, ""],
+    [Date.UTC(2026, 8, 1), "2026-09-01"],
+  ])("groups models with release time %p into the app catalog", (released, release_date) => {
     const result = normalizeProviderList(
       [{ id: "openai", name: "OpenAI", package: "@ai-sdk/openai" }] as ProviderListOutput["data"],
       [
@@ -50,7 +53,7 @@ describe("normalizeProviderList", () => {
           name: "GPT-5",
           capabilities: { tools: true, input: ["text", "image"], output: ["text"] },
           variants: [{ id: "high" }],
-          time: { released: 1 },
+          time: { released },
           cost: [{ input: 1, output: 2, cache: { read: 0.1, write: 0.2 } }],
           status: "active",
           enabled: true,
@@ -78,6 +81,7 @@ describe("normalizeProviderList", () => {
     expect(result.all.get("openai")?.models["gpt-5"]).toMatchObject({
       id: "gpt-5",
       providerID: "openai",
+      release_date,
       capabilities: { toolcall: true, attachment: true },
       cost: { input: 1, output: 2 },
       variants: { high: {} },
