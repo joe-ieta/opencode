@@ -4,7 +4,7 @@
 
 跟随官方 `upstream/dev`，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 分支核对点：`d28cf55b088e8e1630d28219578e475f5fa5476e`，内核基于 V2 2.2.1。
+- 源码已同步官方 `dev@92b2ca0dd727942e00aba3523ed141d53e78ea28`，内核基于 V2 2.2.2；本次源码标签 `v2.2.2-dev-my.1`，尚无该标签的新安装包。二进制与源码同步记录见 [releases.md](releases.md)。
 - 最近 Windows amd64 发行：[v2.2.1-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.2)，2026-10-30，修复无发布日期的自定义模型默认隐藏。
 - 最近 Linux x64 发行：[v2.2.1-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.1)，2026-10-29，含 Ubuntu AppImage/deb。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 当前仅支持 Windows/Linux x64。
@@ -47,7 +47,7 @@ Side tabs 上游稿在 #60446，设计建议在 #60241；“新用户默认使�
 
 ## 后续工作
 
-- 同步官方 dev 时吸收 #60496 的最终合并实现与测试，保持自定义模型可见性。
+- #60496 的最终合并实现与测试已随本次同步吸收，继续保持自定义模型可见性回归覆盖。
 - #60446 等设计批准后，更新纯 Side tabs 提交并处理冲突。
 - 跟踪 #56929、#60084 和其他未被官方等价实现的可靠性补丁。
 - 自定义模型配置界面仍为 [Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622)，尚未在本 fork 实现。

@@ -119,7 +119,7 @@ headless 冒烟必须使用新构建的产物和隔离的 home/config/state。V1
 bun install --frozen-lockfile
 bun run check
 # 示例：将版本改成尚未存在的下一次发行号
-bun run release:desktop:my --version=2.2.1-dev-my.3
+bun run release:desktop:my --version=2.2.2-dev-my.2
 ```
 
 脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
@@ -134,12 +134,12 @@ bun run release:desktop:my --version=2.2.1-dev-my.3
 以下以已完成构建的下一次 Windows 发行号为例，实际执行前准备好对应目录和 release notes；不要复用已发布标签：
 
 ```powershell
-git tag -a v2.2.1-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.1-dev-my.3'
+git tag -a v2.2.2-dev-my.2 <build.json中的源码提交> -m 'OpenCode My 2.2.2-dev-my.2'
 git push origin dev-my
-git push origin refs/tags/v2.2.1-dev-my.3
-gh release create v2.2.1-dev-my.3 dist/releases/v2.2.1-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.1-dev-my.3/latest.yml dist/releases/v2.2.1-dev-my.3/SHA256SUMS dist/releases/v2.2.1-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.1-dev-my.3 (Windows amd64)' --notes-file <release-notes.md>
+git push origin refs/tags/v2.2.2-dev-my.2
+gh release create v2.2.2-dev-my.2 dist/releases/v2.2.2-dev-my.2/opencode-desktop-win-x64.exe dist/releases/v2.2.2-dev-my.2/latest.yml dist/releases/v2.2.2-dev-my.2/SHA256SUMS dist/releases/v2.2.2-dev-my.2/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.2-dev-my.2 (Windows amd64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
-gh release edit v2.2.1-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
+gh release edit v2.2.2-dev-my.2 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 ```
 
 Linux 换成该平台实际包和 `latest-linux.yml`；只有完成该平台构建与验收后才列入发行资产，不把本机 Windows 构建记成三平台通过。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
