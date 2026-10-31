@@ -121,20 +121,23 @@ headless 冒烟必须使用新构建的产物和隔离的 home/config/state。V1
 bun install --frozen-lockfile
 bun run check
 # 示例：将版本改成尚未存在的下一次发行号
-bun run release:desktop:my --version=2.2.2-dev-my.2
+bun run release:desktop:my --version=2.2.3-dev-my.3
 ```
 
-Linux 支持 x64 与 arm64。Ubuntu 24.04 x64 上交叉构建 arm64 时先安装 `qemu-user-static` 并注册 binfmt，再安装双架构可选依赖：
+Linux 支持 x64 与 arm64。Ubuntu 24.04 x64 上交叉构建 arm64 时先安装 `qemu-user-static`、arm64 交叉 libc，并注册 binfmt，再安装双架构可选依赖：
 
 ```bash
-sudo apt install -y build-essential fakeroot unzip qemu-user-static binfmt-support
+sudo apt install -y build-essential fakeroot unzip qemu-user-static binfmt-support libc6-dev-arm64-cross
+export QEMU_LD_PREFIX=/usr/aarch64-linux-gnu
+# WSL 的 systemd-binfmt 被 ConditionVirtualization=!wsl 跳过；需单独注册，并在重启后重新生效
+sudo sh -c 'test -e /proc/sys/fs/binfmt_misc/qemu-aarch64 || cat /usr/lib/binfmt.d/qemu-aarch64.conf > /proc/sys/fs/binfmt_misc/register'
 bun install --frozen-lockfile --cpu=*
 # 仅 arm64，或同一标签同时构建 x64 与 arm64
 bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=arm64
 bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```
 
-`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
+`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；跨架构模型目录冒烟自动使用 `--via-server`，避免 QEMU 下 5 秒插件激活超时。正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
 
 1. 更新内置模型目录；从同一个源码提交按目标架构构建 CLI。
 2. 校验 CLI 版本、模型目录，执行隔离服务发现及 V1 迁移确认/历史冒烟。
@@ -143,18 +146,18 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 
 发布前核对实际打包的 app.asar 中有修复、CLI 版本正确，`build.json.commit` 与待打标签提交一致，安装包哈希与大小匹配。当前脚本未配置官方签名服务，产物未签名；本流程不替用户执行安装或替换运行中的服务。
 
-以下以已完成构建的下一次 Windows 发行号为例，实际执行前准备好对应目录和 release notes；不要复用已发布标签：
+以下以已完成构建的 `v2.2.3-dev-my.3` 多架构发行号为例，实际执行前准备好对应目录和 release notes；不要复用已发布标签：
 
 ```powershell
-git tag -a v2.2.2-dev-my.2 <build.json中的源码提交> -m 'OpenCode My 2.2.2-dev-my.2'
+git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
-git push origin refs/tags/v2.2.2-dev-my.2
-gh release create v2.2.2-dev-my.2 dist/releases/v2.2.2-dev-my.2/opencode-desktop-win-x64.exe dist/releases/v2.2.2-dev-my.2/latest.yml dist/releases/v2.2.2-dev-my.2/SHA256SUMS dist/releases/v2.2.2-dev-my.2/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.2-dev-my.2 (Windows amd64)' --notes-file <release-notes.md>
+git push origin refs/tags/v2.2.3-dev-my.3
+gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
-gh release edit v2.2.2-dev-my.2 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
+gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 ```
 
-Linux 换成该平台实际包和 `latest-linux.yml`；只有完成该平台构建与验收后才列入发行资产，不把本机 Windows 构建记成三平台通过。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
+只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 
 ## 6. headless 标签、CI 与产物
 

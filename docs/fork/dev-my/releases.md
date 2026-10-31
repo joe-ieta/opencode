@@ -2,6 +2,17 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。
 
+## v2.2.3-dev-my.3 Windows AMD64 + Ubuntu AMD64/ARM64 发行
+
+- 发行页：[v2.2.3-dev-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)，2026-10-31 15:03（Asia/Shanghai）已公开；`draft=false`、`prerelease=false`，并设为 Latest。
+- 源码提交：`393c371b654e6afa75828e602bfda70085e1d587`；使用 Bun 1.4.4，Windows 原生构建，Linux 在 WSL2 Ubuntu 24.04 x64 构建；后台渠道为 `dev`，appId 为 `ai.opencode.desktop.dev-my`。
+- 相对 `.2` 新增发行工具链支持：`release-my.ts` 的 `--arch=x64|arm64|all`、Linux arm64 目标和 `latest-linux-arm64.yml`，以及 QEMU 下可重试的 `catalog-smoke --via-server`。Windows 与 Linux 产品代码未改变；源码另外包含 Home 页文档提交。
+- Ubuntu 24.04 LTS 为本轮重点验证基线，提供 amd64 与 arm64 的 AppImage、deb。x64 原生构建；arm64 在 x64 WSL 上通过 `qemu-user-static`、`libc6-dev-arm64-cross` 和 binfmt 交叉构建，CLI 通过 `QEMU_LD_PREFIX=/usr/aarch64-linux-gnu` 执行。
+- 验证结果：Windows 与 WSL 的根检查均 35/35；Windows NSIS、ASAR/CLI 版本、7-Zip 完整性、`latest.yml` SHA512 通过；Linux x64/arm64 的模型目录冒烟各覆盖 7,646 个模型，desktop CLI 服务发现、V1 升级确认和迁移历史冒烟均通过；两架构 ASAR/CLI 版本、AppImage/deb 架构、deb 元数据、更新清单 SHA512/大小和 `SHA256SUMS` 均已核对。
+- ARM64 GUI 未在原生 arm64 上运行；本版 ARM64 属于 QEMU 交叉构建和 CLI 冒烟验证，正式 ARM64 GUI 验收仍需原生机器或 runner。Windows GUI 回归也未在本轮重复运行。
+- 五个安装包：Windows x64 `277,953,147` 字节，SHA256 `44a32f97461eea5e76f01199fc5022a4628b5557837bc8daeab413c6eb5c9f84`；Linux amd64 AppImage `324,058,263` 字节，SHA256 `a01a26c1176e57213b580325cf0de61d2bd96798debb8f9eb0710060879839bd`；amd64 deb `270,314,328` 字节，SHA256 `6662af88cf532d7d99bcddd65f253835a8000f0a08bffd956bf39ec3e40341a3`；arm64 AppImage `324,077,892` 字节，SHA256 `d873cdf82d17bd3e46b5afb32aefafc4d977ef839aeb0300b864df12b8489ba2`；arm64 deb `260,152,112` 字节，SHA256 `484f8d126836103289cc7c841e4bd89f9edbdaab23970b51ccd4e688e4571fe3`。
+- 随包提供 `latest.yml`、`latest-linux.yml`、`latest-linux-arm64.yml`、`SHA256SUMS` 和 `build.json`。10 个资产的服务端大小与 SHA256 均与本地一致。产物未签名，更新源固定于本标签；后续版本手动下载安装。
+
 ## v2.2.3-dev-my.2 Windows AMD64 发行
 
 - 发行页：[v2.2.3-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.2)，2026-10-31 13:07（Asia/Shanghai）已公开。按不可变迭代标签约定，在 `.1` 测试预发行之后使用新标签；相对 `.1` 的构建源码 `52e000fc52`，本次构建源码 `f587b0f8a7` 仅多一个发行记录文档提交，功能内容一致。
@@ -28,6 +39,7 @@
 
 | 日期       | 标签                                                                                   | 类型                           | 说明                                                                                                                     |
 | ---------- | -------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-31 | [`v2.2.3-dev-my.3`](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) | Windows amd64 + Ubuntu 双架构  | 新增 Linux arm64 发行工具链；源码 `393c371b65`，Windows 与 Ubuntu amd64/arm64 同步发行并设为 Latest                      |
 | 2026-10-31 | [`v2.2.3-dev-my.2`](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.2) | Windows amd64 二进制发行       | 在 `.1` 测试版之后按不可变标签重新构建；源码 `f587b0f8a7`，正式发行并设为 Latest                                         |
 | 2026-10-31 | [`v2.2.3-dev-my.1`](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.1) | Windows AMD64 测试预发行       | 同步官方 V2 2.2.3 的 `e7acf85bb7`；源码 `52e000fc52`，预发行，Latest 保持不变                                            |
 | 2026-10-30 | `v2.2.2-dev-my.1`                                                                      | 源码同步标签                   | 同步官方 V2 2.2.2 的 `92b2ca0dd7`，吸收 107 个新上游提交及已合并 PR #60496；包含 fork 文档整理。此轮不构建或发布新安装包 |

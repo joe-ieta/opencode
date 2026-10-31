@@ -6,11 +6,11 @@
 
 ## 三个维护分支
 
-| 分支                                           | 定位与跟踪源                                                       | 当前进度                                                                                                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随官方 `upstream/dev`，发行 OpenCode My        | 已同步 `e7acf85bb7`（V2 2.2.3）；Windows 正式版 `v2.2.3-dev-my.2` 已发布（Latest），`.1` 为测试预发行；Linux 最近发行仍为 `v2.2.1-dev-my.1` |
-| [oc-headless](docs/fork/oc-headless/README.md) | 跟随 `upstream/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入 | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成 |
-| [qt-headless](docs/fork/qt-headless/README.md) | 跟随 `upstream/v1`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                          |
+| 分支                                           | 定位与跟踪源                                                       | 当前进度                                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随官方 `upstream/dev`，发行 OpenCode My        | 已同步 `e7acf85bb7`（V2 2.2.3）；`v2.2.3-dev-my.3` 同步发布 Windows x64 与 Ubuntu amd64/arm64（Latest），`.2` 为 Windows-only，`.1` 为测试预发行 |
+| [oc-headless](docs/fork/oc-headless/README.md) | 跟随 `upstream/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入 | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成      |
+| [qt-headless](docs/fork/qt-headless/README.md) | 跟随 `upstream/v1`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                               |
 
 三条线独立构建、标记和验收。不要把 `dev-my` 的 GUI 改动整分支合入 headless，也不要把 V2 的协议、目录和迁移假设套用到 V1。桌面现有脚本支持 Windows x64 与 Linux x64/arm64；Linux arm64 可在 Ubuntu 24.04 x64 上交叉构建并用 QEMU 做 CLI 冒烟。macOS 虽属于官方桌面架构支持的平台，目前没有本 fork 的该脚本构建与发行验证。
 
