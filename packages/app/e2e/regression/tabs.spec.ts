@@ -28,6 +28,33 @@ const c = { id: "ses_tab_c", title: "Tab C session" }
 
 test.use({ serviceWorkers: "block" })
 
+for (const locale of ["en", "ar"] as const) {
+  test(`Side bar keeps opposite-direction titles clear of the close affordance in ${locale}`, async ({ page }) => {
+    await mockWorkspace(page, {
+      name: "Mixed direction",
+      sessions: [{ ...a, title: locale === "ar" ? "Project task" : "مهمة المشروع" }],
+      seed: { locale, tabs: [a.id], settings: { appearance: { tabLayout: "sidebar" } } },
+    })
+    await page.goto(sessionHref(a.id))
+    const link = page.locator(`[data-slot="vertical-tabs-sidebar"] a[href="${sessionHref(a.id)}"]`)
+    await expect(link).toBeVisible()
+    await link.hover()
+    await expect
+      .poll(() =>
+        link.evaluate((element) => {
+          const title = element.querySelector("[data-titlebar-tab-title]")
+          if (!title) throw new Error("Missing session title")
+          const range = document.createRange()
+          range.selectNodeContents(title)
+          const text = range.getBoundingClientRect()
+          const row = element.getBoundingClientRect()
+          return getComputedStyle(element).direction === "rtl" ? text.left - row.left : row.right - text.right
+        }),
+      )
+      .toBeGreaterThan(40)
+  })
+}
+
 test("Side bar keeps project history and running sessions separate from the official interface modes", async ({
   page,
 }) => {

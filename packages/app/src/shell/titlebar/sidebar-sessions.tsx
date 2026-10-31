@@ -801,7 +801,7 @@ export function SidebarSessions(props: {
     <div
       data-slot={vertical() ? "vertical-tabs" : "titlebar-tabs"}
       data-orientation={vertical() ? "vertical" : "horizontal"}
-      class="relative min-w-0"
+      class="sidebar-sessions relative min-w-0"
       classList={{ "min-h-0 overflow-hidden": vertical() }}
     >
       <Show when={vertical() && props.grouping}>
