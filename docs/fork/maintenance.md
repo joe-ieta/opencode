@@ -124,12 +124,22 @@ bun run check
 bun run release:desktop:my --version=2.2.2-dev-my.2
 ```
 
-脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
+Linux 支持 x64 与 arm64。Ubuntu 24.04 x64 上交叉构建 arm64 时先安装 `qemu-user-static` 并注册 binfmt，再安装双架构可选依赖：
 
-1. 更新内置模型目录；从同一个源码提交构建 baseline CLI。
+```bash
+sudo apt install -y build-essential fakeroot unzip qemu-user-static binfmt-support
+bun install --frozen-lockfile --cpu=*
+# 仅 arm64，或同一标签同时构建 x64 与 arm64
+bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=arm64
+bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
+```
+
+`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
+
+1. 更新内置模型目录；从同一个源码提交按目标架构构建 CLI。
 2. 校验 CLI 版本、模型目录，执行隔离服务发现及 V1 迁移确认/历史冒烟。
 3. 构建 Electron，Windows 先生成 app 再包 NSIS；Linux 默认 AppImage/deb，可在有 rpmbuild 的机器设置 `OPENCODE_DESKTOP_LINUX_TARGETS=AppImage,deb,rpm` 增加 rpm。
-4. 生成 `dist/releases/v<version>/` 的安装包、更新清单、`SHA256SUMS` 和 `build.json`。
+4. 生成 `dist/releases/v<version>/` 的安装包、按架构的 `latest-linux.yml` / `latest-linux-arm64.yml`、`SHA256SUMS` 和 `build.json`。`build.json` 的 `targets` 列出本次构建的架构。
 
 发布前核对实际打包的 app.asar 中有修复、CLI 版本正确，`build.json.commit` 与待打标签提交一致，安装包哈希与大小匹配。当前脚本未配置官方签名服务，产物未签名；本流程不替用户执行安装或替换运行中的服务。
 

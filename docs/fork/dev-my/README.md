@@ -7,7 +7,7 @@
 - 源码已同步官方 `dev@e7acf85bb7`，内核基于 V2 2.2.3；保留共享项目历史、Side tabs、升级迁移及独立桌面发行补丁。`dev-my` 是桌面应用的唯一维护主线，旧 `sidebar-projects` 仅作历史参考。二进制与源码同步记录见 [releases.md](releases.md)。
 - 最近 Windows x64 发行：[v2.2.3-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.2)，2026-10-31，构建源码 `f587b0f8a7`，功能与 `.1` 测试版一致；以正式发行公开并设为 Latest。此前的 [v2.2.3-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.1) 为测试预发行。
 - 最近 Linux x64 发行：[v2.2.1-dev-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.1-dev-my.1)，2026-10-29，含 Ubuntu AppImage/deb。
-- macOS 暂无本 fork 发行验证；`release-my.ts` 当前仅支持 Windows/Linux x64。
+- macOS 暂无本 fork 发行验证；`release-my.ts` 支持 Windows x64 与 Linux x64/arm64。Linux arm64 可在 Ubuntu 24.04 x64 上通过 `qemu-user-static` + binfmt 交叉构建和 CLI 冒烟，正式 ARM64 GUI 验收仍需原生 arm64。
 - 最近 Windows 验证（`v2.2.3-dev-my.2`）：`bun install --frozen-lockfile`、根检查 35/35、正式构建与 NSIS 打包通过；实际 ASAR/CLI 版本、Side tabs 文案、固定更新源、7-Zip 安装包完整性、`latest.yml` SHA512 与四个资产的服务端 SHA256 均已核对。本机 Node 22.16 运行 oxlint 需 `NODE_OPTIONS=--experimental-strip-types`。完整应用单元测试、browser 条件测试和 GUI 回归沿用 `.1` 记录，本次未重复运行；详细结果见 [releases.md](releases.md)。
 
 ## 已维护的行为
