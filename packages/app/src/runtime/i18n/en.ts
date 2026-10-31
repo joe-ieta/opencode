@@ -895,6 +895,9 @@ export const dict = {
   "settings.general.row.interfaceMode.inbox": "Inbox",
   "settings.general.row.interfaceMode.inbox.description":
     "Every session across your servers, sorted by what needs you next.",
+  "settings.general.row.interfaceMode.sidebar": "Side bar",
+  "settings.general.row.interfaceMode.sidebar.description":
+    "Project-grouped session history with an always-visible running sessions list.",
   "settings.general.row.interfaceMode.experimental": "Experimental",
   "settings.appearance.row.zoom.title": "Zoom",
   "settings.appearance.row.zoom.description": "Make text and controls larger across the app",

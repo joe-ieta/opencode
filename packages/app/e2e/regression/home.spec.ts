@@ -26,7 +26,7 @@ test("Home keeps the session list in every interface mode", async ({ page }) => 
   await expect(row(page, earlier.title)).toBeVisible()
 
   // The Inbox mode moves session tabs into the sidebar inbox; Home stays the session list.
-  for (const mode of ["Side tabs", "Inbox", "Top tabs"]) {
+  for (const mode of ["Side tabs", "Inbox", "Side bar", "Top tabs"]) {
     await page.keyboard.press("Control+,")
     const settings = page.getByTestId("settings-screen")
     const option = settings.getByRole("radio", { name: mode, exact: true })
@@ -188,7 +188,7 @@ test("Home lists server history by recent activity, hides projects, and lists th
   const listed = [entry("unused", 4), entry("recent", 3), entry("older", 2), entry("oldest", 1)]
   listed.push(entry("recent", 0, "proj_recent_before_git"))
   const view = await homeProjects(page, listed)
-  await seed(page, { usedProjects: { local: [] } })
+  await seed(page, { usedProjects: { local: [] }, settings: { appearance: { tabLayout: "sidebar" } } })
   await page.goto("/")
   await expect(view.rows).toHaveText(["unused", "recent", "older", "oldest"])
 
@@ -250,7 +250,8 @@ test("Home migrates the directories an older build listed to the server's curren
     },
   })
   await page.goto("/")
-  await expect(view.rows).toHaveText(["api", "web", "docs"])
+  // Official modes show migrated client usage; `docs` remains in the server inventory.
+  await expect(view.rows).toHaveText(["api", "web"])
   await expect
     .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("opencode.global.dat:server") ?? "{}")))
     .toMatchObject({ usedProjectIDs: { local: ["proj_api", "proj_web"] }, projects: {} })

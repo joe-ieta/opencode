@@ -61,7 +61,9 @@ bun run check
 
 锁文件因真实依赖冲突需要重建时，先解决 package.json，再执行 `bun install` 并检查差异；不要用跳过安装或类型检查掩盖依赖缺失。发布分支采用 merge 保留已发行历史，不用 reset 或整体覆盖丢弃本地补丁。
 
-合并时重点核对 Side tabs 数据和隐藏语义、V1 升级确认、迁移清理与恢复、SQLite 分类、Layer 诊断、桌面服务/历史路径、同源码 CLI 打包，以及已上游合并的模型日期修复。
+合并时重点核对 Side bar 数据和隐藏语义、V1 升级确认、迁移清理与恢复、SQLite 分类、Layer 诊断、桌面服务/历史路径、同源码 CLI 打包，以及已上游合并的模型日期修复。
+
+本地项目分组、历史列表和 Running sessions 仅在第四种 Side bar（`sidebar`）模式中维护；官方 Top tabs、Side tabs（`vertical`）和 Inbox 跟随上游。不要把本地列表逻辑重新写回官方 `tab-strip.tsx`，也不要通过重定义后台 Project 模型解决本地导航需求。升级保留已有模式选择，不将 `vertical` 自动迁移成 `sidebar`。
 
 ### oc-headless
 
