@@ -1,6 +1,6 @@
 # 上游 PR、Issue 与补丁跟踪
 
-核对日期：2026-10-30（Asia/Shanghai）；上游 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
+核对日期：2026-10-31（Asia/Shanghai）；上游 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
 
 ## 当前 PR
 
@@ -8,8 +8,10 @@
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [#60496](https://github.com/anomalyco/opencode/pull/60496) · `model-release-date` | **MERGED**，2026-10-30；最终 head `88d92af959`；合并提交 `986221af346f8f71d0133f2c08130cedc17ab097` | fork Windows `v2.2.1-dev-my.2` 已有本地修复。已在 `v2.2.2-dev-my.1` 源码同步中吸收最终上游实现与测试；本地旧提交留在发行历史，不重复移植同一补丁 |
 | [#56929](https://github.com/anomalyco/opencode/pull/56929) · `upstream-migration` | **OPEN**，非 Draft；核对时可合并；期间曾关闭，当前已重新打开                                        | V1 迁移清理分批提交的可靠性修复；`dev-my`、`oc-headless` 按实际需求保留，继续跟进审核                                                            |
-| [#60084](https://github.com/anomalyco/opencode/pull/60084) · `v2-upgrade-notice`  | **OPEN / Draft**                                                                                    | 单向 V1→V2 升级确认；本地桌面发行保留。对照上游升级流程和反馈继续完善，不因 Draft 状态移除                                                       |
-| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **OPEN / Draft**；head `1f20601184`，API 返回 `mergeable=true`                                      | 已同步贡献稿的官方基线为 `6b4329c885`；保留纯 Side tabs 范围，继续等待设计审核。发行线 `dev-my` 独立同步最新上游，不将发行补丁混入此 PR          |
+| [#60084](https://github.com/anomalyco/opencode/pull/60084) · `v2-upgrade-notice`  | **CLOSED / Draft**，未合并，2026-10-30                                                              | 单向 V1→V2 升级确认在本地发行保留；关闭不表示已上游化                                                                                            |
+| [#60867](https://github.com/anomalyco/opencode/pull/60867) · `sidebar-mode`       | **OPEN / Draft**；head `a18285fedb`，目标 dev，可合并；格式/合规检查通过                            | 独立第四种 Side bar；最新上游基线 `bf544cd419`（2.2.5）重新验证。等待设计审核；dev-my 继续作为本地维护主线                                       |
+| [#60570](https://github.com/anomalyco/opencode/pull/60570) · `home-project-list`  | **OPEN**，非 Draft                                                                                  | 独立的 Home 全局项目清单提案；#60867 仅在 Side bar 模式扩展清单，比较范围和取舍，不声称两者都已被批准                                            |
+| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **CLOSED**，未合并，2026-10-31                                                                      | 已由作者关闭并链接 #60867；保留原设计、截图和分支供历史参考，不再作为当前贡献稿                                                                  |
 
 `mergeable` 只是查询时的合并能力，不代表通过审核、CI 或已经获准合并。上游维护者修改过 #60496 的提交，最终 head 与本地初始 `8eb64b9416` 不同；本地发行修复是 `d28cf55b08`，不能仅凭提交哈希不同认定上游缺失。
 
@@ -20,10 +22,12 @@
 | [#49605](https://github.com/anomalyco/opencode/issues/49605)                                          | 自定义模型未知日期被转为 1970 年的原始报告；已由 #60496 关闭                                                                                |
 | [#60479](https://github.com/anomalyco/opencode/issues/60479)                                          | 本次 Windows V2 复现报告；机器人识别重复，当前已关闭。提交时申请 bug 标签，账号无权添加仓库标签                                             |
 | [#50726](https://github.com/anomalyco/opencode/issues/50726)                                          | 桌面端自定义模型缺失的相关现象，供根因关联                                                                                                  |
-| [#60241](https://github.com/anomalyco/opencode/issues/60241)                                          | V2 Side tabs 设计请求，当前 OPEN；建议新用户默认使用 Side tabs，并保留已有用户布局选择。Draft PR #60446 作为设计评审材料                    |
+| [#60241](https://github.com/anomalyco/opencode/issues/60241)                                          | **OPEN**；已更新为独立 Side bar 提案，#60867 为设计评审材料，保持官方模式与初始默认值；已发布人工测试邀请                                   |
 | [#33704 中的 V2 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) | 自定义提供商/模型配置界面：表单 CRUD、可选凭据、连接测试、全局/项目范围、导入并保留 JSONC。尚未实现；关联 #59603、#51527 和 TUI 流程 #49091 |
 
-Side tabs 的相关 V2 需求在 #60241 汇集，包括 #55446、#51759、#53851、#54922，以及 Inbox #59220、界面讨论 #60233。不要把“建议优先人工审核”或机器人转人工回复写成已经获得设计批准。
+Side bar 的相关 V2 需求在 #60241 汇集，包括 #55446、#51759、#53851、#54922，以及 Inbox #59220、界面讨论 #60233。不要把“建议优先人工审核”或机器人转人工回复写成已经获得设计批准。
+
+本次重新检索的 Issue/PR、设计边界与人工测试入口见 [Side bar 独立模式记录](dev-my/sidebar-mode.md)。其中 #60581 为新增相关需求，#59220 仍在评审，#57896/#57895 关闭且未合并；不要将关联或关闭当成实现获批。
 
 ## 历史关闭的贡献
 

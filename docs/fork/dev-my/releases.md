@@ -11,7 +11,7 @@
 - 验证：根检查 35/35；应用单元测试 945 项、browser 条件测试 303 项；最新生产构建 Home/标签回归 63/63；设置/预览专项 4/4；Windows 打包与安装器测试 20/20。CLI 模型目录检查覆盖 7,646 个模型，隔离服务发现、V1 升级确认和历史迁移冒烟通过。
 - 实际 ASAR/CLI 版本、四种模式标记、固定更新源、7-Zip 安装包完整性、`latest.yml` 大小与 SHA512 均通过核验。Windows x64 安装包 `opencode-desktop-win-x64.exe` 为 277,957,439 字节，SHA256 为 `374e365cda476f1a853df72473198998c280f5a453f76ddd5b36df4c3dc9b684`。
 - 四个 GitHub 资产（安装包、`latest.yml`、`SHA256SUMS`、`build.json`）的服务端大小与 SHA256 均与本地一致。产物未签名；本次仅构建 Windows x64，Linux/macOS 未构建。
-- 本次上游 PR 尚未提交，等待人工测试确认后再推进。
+- 发布时等待人工测试；2026-10-31 用户确认通过后，已提交独立模式 [Draft PR #60867](https://github.com/anomalyco/opencode/pull/60867)，目标官方 dev，等待上游设计审核。旧 #60446 已关闭，维护主线仍为 dev-my。
 
 ## v2.2.3-dev-my.3 Windows AMD64 + Ubuntu AMD64/ARM64 发行
 

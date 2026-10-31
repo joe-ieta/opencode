@@ -5,17 +5,19 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/fork/dev-my/sidetab-overview-dark.png">
-    <img src="docs/fork/dev-my/sidetab-overview-light.png" alt="OpenCode My Side tabs 优化后的运行界面" width="300">
+    <img src="docs/fork/dev-my/sidetab-overview-light.png" alt="OpenCode My Side bar 任务概览" width="300">
   </picture>
 </p>
-<p align="center"><sub>Side tabs：运行中的任务、按项目分组的最近会话、分支与运行时长一屏可见。截图为合成数据。</sub></p>
+<p align="center"><sub>Side bar：运行中的任务、按项目分组的最近会话、分支与运行时长一屏可见。截图为合成数据。</sub></p>
+
+Windows 测试版 [v2.2.3-dev-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.4) 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，上游 [Draft PR #60867](https://github.com/anomalyco/opencode/pull/60867) 等待设计审核。[设计与测试入口](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`。
 
 ## 项目定位
 
 OpenCode My 把改动集中在每天都会用到的三件事上：
 
-- **使用界面优化**：Side tabs 将首页、运行任务、最近会话和项目历史收进同一个侧栏。正在运行的任务即使没有打开标签也能看到，分支、工作树和运行时长随任务更新。
-- **个性化流程定制**：最近会话默认按项目分组，每个项目默认显示 5 条并可展开；项目旁可直接新建会话。关闭会话只隐藏、不丢历史，重新打开即可恢复。
+- **使用界面优化**：独立 Side bar 模式将首页、运行任务、最近会话和项目历史收进同一个侧栏。正在运行的任务即使没有打开标签也能看到，分支、工作树和运行时长随任务更新。
+- **个性化流程定制**：最近会话默认按项目分组，每个项目默认显示 5 条并可展开；项目旁可直接新建会话。关闭标签或隐藏历史条目会保留会话，Home/搜索可重新打开。
 - **本地使用偏好**：沿用系统语言与主题，记住标签布局、分组和排序偏好；项目、会话历史与配置保存在本机，使用本地模型不依赖额外的云端账户。
 
 ## 项目来源
@@ -42,7 +44,7 @@ OpenCode My 是 [anomalyco/opencode](https://github.com/anomalyco/opencode) 的 
 
 - [FORK.md](FORK.md)：fork 定位、三个维护分支和上游贡献状态
 - [docs/fork](docs/fork/README.md)：维护、同步、验证、发布与 Qt/headless 资料
-- [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side tabs、桌面身份、配置和运行时约定
+- [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side bar、桌面身份、配置和运行时约定
 - [Releases](https://github.com/joe-ieta/opencode/releases)：Windows/Linux 构建与历史版本
 
 ---
