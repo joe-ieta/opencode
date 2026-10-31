@@ -59,6 +59,7 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 | 后台运行渠道        | **`dev`**，不能改成 `dev-my`                                                                      |
 | 服务和历史          | 使用官方 dev 约定的 `service.json`、`opencode.db`；GUI 本地状态属于独立 appId                     |
 | 更新来源            | 本 fork 对应 release tag 的 feed，不使用官方桌面更新源                                            |
+| 下载与发布页        | upstream GitHub `joe-ieta/opencode` Releases；Gitee 远端仅保存源码和标签，不托管发布物              |
 | 自动更新限制        | 当前 feed 固定在当前 tag；后续 fork 版本需手动下载安装                                            |
 | 构建产物            | `dist/releases/v<version>/`；Windows NSIS，Linux AppImage/deb，附更新清单、SHA256SUMS、build.json |
 

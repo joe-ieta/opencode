@@ -7,6 +7,7 @@
 ## 1. 环境、分支与检查
 
 - `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
+- Gitee 远端不具备发布物存储能力：安装包、更新清单和校验文件只上传到 upstream GitHub Release；`origin` 只保存源码和标签，不创建带安装包的 Release。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -157,11 +158,15 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```powershell
 git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
+git push upstream dev-my
 git push origin refs/tags/v2.2.3-dev-my.3
+git push upstream refs/tags/v2.2.3-dev-my.3
 gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
 gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 ```
+
+`gh release create` 只对 upstream GitHub 执行；不要在 Gitee 创建带安装包的 Release。公开下载链接统一使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`；Gitee 侧只保留源码和标签。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 

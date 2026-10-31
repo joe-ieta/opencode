@@ -48,7 +48,7 @@ OpenCode My 是 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 的维
 - [FORK.md](FORK.md)：fork 定位、三个维护分支和上游贡献状态
 - [docs/fork](docs/fork/README.md)：维护、同步、验证、发布与 Qt/headless 资料
 - [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side bar、桌面身份、配置和运行时约定
-- [Releases](https://github.com/joe-ieta/opencode/releases)：Windows/Linux 构建与历史版本
+- [Releases](https://github.com/joe-ieta/opencode/releases)：Windows/Linux 安装包与历史版本；下载统一走 GitHub upstream，Gitee 远端仅保存源码和标签
 
 ---
 

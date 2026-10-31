@@ -5,6 +5,7 @@
 - 远端（`origin`）：[gitee.com/ieta/opencode-my](https://gitee.com/ieta/opencode-my)，用于日常拉取和推送。
 - 上游：[joe-ieta/opencode](https://github.com/joe-ieta/opencode)，分支、同步、比较和 PR 以该 fork 为准。
 - 本项目不直接与官方 [anomalyco/opencode](https://github.com/anomalyco/opencode) 仓库发生关联：不添加官方 remote，不直接 fetch/push，不以官方分支作为同步或 PR 目标。
+- 发布物与下载页只托管在 upstream GitHub；`origin` Gitee 仅保存源码和标签，不创建带安装包的 Release。
 - 文档中保留的官方 Issue/PR、Release 和官网链接仅作历史记录或原文引用，不代表当前远端或贡献目标。
 
 本项目独立维护三个发行分支：V2 桌面应用、V2 headless 内核、V1 headless 内核。Qt 客户端消费内核协议，桌面应用沿用 OpenCode 的 Electron 架构。
