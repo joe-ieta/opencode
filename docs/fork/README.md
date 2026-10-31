@@ -7,6 +7,7 @@
 | 入口                                                | 用途                                                |
 | --------------------------------------------------- | --------------------------------------------------- |
 | [Worktree 与多任务并行](KB/worktree-parallelism.md) | 项目、分支、工作区、会话及非 Git 项目的隔离边界     |
+| [发布环境与多架构构建](KB/release-environment.md)   | Windows + Ubuntu x64/arm64 的环境需求、构建和排障   |
 | [维护与发布方法](maintenance.md)                    | 日常跟踪、上游同步、验证门禁、标签和发行操作        |
 | [PR 与 Issue 跟踪](upstream-prs.md)                 | 当前状态、合并策略、历史关闭项和产品设计建议        |
 | [dev-my](dev-my/README.md)                          | V2 桌面发行、Side tabs、迁移补丁、配置和运行时渠道  |

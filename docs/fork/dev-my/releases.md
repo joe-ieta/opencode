@@ -1,6 +1,6 @@
 # dev-my 发行与源码同步记录
 
-二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。
+二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
 ## v2.2.3-dev-my.3 Windows AMD64 + Ubuntu AMD64/ARM64 发行
 

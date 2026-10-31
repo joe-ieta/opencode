@@ -115,7 +115,7 @@ headless 冒烟必须使用新构建的产物和隔离的 home/config/state。V1
 
 ## 5. dev-my 桌面构建与发布
 
-在 Windows x64 或 Ubuntu/Linux x64 的 `dev-my` 干净工作区，使用锁定 Bun：
+完整的 Windows/Ubuntu、多架构与 QEMU 环境准备、验证清单和排障见 [发布环境与多架构构建](KB/release-environment.md)。在 Windows x64 或 Ubuntu/Linux x64 的 `dev-my` 干净工作区，使用锁定 Bun：
 
 ```powershell
 bun install --frozen-lockfile

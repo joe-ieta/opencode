@@ -37,6 +37,7 @@
 全部 fork 专属说明集中在 [docs/fork](docs/fork/README.md)：
 
 - [维护、同步、验证、标签和发布](docs/fork/maintenance.md)
+- [发布环境与多架构构建](docs/fork/KB/release-environment.md)
 - [dev-my 桌面发行与运行时约定](docs/fork/dev-my/README.md)
 - [oc-headless：V2 内核、协议门禁、Qt 适配与发行记录](docs/fork/oc-headless/README.md)
 - [qt-headless：V1 内核、Qt 集成、协议、维护与历史记录](docs/fork/qt-headless/README.md)
