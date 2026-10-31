@@ -20,11 +20,12 @@ OpenCode My 把改动集中在每天都会用到的三件事上：
 
 ## 项目来源
 
-OpenCode My 是 [anomalyco/opencode](https://github.com/anomalyco/opencode) 的 fork，跟踪官方 `dev` 分支，发行桌面应用 **OpenCode My**。
+OpenCode My 是 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 的维护分支，基于 OpenCode，远端位于 [gitee.com/ieta/opencode-my](https://gitee.com/ieta/opencode-my)，发行桌面应用 **OpenCode My**。
 
-- 每次同步先合并官方 `dev`，再叠加本仓库尚未被上游接纳的界面与可靠性补丁。
-- 编程、工具调用、子智能体、MCP 等核心能力随官方更新，不在 fork 中另起一套内核。
-- 桌面使用独立的 GUI 身份和本 fork 的更新源；后台仍沿用官方 `dev` 的服务、配置和历史约定。
+- 每次同步先合并上游对应分支，再叠加本仓库尚未被上游接纳的界面与可靠性补丁。
+- 编程、工具调用、子智能体、MCP 等核心能力随上游更新，不在 fork 中另起一套内核。
+- 桌面使用独立的 GUI 身份和本 fork 的更新源；后台仍沿用 OpenCode `dev` 渠道的服务、配置和历史约定。
+- 日常同步、比较和 PR 均以上述 fork 为上游，不直接连接官方仓库。
 - 当前发行以 Windows x64 为主，Linux x64 提供 AppImage/deb；macOS 尚未提供本 fork 的构建验证。
 - 维护分支、同步方法和发行记录见 [FORK.md](FORK.md) 与 [docs/fork](docs/fork/README.md)。
 

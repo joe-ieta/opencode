@@ -1,7 +1,14 @@
+## Repository Relationship
+
+- Remote (`origin`): https://gitee.com/ieta/opencode-my
+- Upstream: https://github.com/joe-ieta/opencode
+- This project does not directly interact with the official repository at https://github.com/anomalyco/opencode. Do not add it as a remote, fetch from it, push to it, compare against it, or open pull requests against it from this repository.
+- Use the fork above as the upstream for branches, synchronization, diffs, and pull requests. Official issue, pull request, release, and documentation links that remain in preserved upstream text or historical records are references only, not remotes or contribution targets.
+- The maintained branch is `dev-my`. Base branches and worktrees on `origin/dev-my`, target PRs at the fork's `dev-my`, and diff against `origin/dev-my` unless told otherwise.
+
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.
 - This repository does not use Changesets. Do not add `.changeset` files; follow the existing release workflow instead.
-- The default branch is `dev`. Base branches and worktrees on `origin/dev`, target PRs at `dev`, and diff against `origin/dev` unless told otherwise.
 
 ## Live TUI Testing
 
