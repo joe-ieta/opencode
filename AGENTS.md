@@ -2,7 +2,7 @@
 
 - Remote (`origin`): https://gitee.com/ieta/opencode-my
 - Upstream: https://github.com/joe-ieta/opencode
-- Release assets and download pages live only in the upstream GitHub Releases. The `origin` Gitee remote stores source and tags only; do not create or reference Gitee release assets.
+- Release assets: Gitee Releases host Windows artifacts only, split into parts below the 100 MB attachment limit. Linux/macOS artifacts and downloads point to the upstream GitHub Releases. Do not upload non-Windows release assets to Gitee.
 - This project does not directly interact with the official repository at https://github.com/anomalyco/opencode. Do not add it as a remote, fetch from it, push to it, compare against it, or open pull requests against it from this repository.
 - Use the fork above as the upstream for branches, synchronization, diffs, and pull requests. Official issue, pull request, release, and documentation links that remain in preserved upstream text or historical records are references only, not remotes or contribution targets.
 - The maintained branch is `dev-my`. Base branches and worktrees on `origin/dev-my`, target PRs at the fork's `dev-my`, and diff against `origin/dev-my` unless told otherwise.

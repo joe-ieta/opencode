@@ -7,7 +7,7 @@
 ## 1. 环境、分支与检查
 
 - `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
-- Gitee 远端不具备发布物存储能力：安装包、更新清单和校验文件只上传到 upstream GitHub Release；`origin` 只保存源码和标签，不创建带安装包的 Release。
+- 发布物：upstream GitHub 保存全部平台的完整资产；Gitee Release 只上传 Windows 分卷安装包和 Windows 清单，单个分卷必须小于 100 MB。Linux/macOS 不向 Gitee 上传，统一链接 upstream。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -164,9 +164,13 @@ git push upstream refs/tags/v2.2.3-dev-my.3
 gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
 gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
+
+# 5. Gitee Windows-only Release
+# 用 Gitee Release 页面/API 上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
+# 不上传 Linux/macOS 资产；分卷步骤见发布环境 KB
 ```
 
-`gh release create` 只对 upstream GitHub 执行；不要在 Gitee 创建带安装包的 Release。公开下载链接统一使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`；Gitee 侧只保留源码和标签。
+`gh release create` 只对 upstream GitHub 执行；Gitee Release 另行创建，只上传 Windows 分卷和 Windows 清单。Linux/macOS 不向 Gitee 上传，下载链接使用 upstream GitHub。公开的 Windows 分卷链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 
@@ -192,7 +196,7 @@ gh run view <run-id> --repo joe-ieta/opencode
 
 ## 7. 标签和文档维护约定
 
-桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。Gitee 只保留当前稳定版和最新 Windows 测试版的分卷；替换后删除旧 Windows 分卷。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 

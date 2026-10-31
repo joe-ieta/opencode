@@ -15,7 +15,7 @@
 | 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml` |
 | 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                |
 | 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                           |
-| 发布形态 | 同一 upstream GitHub Release 同时包含 Windows 与 Ubuntu 双架构，未签名；Gitee 不托管发布物 |
+| 发布形态 | upstream GitHub Release 含全部平台；Gitee Release 仅含 Windows 分卷和 Windows 清单，单卷小于 100 MB |
 | 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                        |
 
 ### 1.2 功能需求
@@ -350,7 +350,7 @@ Windows 和 Linux 在不同文件系统构建，需要把 Linux 产物复制到 
 ### 6.4 发布后
 
 - [ ] GitHub Release 的 10 个资产大小与 SHA256 和本地一致。
-- [ ] Release 只在 upstream GitHub；Gitee 侧没有安装包资产或下载入口。
+- [ ] GitHub Release 含全部平台；Gitee Release 只含 Windows 分卷和 Windows 清单。
 - [ ] `draft=false`、`prerelease=false`，Latest 指向预期版本。
 - [ ] 公开下载 `latest-linux-arm64.yml` 和至少一个安装包成功。
 
@@ -363,7 +363,7 @@ git push origin dev-my
 git push upstream dev-my
 git push origin refs/tags/v<version>
 git push upstream refs/tags/v<version>
-# Gitee 只保存源码和标签；发布物统一上传到 upstream GitHub
+# upstream 保存全部平台完整资产；Gitee 只保存 Windows 分卷和源码/标签
 
 # 2. 创建 draft，上传全部 10 个资产
 gh release create v<version> <assets...> --repo joe-ieta/opencode --verify-tag --draft `
@@ -376,18 +376,45 @@ gh release edit v<version> --repo joe-ieta/opencode --draft=false --prerelease=f
 # 4. 单独提交发行记录文档，不改变已发布标签
 git add FORK.md docs/fork/dev-my docs/fork/maintenance.md
 git commit -m 'docs: record <version> release'
+
+# 5. Gitee Windows-only Release
+# 只上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
+# 不上传 Linux/macOS 资产
 ```
 
 标签不可变。发现构建问题时创建新的 `.N` 迭代，不覆盖已发布标签或资产。
 
-### 7.1 Gitee 远端限制与下载归属
+### 7.1 Gitee Windows 分卷发布
 
-Gitee 社区版单个附件上限 100 MB、单仓库附件总容量 1 GB；本仓库远端本身也不具备发布物存储能力。因此：
+Gitee 免费版单个附件上限 100 MB、单仓库附件总容量 1 GB。Gitee 只保存 Windows 发布物，安装包按 95 MB 左右切分，确保每个分卷小于 100 MB：
 
-- 不创建带安装包的 Gitee Release，也不依赖 Gitee 保存校验文件或更新清单。
-- 安装包、`latest*.yml`、`SHA256SUMS`、`build.json` 全部上传到 upstream GitHub Release。
-- 所有公开下载链接使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`。
-- 历史 `v2.2.3-dev-my.3` 的 Gitee 说明页只作历史记录，不再维护或作为下载入口。
+```powershell
+$src = "opencode-desktop-win-x64.exe"
+$partSize = 99614720
+$buf = New-Object byte[] (1048576)
+$i = 1
+$in = [System.IO.File]::OpenRead((Resolve-Path $src))
+while ($in.Position -lt $in.Length) {
+  $out = [System.IO.File]::Create("$src.part$i")
+  $left = [Math]::Min($partSize, $in.Length - $in.Position)
+  while ($left -gt 0) {
+    $n = $in.Read($buf, 0, [Math]::Min($buf.Length, $left))
+    $out.Write($buf, 0, $n)
+    $left -= $n
+  }
+  $out.Dispose()
+  $i++
+}
+$in.Dispose()
+```
+
+发布规则：
+
+- Gitee Release 只上传 Windows 的 `part1`–`part3`、`latest.yml`、`SHA256SUMS`、`build.json` 和 `WINDOWS-README.txt`。
+- 不上传 Linux/macOS 安装包，也不上传 `latest-linux*.yml`。
+- 公开的 Windows 下载链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
+- Linux/macOS 下载链接使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`。
+- 合并命令和 SHA256 记录见 [dev-my 发行记录](../dev-my/releases.md#windows-分卷下载与合并)。
 
 ## 8. 经验与坑
 

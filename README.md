@@ -10,9 +10,9 @@
 </p>
 <p align="center"><sub>Side bar（本地模式）：运行中的任务、按项目分组的最近会话、分支与运行时长一屏可见。截图为合成数据。</sub></p>
 
-自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`。Linux 测试版 [v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5) 提供 amd64/arm64 的 AppImage、deb，并包含 Side bar 标题方向修复。
+自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`，Windows 稳定版分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)，Linux 测试版 [v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5) 走上游 GitHub。
 
-Windows 最新测试版 [v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) 补齐 Side bar 的 29 个简体中文词条，[翻译核对记录](docs/fork/dev-my/sidebar-zh.md)。旧 Windows `.4` 安装包已按保留策略清理，源码标签保留。
+Windows 最新测试版 [v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) 补齐 Side bar 的 29 个简体中文词条，[翻译核对记录](docs/fork/dev-my/sidebar-zh.md)，分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6)。旧 Windows `.4` 安装包已按保留策略清理，源码标签保留。
 
 ## 项目定位
 
@@ -48,7 +48,7 @@ OpenCode My 是 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 的维
 - [FORK.md](FORK.md)：fork 定位、三个维护分支和上游贡献状态
 - [docs/fork](docs/fork/README.md)：维护、同步、验证、发布与 Qt/headless 资料
 - [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side bar、桌面身份、配置和运行时约定
-- [Releases](https://github.com/joe-ieta/opencode/releases)：Windows/Linux 安装包与历史版本；下载统一走 GitHub upstream，Gitee 远端仅保存源码和标签
+- [Releases](https://github.com/joe-ieta/opencode/releases)：全部平台完整资产在上游 GitHub；Windows 稳定版与测试版另提供 Gitee 分卷下载（[稳定版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)、[Windows 测试版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6)）
 
 ---
 
