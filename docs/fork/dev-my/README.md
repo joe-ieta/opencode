@@ -14,6 +14,14 @@
 
 ### Side tabs
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="sidetab-overview-dark.png">
+    <img src="sidetab-overview-light.png" alt="Side tabs 运行界面" width="300">
+  </picture>
+</p>
+<p align="center"><sub>Running sessions、按项目分组的最近会话、分支与运行时长。截图为合成数据。</sub></p>
+
 Running sessions 独立展示运行任务，包含项目、所在工作目录的当前分支和紧凑运行时长。Recent sessions 与首页共享项目/会话历史，默认按最近操作排序；显式设置的排序继续生效。
 
 Recent sessions 默认使用 By project 分组，已有偏好优先。按项目分组默认显示 5 条，超出可展开；分组数量使用紧凑最近/总数表示，hint 展示更完整信息，线程 hint 包含可获得的最近运行时间。关闭侧栏条目只隐藏，不删除历史；搜索仍可找到，重新打开后恢复。真正删除会话需走删除操作。

@@ -42,6 +42,6 @@
 - [qt-headless：V1 内核、Qt 集成、协议、维护与历史记录](docs/fork/qt-headless/README.md)
 - [文档来源与整理边界](docs/fork/sources.md)
 
-保留上游 README、CONTRIBUTING、AGENTS、官网文档及包的通用说明；根 README 只留本 fork 入口。两条 headless 线尚在各自分支里的操作脚本和技能入口保持原位；本目录汇集其文档版本，并标注来源提交，不引入对应分支的运行时代码。
+保留上游 README、CONTRIBUTING、AGENTS、官网文档及包的通用说明；根 README 顶部为本 fork 简介与 Side tabs 运行界面截图，官方 OpenCode 首页原文附在其后保留。两条 headless 线尚在各自分支里的操作脚本和技能入口保持原位；本目录汇集其文档版本，并标注来源提交，不引入对应分支的运行时代码。
 
 Qt 文档归档来源为 `dev-my@d28cf55b08`、`oc-headless@bd848794de`、`qt-headless@81c50bd59a`；随后 dev-my 已同步官方 `dev@e7acf85bb7`（V2 2.2.3），Windows 测试版构建源码为 `52e000fc52`。本次没有同步两条 headless 发行分支。源码标签与二进制发行分开记录，见 [桌面发行与源码同步记录](docs/fork/dev-my/releases.md)。
