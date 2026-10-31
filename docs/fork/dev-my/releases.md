@@ -2,6 +2,12 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
+## 历史发行清理（2026-10-31）
+
+按用户确认，保留稳定 Latest `v2.2.3-dev-my.3`、Windows 最新测试版 `v2.2.3-dev-my.4`，并保留后续各平台最新测试发行。已删除以下 9 个历史 GitHub Release 及全部资产：`v2.2.3-dev-my.2`、`v2.2.3-dev-my.1`、`v2.2.2-dev-my.2`、`v2.2.1-dev-my.2`、`v2.2.1-dev-my.1`、`v2.2.0-dev-my.4`、`v2.2.0-dev-my.3`、`v2.2.0-dev-my.2`、`v2.2.0-dev-my.1`。累计清理 3,168,724,360 字节（约 2.95 GiB）；独立核验 9 个远端源码标签仍在，Latest 仍为 `.3`。
+
+以下历史条目保留当时的构建和验证事实；上述版本的发行页、安装包链接已失效，不再表示可下载。源码可通过 Git 标签查看。未清理 headless 的分支、标签或 Actions artifacts。
+
 ## v2.2.3-dev-my.4 Windows x64 测试预发行
 
 - 发行页：[v2.2.3-dev-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.4)，2026-10-31 16:42（Asia/Shanghai）已公开，标记为预发行；稳定 Latest 仍为 `v2.2.3-dev-my.3`。

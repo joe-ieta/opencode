@@ -2,6 +2,8 @@
 
 本页是三个维护分支的当前通用操作方法。历史 Qt 手册保留追溯价值；旧 Bun 版本、Actions 状态和可移动发行线标签等约定，以本页及实际脚本为准。
 
+自 2026-10-31 起，按用户要求，本次及后续维护不再向 Issue、PR 或其他讨论发送测试邀请。历史邀请仅作记录，不继续跟进或重复发送。本轮国际化检查与 Linux 发行不修改、新建 PR。
+
 ## 1. 环境、分支与检查
 
 - `origin`：`git@github.com:joe-ieta/opencode.git`；`upstream`：`git@github.com:anomalyco/opencode.git`。
@@ -182,6 +184,8 @@ gh run view <run-id> --repo joe-ieta/opencode
 截至 2026-10-30，Actions 设置 `enabled=true`；两条 headless 最近发行的归档仍记录“当时被禁用，CI 待补”，不得仅凭开关恢复改写成通过。
 
 ## 7. 标签和文档维护约定
+
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 
