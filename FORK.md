@@ -15,7 +15,7 @@
 
 | 分支                                           | 定位与跟踪源                                                       | 当前进度                                                                                                                                         |
 | ---------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随上游 `dev-my`，发行 OpenCode My              | 已同步 `e7acf85bb7`（V2 2.2.3）；`v2.2.3-dev-my.3` 同步发布 Windows x64 与 Ubuntu amd64/arm64（Latest），`.2` 为 Windows-only，`.1` 为测试预发行 |
+| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随上游 `dev-my`，发行 OpenCode My              | 已同步 `e7acf85bb7`（V2 2.2.3）；`v2.2.3-dev-my.4` 为 Windows x64 Side bar 测试版，`v2.2.3-dev-my.3` 为当前 Latest（Windows + Ubuntu amd64/arm64） |
 | [oc-headless](docs/fork/oc-headless/README.md) | 跟随上游 `oc-headless`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入 | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成      |
 | [qt-headless](docs/fork/qt-headless/README.md) | 跟随上游 `qt-headless`，维护 V1 `qtoc_core` 和 Qt 集成             | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                               |
 
@@ -23,7 +23,7 @@
 
 ## 本仓库维护的主要能力
 
-- **桌面任务观察窗**：Side tabs 的 Running sessions 与按项目组织的 Recent sessions；最近列表默认每项目 5 条、可展开，展示分支、运行时长、最近操作和会话数量。首页与侧栏共享历史索引；关闭侧栏条目保留历史，重新打开后恢复。
+- **桌面任务观察窗**：Side bar 的 Running sessions 与按项目组织的 Recent sessions；最近列表默认每项目 5 条、可展开，展示分支、运行时长、最近操作和会话数量。首页与侧栏共享历史索引；关闭侧栏条目保留历史，重新打开后恢复。
 - **升级与恢复**：V1→V2 单向升级确认、迁移清理批次提交与恢复、SQLite 错误分类、Layer 依赖诊断等补丁按分支需要保留；上游未接纳或 PR 关闭不代表可以删除。
 - **自定义模型可见性**：保留未知发布日期，防止模型被错误识别为 1970 年旧模型而隐藏。此修复已随桌面 `.2` 发行，并已合入官方。
 - **Qt/headless 工具链**：V1 裁剪与 V2 最小差异构建分开，产物分别命名为 `qtoc_core`、`oc_core`，不互相替代。
@@ -50,6 +50,6 @@
 - [qt-headless：V1 内核、Qt 集成、协议、维护与历史记录](docs/fork/qt-headless/README.md)
 - [文档来源与整理边界](docs/fork/sources.md)
 
-保留上游 README、CONTRIBUTING、AGENTS、官网文档及包的通用说明；根 README 顶部为本 fork 简介与 Side tabs 运行界面截图，官方 OpenCode 首页原文附在其后保留。两条 headless 线尚在各自分支里的操作脚本和技能入口保持原位；本目录汇集其文档版本，并标注来源提交，不引入对应分支的运行时代码。
+保留上游 README、CONTRIBUTING、AGENTS、官网文档及包的通用说明；根 README 顶部为本 fork 简介与 Side bar 运行界面截图，官方 OpenCode 首页原文附在其后保留。两条 headless 线尚在各自分支里的操作脚本和技能入口保持原位；本目录汇集其文档版本，并标注来源提交，不引入对应分支的运行时代码。
 
 Qt 文档归档来源为 `dev-my@d28cf55b08`、`oc-headless@bd848794de`、`qt-headless@81c50bd59a`；随后 dev-my 已同步上游基线 `dev@e7acf85bb7`（V2 2.2.3），Windows 测试版构建源码为 `52e000fc52`。本次没有同步两条 headless 发行分支。源码标签与二进制发行分开记录，见 [桌面发行与源码同步记录](docs/fork/dev-my/releases.md)。

@@ -4,7 +4,7 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：`git@github.com:joe-ieta/opencode.git`；`upstream`：`git@github.com:anomalyco/opencode.git`。
+- `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -13,7 +13,7 @@
 ```powershell
 git status --short --branch
 git fetch origin --prune --no-tags
-git fetch upstream dev v1 --no-tags
+git fetch upstream --prune --no-tags
 git branch -vv
 git log -1 --oneline origin/dev-my
 git log -1 --oneline origin/oc-headless
@@ -28,7 +28,7 @@ gh release list --repo joe-ieta/opencode --limit 20
 gh release view v2.2.1-dev-my.2 --repo joe-ieta/opencode --json tagName,isDraft,assets
 ```
 
-不要因官方“Latest Release”当前展示 V1 而误判 V2 代码版本；同步目标由分支定位确定。
+不要因上游“Latest Release”当前展示 V1 而误判 V2 代码版本；同步目标由分支定位确定。
 
 ## 2. 跟踪上游贡献
 
@@ -39,22 +39,24 @@ gh pr view 60446 --repo anomalyco/opencode --json state,isDraft,mergeable,review
 gh issue view 60241 --repo anomalyco/opencode --comments
 ```
 
+以上命令只查阅历史官方 PR 记录，用于维护追踪表；它们不是本项目的 remote、同步源或 PR 目标。日常分支、同步、比较和 PR 只使用上游 fork。
+
 每次交互后更新 [PR 跟踪](upstream-prs.md)，必要时更新 [FORK.md](../../FORK.md)的状态快照。官方设计批准、机器人回复、测试成功、实际合并要分别记录；不要把一个状态推断成另一个。
 
-新 V2 上游贡献从 `upstream/dev` 起分支，使用短名称和 conventional commit；按当前 CONTRIBUTING、AGENTS 和 PR 模板提交。保持 fork 文档、品牌和发行脚本不混入无关 PR。
+新 V2 贡献从上游 fork 的对应分支起短名称分支，使用 conventional commit，并向 fork 提交 PR。保持 fork 文档、品牌和发行脚本不混入无关 PR；不直接向官方仓库提交 PR。
 
 ## 3. 同步三条发行线
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；Side tabs 的上游贡献单独维护在 `sidetab-overview`。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护，历史 Side tabs 上游稿保留在 `sidetab-overview`。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。
 
 在该分支的干净工作区中：
 
 ```powershell
 git switch dev-my
 git merge --ff-only origin/dev-my
-git merge upstream/dev
+git merge upstream/dev-my
 bun install --frozen-lockfile
 bun run check
 ```
@@ -94,7 +96,7 @@ bun run qtoc:trim
 bun run qtoc:build --skip-install --skip-typecheck
 ```
 
-跟踪源固定为 `upstream/v1`。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
+跟踪源固定为上游 fork 的 `qt-headless` 分支。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 

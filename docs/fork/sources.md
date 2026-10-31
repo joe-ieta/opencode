@@ -13,8 +13,8 @@
 
 ## 首页与界面截图
 
-- 根 README 顶部为 OpenCode My 简介，包含项目定位、上游来源、本地模型支持和 Side tabs 截图；官方 OpenCode 首页原文附在其后，随上游同步保留。
-- `dev-my/sidetab-overview-light.png` 与 `dev-my/sidetab-overview-dark.png` 取自 [PR #60446](https://github.com/anomalyco/opencode/pull/60446) 的 after 截图，原始文件位于贡献分支提交 `58b91857b0849d2aea7d8ecbeda066f435fd85b6`。画面使用合成项目与会话，三个标签打开、两个任务运行；它展示 Running sessions 与按项目分组，项目 `+` 快捷入口在后续提交中补充，不作为当前用户数据或逐像素基线。
+- 根 README 顶部为 OpenCode My 简介，包含项目定位、上游来源、本地模型支持和 Side bar 截图；官方 OpenCode 首页原文附在其后，随上游同步保留。
+- `dev-my/sidetab-overview-light.png` 与 `dev-my/sidetab-overview-dark.png` 取自 [PR #60446](https://github.com/anomalyco/opencode/pull/60446) 的 after 截图，原始文件位于贡献分支提交 `58b91857b0849d2aea7d8ecbeda066f435fd85b6`。画面使用合成项目与会话，三个标签打开、两个任务运行；该布局现在由本地 Side bar 承载，展示 Running sessions 与按项目分组，项目 `+` 快捷入口在后续提交中补充，不作为当前用户数据或逐像素基线。
 - 截图放在 fork 目录内并由本站 Markdown 引用，不依赖外部图片地址；更新界面后按同样方式替换，并在本节记录新来源提交。
 
 ## 归档文档清单
