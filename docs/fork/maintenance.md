@@ -141,7 +141,7 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=arm64
 bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```
 
-`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；跨架构模型目录冒烟自动使用 `--via-server`，避免 QEMU 下 5 秒插件激活超时。正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
+`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；Linux 两架构的模型目录冒烟使用 `--via-server`，等待插件激活后重试同一请求，避免 WSL 原生或 QEMU 下的一次请求 5 秒超时。仍完整比较内置目录与快照。正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
 
 1. 更新内置模型目录；从同一个源码提交按目标架构构建 CLI。
 2. 校验 CLI 版本、模型目录，执行隔离服务发现及 V1 迁移确认/历史冒烟。

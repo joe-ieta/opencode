@@ -74,8 +74,9 @@ for (const arch of archs) {
   )
   if ((await $`${cli} --version`.text()).trim() !== `opencode v${version}`)
     throw new Error(`Built ${arch} CLI version does not match release`)
-  if (arch === hostArch) await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
-  else await $`bun packages/cli/script/catalog-smoke.ts ${cli} --via-server`
+  // Linux plugin activation can exceed the one-shot request timeout, including on native WSL runners.
+  if (platform === "linux") await $`bun packages/cli/script/catalog-smoke.ts ${cli} --via-server`
+  else await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
   await $`bun packages/cli/script/desktop-smoke.ts ${cli}`
 
   const desktopTarget = `${platform}-${arch}`
