@@ -2,6 +2,17 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
+## v2.2.3-dev-my.4 Windows x64 测试预发行
+
+- 发行页：[v2.2.3-dev-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.4)，2026-10-31 16:42（Asia/Shanghai）已公开，标记为预发行；稳定 Latest 仍为 `v2.2.3-dev-my.3`。
+- 构建源码：`0b82c40bff512f3c7a88c612d1caa5d2cceebfef`；功能提交为 `feat(app): add independent Side bar interface mode`，已推送到 `dev-my`。标签固定在该构建提交，发行记录另行提交。
+- 保留官方 Top tabs、Side tabs（`vertical`）和 Inbox，新增独立 Side bar（`sidebar`）。官方标签组件恢复到已合入的上游基线；项目分组/简单列表、最近历史、Running sessions、扩展悬浮信息与 Home 服务器项目清单仅在新模式中启用。后台项目登记、会话及权限模型不变。
+- 已有 `vertical` 偏好不会自动变成 `sidebar`。安装后需在设置 → 通用 → 界面选择 Side bar；已有分组、排序与隐藏状态保留。
+- 验证：根检查 35/35；应用单元测试 945 项、browser 条件测试 303 项；最新生产构建 Home/标签回归 63/63；设置/预览专项 4/4；Windows 打包与安装器测试 20/20。CLI 模型目录检查覆盖 7,646 个模型，隔离服务发现、V1 升级确认和历史迁移冒烟通过。
+- 实际 ASAR/CLI 版本、四种模式标记、固定更新源、7-Zip 安装包完整性、`latest.yml` 大小与 SHA512 均通过核验。Windows x64 安装包 `opencode-desktop-win-x64.exe` 为 277,957,439 字节，SHA256 为 `374e365cda476f1a853df72473198998c280f5a453f76ddd5b36df4c3dc9b684`。
+- 四个 GitHub 资产（安装包、`latest.yml`、`SHA256SUMS`、`build.json`）的服务端大小与 SHA256 均与本地一致。产物未签名；本次仅构建 Windows x64，Linux/macOS 未构建。
+- 本次上游 PR 尚未提交，等待人工测试确认后再推进。
+
 ## v2.2.3-dev-my.3 Windows AMD64 + Ubuntu AMD64/ARM64 发行
 
 - 发行页：[v2.2.3-dev-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)，2026-10-31 15:03（Asia/Shanghai）已公开；`draft=false`、`prerelease=false`，并设为 Latest。
