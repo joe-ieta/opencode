@@ -376,6 +376,16 @@ git commit -m 'docs: record <version> release'
 
 标签不可变。发现构建问题时创建新的 `.N` 迭代，不覆盖已发布标签或资产。
 
+### 7.1 Gitee 镜像页
+
+Gitee 社区版单个附件上限 100 MB、单仓库附件总容量 1 GB；本版 5 个安装包合计约 1.36 GiB，不能直接上传。可在 Gitee 为同一标签创建“说明页”：
+
+- 发行说明中放 GitHub 安装包链接；
+- 仅上传 `SHA256SUMS`、`build.json`、`latest*.yml`；
+- 明确实际二进制以 GitHub 为准。
+
+本机 `v2.2.3-dev-my.3` 的 Gitee 镜像页为 [ieta/opencode-my releases](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)，只包含校验文件和更新清单。
+
 ## 8. 经验与坑
 
 | 经验                                 | 说明                                                                           |
