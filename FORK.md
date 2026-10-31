@@ -8,7 +8,7 @@
 
 | 分支                                           | 定位与跟踪源                                                       | 当前进度                                                                                                                                    |
 | ---------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随官方 upstream/dev，发行 OpenCode My          | 主线基于 V2 2.2.3；Windows 测试版 v2.2.3-dev-my.4 的独立 Side bar 已通过人工测试。稳定 Latest 仍为 .3，贡献 #60867 单独基于官方 2.2.5       |
+| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随官方 upstream/dev，发行 OpenCode My          | 主线基于 V2 2.2.3；Windows 测试版 v2.2.3-dev-my.4 的独立 Side bar 已通过人工测试。Linux 测试版 .5 已发布；稳定 Latest 为 .3，贡献 #60867 单独基于官方 2.2.5       |
 | [oc-headless](docs/fork/oc-headless/README.md) | 跟随 `upstream/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入 | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成 |
 | [qt-headless](docs/fork/qt-headless/README.md) | 跟随 `upstream/v1`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                          |
 

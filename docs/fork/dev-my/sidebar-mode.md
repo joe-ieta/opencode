@@ -6,6 +6,8 @@
 
 ## 当前状态
 
+- Linux 最新测试预发行：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，源码 `31d67160e0`，含 amd64/arm64 AppImage/deb 与本轮标题方向修复；自动验证与包内容核验通过，Linux GUI 尚未人工验收。
+
 - 本地 Windows 测试预发行：[v2.2.3-dev-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户已确认人工测试通过。
 - 新上游贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；源码 `a18285fedba11a6f9cba5609d103a7d5f3d3f5b7`，独立更新到官方 `dev@bf544cd419`（2.2.5）。只包含 33 个应用层文件，不包含 fork 品牌、发行工具和内核补丁。
 - 旧 Side tabs PR [#60446](https://github.com/anomalyco/opencode/pull/60446) 已由作者关闭，顶部保留原说明并链接新 PR；关闭不表示其功能已被上游合并。

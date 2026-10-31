@@ -2,6 +2,27 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
+## v2.2.3-dev-my.5 Linux amd64/arm64 测试预发行
+
+- 发行页：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，2026/10/31 21:32（Asia/Shanghai）已公开，`draft=false`、`prerelease=true`；稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 最新测试版仍为 `v2.2.3-dev-my.4`。
+- 构建源码：`31d67160e0d5c96f760227ab7b9f4ab65258c919`，基于 V2 2.2.3，使用 Bun 1.4.4 在 WSL Ubuntu 24.04 的独立原生工作区构建；amd64 原生编译，arm64 经 QEMU/binfmt 交叉构建。标签固定在构建源码，发行记录另行提交到维护主线 `dev-my`。
+- 提供独立 Side bar 模式，保留官方 Top tabs、Side tabs（vertical）和 Inbox。相对 Windows `.4` 增加相反文字方向标题的对齐修复，仅作用于 Side bar，不修改官方模式、后台 Project 登记或公开 API。
+- 国际化核对：31 个相关英文词条、63 个语言字典；未发现硬编码可见文案、缺失英文回退或占位符不一致。非英语界面中仍有 29 个相关词条使用英文回退，本轮未批量翻译。语言测试 21/21（467 项断言），英语/简体中文/法语/阿拉伯语生产界面及 RTL 截图已核对。
+- 验证：Windows 与本轮 WSL 根检查均 35/35；方向修复生产构建 Home/标签回归 65/65，无重试。两架构 CLI 版本正确，模型目录各完整比较 7,648 个模型，服务发现、V1 升级确认与迁移历史冒烟均通过。Linux 发行工具复用已有 `--via-server` 路径等待插件激活；合成凭据触发的外网发现仅在目录冒烟进程中限制，其他构建下载使用现有本机代理。
+- 官方 V2 模型目录经 Windows 实时取得并通过现有 schema 校验，再由临时本地镜像供 WSL 构建读取；使用同一份快照比较内置目录。临时镜像和代理地址未固化到产品，不作为运行时更新源。环境设置与辅助文件均未提交。
+- 两架构 AppImage/deb 已实际解包，ASAR 内容一致，四模式与 RTL 修复标记存在；ASAR/内置 CLI 版本、ELF/deb 架构、deb 元数据、桌面文件、metainfo、固定标签更新源、两份更新清单 SHA512/大小及 SHA256SUMS 均通过核验。
+- 8 个 GitHub 资产的服务端大小与 SHA256 均匹配本地；公开下载的两份更新清单与本地完全一致，两个 AppImage 的公开下载入口及 ELF 文件头已核对。安装包未签名，本轮未执行 Linux GUI 人工验收，arm64 GUI 未在原生机器运行。
+- 交叉环境的 ARM 系统根缺少 AppImage 自解包所需 `libz.so`，arm64 AppImage 内容使用原生 `unsquashfs` 核验；该 AppImage 的运行时/GUI 启动不作为本轮通过项。两架构 Electron/CLI 的 ELF 头均正确，AppImage 与 deb 内置 CLI 哈希一致。
+
+| 安装包 | 字节 | SHA256 |
+| --- | ---: | --- |
+| `opencode-desktop-linux-x86_64.AppImage` | 324,071,050 | `4ea250b92bcf22b11dc6a1b609184c3875d1f27960c511986d617d85d7719244` |
+| `opencode-desktop-linux-amd64.deb` | 270,318,772 | `21a6a8d997a422713f0dadcff07a1135e3ab642a906cba0a1e880a34c79cca16` |
+| `opencode-desktop-linux-arm64.AppImage` | 324,087,839 | `7ecac70310165527e48d5f56e3a068e01eb4f2808e95ef7775b1f671c4591474` |
+| `opencode-desktop-linux-arm64.deb` | 260,156,184 | `57c014465d45863c27a0d809603718e266bf500db52e388c4e53bc6eb5798e3a` |
+
+本轮不修改、新建 PR；未发送测试邀请，后续也不再发送。维护约束见 [维护方法](../maintenance.md)。
+
 ## 历史发行清理（2026-10-31）
 
 按用户确认，保留稳定 Latest `v2.2.3-dev-my.3`、Windows 最新测试版 `v2.2.3-dev-my.4`，并保留后续各平台最新测试发行。已删除以下 9 个历史 GitHub Release 及全部资产：`v2.2.3-dev-my.2`、`v2.2.3-dev-my.1`、`v2.2.2-dev-my.2`、`v2.2.1-dev-my.2`、`v2.2.1-dev-my.1`、`v2.2.0-dev-my.4`、`v2.2.0-dev-my.3`、`v2.2.0-dev-my.2`、`v2.2.0-dev-my.1`。累计清理 3,168,724,360 字节（约 2.95 GiB）；独立核验 9 个远端源码标签仍在，Latest 仍为 `.3`。
