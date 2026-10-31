@@ -250,6 +250,8 @@ curl -fsSI https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux
 
 代理值属于本机环境，不写入仓库。
 
+2026-10-31 本机 Windows 的 `gh` 大文件上传在 HTTP/2 单连接下持续低速；仅为当前上传进程设置 `GODEBUG=http2client=0` 后，四个安装包改用独立连接，传输明显改善。该开关由 [Go 官方文档](https://go.dev/doc/godebug)定义，不作为全局设置或通用提速保证。先确认上传仍在推进；需要重试时保留草稿及已完成资产，只重新上传本次草稿中未完成的同名文件，公开前仍核对全部资产的服务端大小和 SHA256。代理环境与该开关均不进入构建产物。
+
 ### 4.6 克隆与检查
 
 ```bash

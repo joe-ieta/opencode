@@ -2,6 +2,8 @@
 
 本页是三个维护分支的当前通用操作方法。历史 Qt 手册保留追溯价值；旧 Bun 版本、Actions 状态和可移动发行线标签等约定，以本页及实际脚本为准。
 
+自 2026-10-31 起，按用户要求，本次及后续维护不再向 Issue、PR 或其他讨论发送测试邀请。历史邀请仅作记录，不继续跟进或重复发送。本轮国际化检查与 Linux 发行不修改、新建 PR。
+
 ## 1. 环境、分支与检查
 
 - `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
@@ -49,7 +51,7 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护，历史 Side tabs 上游稿保留在 `sidetab-overview`。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。独立 Side bar 的贡献稿 #60867 保留在 `sidebar-mode` 作为历史记录；旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
 在该分支的干净工作区中：
 
@@ -141,7 +143,7 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=arm64
 bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```
 
-`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；跨架构模型目录冒烟自动使用 `--via-server`，避免 QEMU 下 5 秒插件激活超时。正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
+`--arch` 省略时使用当前主机架构；Windows 目前只允许 x64。Linux arm64 的 CLI 冒烟通过 binfmt 在 qemu 中执行，Electron 交叉打包由 electron-builder 完成；Linux 两架构的模型目录冒烟使用 `--via-server`，等待插件激活后重试同一请求，避免 WSL 原生或 QEMU 下的一次请求 5 秒超时。仍完整比较内置目录与快照。正式 ARM64 GUI 验收仍应在原生 arm64 机器或 runner 上做。脚本是 `packages/desktop/script/release-my.ts`，按官方阶段执行：
 
 1. 更新内置模型目录；从同一个源码提交按目标架构构建 CLI。
 2. 校验 CLI 版本、模型目录，执行隔离服务发现及 V1 迁移确认/历史冒烟。
@@ -184,6 +186,8 @@ gh run view <run-id> --repo joe-ieta/opencode
 截至 2026-10-30，Actions 设置 `enabled=true`；两条 headless 最近发行的归档仍记录“当时被禁用，CI 待补”，不得仅凭开关恢复改写成通过。
 
 ## 7. 标签和文档维护约定
+
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 
