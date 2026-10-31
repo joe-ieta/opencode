@@ -28,6 +28,66 @@ const c = { id: "ses_tab_c", title: "Tab C session" }
 
 test.use({ serviceWorkers: "block" })
 
+test("Side bar keeps project history and running sessions separate from the official interface modes", async ({
+  page,
+}) => {
+  await mockWorkspace(page, {
+    name: "ModeBoundary",
+    project: { id: "proj_used", name: "Used project" },
+    sessions: [{ ...a, time: { created: T0, updated: T0, idle: T0 } }, b, c],
+    sessionStatus: { [c.id]: { type: "running" } },
+    projects: [
+      project({ id: "proj_used", directory: "C:/OpenCode/ModeBoundary", name: "Used project" }),
+      project({ id: "proj_incidental", directory: "C:/", name: "Automatic directory" }),
+    ],
+    seed: {
+      tabs: [a.id],
+      usedProjects: { local: ["proj_used"] },
+      settings: { appearance: { tabLayout: "vertical", tabGrouping: "project" } },
+    },
+  })
+  await page.goto(sessionHref(a.id))
+  const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
+  const running = page.locator('[data-component="active-sessions"]')
+  const projectRows = page.locator('[data-component="home-project-row"] [data-slot="home-row-label"]')
+  await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveText([a.title])
+  await expect(running).toHaveCount(0)
+  await expect(sidebar.getByRole("heading", { name: "Recent sessions", exact: true })).toHaveCount(0)
+  await expect(sidebar.getByRole("button", { name: "Group sessions By project", exact: true })).toHaveCount(0)
+  await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(a.id)}"]`).hover()
+  const preview = page.locator('[data-component="session-tab-popover"]')
+  await expect(preview).toContainText(a.title)
+  await expect(preview).not.toContainText(/Branch:|Worktree:|Last run/)
+  await sidebar.getByRole("button", { name: "Home", exact: true }).click()
+  await expect(projectRows).toHaveText(["Used project"])
+
+  for (const mode of ["Side bar", "Side tabs", "Inbox", "Top tabs", "Side bar"]) {
+    await page.keyboard.press("Control+,")
+    const settings = page.getByTestId("settings-screen")
+    const interfaces = settings.getByRole("group", { name: "Interface", exact: true })
+    await expect(interfaces.getByRole("radio")).toHaveCount(4)
+    await interfaces.getByText(mode, { exact: true }).click()
+    await expect(interfaces.getByRole("radio", { name: mode, exact: true })).toBeChecked()
+    await settings.getByRole("button", { name: "Back to app", exact: true }).click()
+    await expect(running).toHaveCount(mode === "Side bar" ? 1 : 0)
+    await expect(projectRows).toHaveText(
+      mode === "Side bar" ? ["Used project", "Automatic directory"] : ["Used project"],
+    )
+    if (mode === "Side tabs") await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveText([a.title])
+    if (mode === "Side bar") {
+      await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveCount(3)
+      await expect(running.getByRole("button").filter({ hasText: c.title })).toBeVisible()
+      await expect(sidebar.getByRole("heading", { level: 3 })).toHaveText(["Used project", "Automatic directory"])
+    }
+  }
+  await page.reload()
+  await expect(running).toBeVisible()
+  await expect(sidebar.locator("[data-titlebar-tab-title]")).toHaveCount(3)
+  await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(b.id)}"]`).click()
+  await expectPath(page, sessionHref(b.id))
+  await expectSessionTitle(page, b.title)
+})
+
 test("sidebar and Home share projects and history without opening session tabs", async ({ page }) => {
   await mockWorkspace(page, {
     name: "SharedHistory",
@@ -39,7 +99,7 @@ test("sidebar and Home share projects and history without opening session tabs",
     seed: {
       tabs: [],
       usedProjects: { local: [] },
-      settings: { appearance: { tabLayout: "vertical" } },
+      settings: { appearance: { tabLayout: "sidebar" } },
     },
   })
   await page.goto("/")
@@ -59,7 +119,7 @@ test("sidebar and Home share projects and history without opening session tabs",
     "Empty project",
   ])
 
-  for (const mode of ["Top tabs", "Side tabs"]) {
+  for (const mode of ["Top tabs", "Side bar"]) {
     await page.keyboard.press("Control+,")
     const settings = page.getByTestId("settings-screen")
     await settings.getByRole("group", { name: "Interface", exact: true }).getByText(mode, { exact: true }).click()
@@ -125,7 +185,7 @@ test("recent sessions caps each project at five and can reveal a selected overfl
     seed: {
       tabs: [],
       usedProjects: { local: ["proj_projectlimit", "proj_small"] },
-      settings: { appearance: { tabLayout: "vertical" } },
+      settings: { appearance: { tabLayout: "sidebar" } },
     },
   })
   await page.goto("/")
@@ -184,7 +244,7 @@ test("recent sessions follow last activity and preview the previous run completi
       { id: "ses_child_sidebar", title: "Child task", parentID: a.id },
     ],
     onSession: (id) => loaded.push(id),
-    seed: { tabs: [a.id, "ses_child_sidebar"], settings: { appearance: { tabLayout: "vertical" } } },
+    seed: { tabs: [a.id, "ses_child_sidebar"], settings: { appearance: { tabLayout: "sidebar" } } },
   })
   await page.goto("/")
   const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
@@ -234,7 +294,7 @@ test("sidebar loads history before Home mounts and shares live additions and rem
   await seed(page, {
     usedProjects: { local: ["proj_live"] },
     tabs: [a.id],
-    settings: { appearance: { tabLayout: "vertical" } },
+    settings: { appearance: { tabLayout: "sidebar" } },
   })
   await page.goto(sessionHref(a.id))
   await expectSessionTitle(page, a.title)
@@ -371,7 +431,7 @@ test("the running shelf includes unopened sessions across projects and servers i
   await seed(page, {
     servers: [SERVER, { url: REMOTE_SERVER, name: "Remote server" }],
     tabs: [a.id],
-    settings: { appearance: { tabLayout: "vertical" } },
+    settings: { appearance: { tabLayout: "sidebar" } },
   })
   await page.goto(sessionHref(a.id))
   const shelf = page.getByRole("region", { name: "Running sessions", exact: true })
@@ -412,7 +472,7 @@ test("the running shelf stays visible when empty and follows live execution inde
   const workspace = await mockWorkspace(page, {
     name: "RunningShelf",
     sessions: [a, b],
-    seed: { tabs: [a.id], settings: { appearance: { tabLayout: "vertical", tabGrouping: "none" } } },
+    seed: { tabs: [a.id], settings: { appearance: { tabLayout: "sidebar", tabGrouping: "none" } } },
   })
 
   await page.goto(sessionHref(a.id))
@@ -481,7 +541,7 @@ test("sidebar grouping keeps servers separate and reorders only the chosen proje
   await seed(page, {
     servers: [SERVER, { url: REMOTE_SERVER, name: "Remote" }],
     tabs: [a.id, { session: b.id, server: REMOTE_SERVER }, c.id],
-    settings: { appearance: { tabLayout: "vertical", tabGrouping: "project" } },
+    settings: { appearance: { tabLayout: "sidebar", tabGrouping: "project" } },
   })
   await page.goto(sessionHref(a.id))
   const sidebar = page.locator('[data-slot="vertical-tabs-sidebar"]')
@@ -524,7 +584,7 @@ test("sidebar project grouping preserves the flat order and navigates in display
     ],
     sessions: [a, { ...b, directory: other, projectID: "proj_other" }, { ...c, directory: sandbox }],
     seed: {
-      settings: { appearance: { tabLayout: "vertical", tabGrouping: "none" } },
+      settings: { appearance: { tabLayout: "sidebar", tabGrouping: "none" } },
       tabs: [a.id, b.id, c.id, { draft: "draft_grouped", directory: sandbox }],
     },
   })

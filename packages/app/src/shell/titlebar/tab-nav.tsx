@@ -37,6 +37,7 @@ export function TabNavItem(props: {
   onClose: () => void
   closable?: boolean
   closeLabel?: string
+  showSessionDetails?: boolean
   onDelete: () => void
   onNavigate: () => void
   active?: boolean
@@ -140,6 +141,7 @@ export function TabNavItem(props: {
   const [popoverOpen, setPopoverOpen] = createSignal(false)
   const branches = createSessionBranches()
   const branchEntry = () => {
+    if (!props.showSessionDetails) return
     const ctx = serverCtx()
     const session = props.session
     return ctx && session ? { ctx, session, server: props.server } : undefined
@@ -150,6 +152,7 @@ export function TabNavItem(props: {
     if (entry) branches.load([entry])
   })
   const worktree = createMemo(() => {
+    if (!props.showSessionDetails) return
     const value = project()
     const directory = props.session?.location.directory
     if (!value || !directory || !("sandboxes" in value)) return
@@ -432,7 +435,7 @@ export function TabNavItem(props: {
           title: props.session?.title,
           path: previewPath(),
           serverName: serverLabel(),
-          lastRun: sessionLastRunLabel(props.session?.time, language),
+          lastRun: props.showSessionDetails ? sessionLastRunLabel(props.session?.time, language) : undefined,
           branch: branchEntry() ? branches.branch(branchEntry()!) : undefined,
           worktree: worktree(),
         }}
