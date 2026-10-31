@@ -74,7 +74,8 @@ for (const arch of archs) {
   )
   if ((await $`${cli} --version`.text()).trim() !== `opencode v${version}`)
     throw new Error(`Built ${arch} CLI version does not match release`)
-  await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
+  if (arch === hostArch) await $`bun packages/cli/script/catalog-smoke.ts ${cli}`
+  else await $`bun packages/cli/script/catalog-smoke.ts ${cli} --via-server`
   await $`bun packages/cli/script/desktop-smoke.ts ${cli}`
 
   const desktopTarget = `${platform}-${arch}`
