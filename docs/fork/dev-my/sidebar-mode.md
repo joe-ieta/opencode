@@ -6,9 +6,11 @@
 
 ## 当前状态
 
+- Windows 最新测试版：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，源码 `9506fb6d69`；相关中文词条 31/31，详见 [翻译核对](sidebar-zh.md)。新版本自动检查与包内容核验通过，尚未安装后人工验收；旧 `.4` 的发行资产已清理，源码和历史人工验收记录保留。
+
 - Linux 最新测试预发行：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，源码 `31d67160e0`，含 amd64/arm64 AppImage/deb 与本轮标题方向修复；自动验证与包内容核验通过，Linux GUI 尚未人工验收。
 
-- 本地 Windows 测试预发行：[v2.2.3-dev-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户已确认人工测试通过。
+- 历史 Windows 人工验收版本：[v2.2.3-dev-my.4 源码](https://github.com/joe-ieta/opencode/tree/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户曾确认人工测试通过；发行资产已由 `.6` 替代并清理。
 - 新上游贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；源码 `a18285fedba11a6f9cba5609d103a7d5f3d3f5b7`，独立更新到官方 `dev@bf544cd419`（2.2.5）。只包含 33 个应用层文件，不包含 fork 品牌、发行工具和内核补丁。
 - 旧 Side tabs PR [#60446](https://github.com/anomalyco/opencode/pull/60446) 已由作者关闭，顶部保留原说明并链接新 PR；关闭不表示其功能已被上游合并。
 - 新 PR 为 **Draft，等待上游设计评审**。`CONTRIBUTING.md` 要求新界面先获得设计批准；本地人工测试通过、自动检查通过、可合并和设计获批是不同状态。
@@ -46,7 +48,7 @@
 | [#50585](https://github.com/anomalyco/opencode/issues/50585)                                                               | OPEN           | 跨项目的多对多会话标签；与按现有 Project 归属展示是不同概念。                                                                                        |
 | [#54551](https://github.com/anomalyco/opencode/issues/54551)                                                               | CLOSED         | TUI 会话文件夹需求；本次贡献针对 V2 桌面/Web，共享需求动机而不声称实现 TUI。                                                                         |
 
-## 国际化核对（2026-10-31）
+## 初次国际化核对（2026-10-31，Linux .5 及更早版本）
 
 - 检查 31 个 Side bar 相关英文词条及全部 63 个语言字典：英文源完整，未发现缺失英文回退、占位符不一致或组件中硬编码的可见英文。
 - 每个非英语字典有 2 个既有翻译，另外 29 个相关词条使用英文回退。因此国际化机制已接入，但本地化翻译覆盖尚未完成；遵循应用的独立翻译评审流程，本轮未批量生成翻译。

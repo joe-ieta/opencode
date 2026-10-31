@@ -2,6 +2,17 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
+## v2.2.3-dev-my.6 Windows x64 中文测试预发行
+
+- 发行页：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，2026/10/31 22:12（Asia/Shanghai）已公开，`draft=false`、`prerelease=true`。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Linux 最新测试版仍为 `v2.2.3-dev-my.5`。
+- 构建源码：`9506fb6d69e9470cd97e3bb834339bf5f82120bf`；只增加前次缺少的 29 个 Side bar 简体中文词条及翻译核对记录。相关键现有中文 31/31，占位符与英文源一致，英文源和其他语言未修改。术语、语义和参考语料见 [中文翻译核对](sidebar-zh.md)。
+- Windows 包含独立 Side bar 及此前的标题方向修复；官方三种模式、后台项目登记、会话历史和权限模型不变。Linux `.5` 安装包未重新构建，不包含本次新增中文词条。
+- 验证：完整根检查 35/35；既有语言测试 21/21（467 项断言）；Windows 安装器/打包配置测试 18/18。隔离生产界面覆盖 0/1/2 个运行会话、小时/天、空项目、分组/列表、更多/收起、隐藏提示、项目新建、悬浮详情及设置卡片；截图已复核。
+- 使用 Bun 1.4.4 完成正式 Windows x64 构建；本轮 CLI 模型目录比较覆盖 7,646 个模型，服务发现、V1 升级确认及迁移历史冒烟通过。实际 ASAR 内的 31 个相关中文值均已核验，ASAR/CLI/安装器版本正确，7-Zip 完整性、固定标签更新源及 `latest.yml` 的 SHA512/大小均通过。
+- 安装器 `opencode-desktop-win-x64.exe`：277,954,927 字节，SHA256 `ae83752b76955f50406c225f178aefe98427ca784d89a6fbeb4ef3fec258ce26`。四个 GitHub 资产的大小、SHA256 与本地一致；公开清单内容与本地一致，安装器公开下载和 PE 文件头已验证。产物未签名，本版尚未完成安装后的 Windows GUI 人工验收。
+- 继续维护于 `dev-my`；本次未修改或新建 PR，未发送测试邀请，后续也不再发送。
+- 沿用已确认的保留策略，在 `.6` 公开并核验后删除被替代的 Windows `v2.2.3-dev-my.4` Release 及 4 个资产（277,958,267 字节），源码标签保留。现保留稳定 `.3`、Linux 测试 `.5`、Windows 测试 `.6`；旧 `.4` 的历史发行页/下载链接失效，人工验收记录仍保留。
+
 ## v2.2.3-dev-my.5 Linux amd64/arm64 测试预发行
 
 - 发行页：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，2026/10/31 21:32（Asia/Shanghai）已公开，`draft=false`、`prerelease=true`；稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 最新测试版仍为 `v2.2.3-dev-my.4`。
