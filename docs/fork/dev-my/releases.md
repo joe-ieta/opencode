@@ -32,6 +32,28 @@ Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
 | `v2.2.3-dev-my.3` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) | `44a32f97461eea5e76f01199fc5022a4628b5557837bc8daeab413c6eb5c9f84` |
 | `v2.2.3-dev-my.6` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6) | `ae83752b76955f50406c225f178aefe98427ca784d89a6fbeb4ef3fec258ce26` |
 
+## v2.2.5 源码同步（2026-11-01）
+
+- 同步目标 `upstream/dev-my@8593792301`，相对上次共同基线 `3747a8caa9` 吸收 84 个上游提交；官方基线由 V2 2.2.3 `dev@e7acf85bb7` 推进到 V2 2.2.5 `dev@69269e4ebe`（官方段 81 个提交），并包含 fork 的 `ca18869aaa`（深层子智能体状态与项目整组收起）和 `8593792301`（Windows 2.2.5 测试包准备记录）。
+- 上游 2.2.4 的主要变化：持久桌面终端及其重命名、实验性交互 artifacts、Claude Agent 引导安装、worktree 基础分支快捷键等。
+- 上游 2.2.5 的主要变化：worktree 与 Shell 模式快捷键、引用弹窗直接发送、`compaction.buffer` 支持百分比，以及 MCP/stdio、上下文压缩和推理恢复等修复；完整清单见 `CHANGELOG.md` 的 v2.2.4 与 v2.2.5。
+- 本地保留独立 Side bar、Gitee Windows 分卷、V1 升级与迁移、SQLite/Layer 诊断和桌面发行脚本；本次未改动两条 headless 分支。文档继续按 Gitee `origin` 与 GitHub fork `upstream` 的关系维护。
+- 验证：`bun install --frozen-lockfile` 无依赖变化；`bun run check` 35/35 通过（本机需以 `NODE_OPTIONS=--experimental-strip-types` 加载 oxlint 的 TypeScript 插件）；从 `packages/client` 重新执行 `bun run generate`，生成客户端与合并结果一致。
+- 本次只同步源码并更新发行记录，不构建或发布新安装包；Windows `2.2.5-dev-my.1` 仍为未公开的发行草稿。
+
+## v2.2.5-dev-my.1 Windows x64 测试包准备
+
+- 构建源码：`ca18869aaa1b8c92e93c7db5a1d803e78830eefc`。合并官方 `dev@69269e4ebe309a08919b3c9be7948b9fd699c3a4`（V2 2.2.5），相对前次上游基线新增 81 个提交；合并提交为 `a7b90e8444`。SQLite 冲突采用上游官方客户端并保留数据库文件名错误诊断，V1 迁移文档保留本地确认与备份说明。
+- 修复深层子智能体执行时，因祖先元数据缺失而使顶层会话错误显示空闲的问题；Home 与 Side bar 同步受益。仅按需读取元数据，不读取祖先对话内容或改写服务器执行状态。
+- 项目标题增加整组收起/展开，按服务器及项目路径保存状态；收起后仅保留标题、计数和新建入口，与五条预览/More 独立。List 和运行概览继续保留，新建时展开项目。两个新增无障碍标签先提供英文源，既有 31 个中文词条保留。
+- 动画问题已定位：本机 Windows 客户端区域动画关闭，应用设置为跟随系统，因此主会话和子智能体图标均按官方减少动态效果设计保持静态。应用内将“减少动态效果”设为关闭即可允许动画。本轮没有覆盖系统偏好或修改共用 Spinner。
+- 验证：完整根检查 35/35；应用单元 948 项、browser 条件 303 项；数据库 67 项通过、2 项 Windows 条件跳过；完整生产 Home/标签回归 67 项无重试，最终无障碍标题/分组/状态/动画专项 5 项无重试；Windows 安装器及打包配置 22 项通过。新回归在修复前复现了缺失整组收起与深层子智能体状态错误。
+- 生产导航基准修改前后三次：内容首次显示中位数 386.2 → 382.0 ms，稳定显示中位数 432.2 → 432.3 ms。小样本未见明显退化，不作为通用性能保证。
+- Bun 1.4.4 完成 Windows x64 构建；模型目录完整比较 7,656 个模型，服务发现、V1 确认与迁移历史冒烟通过。实际 ASAR/CLI 版本、Side bar 功能标记、31 个中文值、固定标签更新源、清单 SHA512/大小及 7-Zip 完整性均已核对；Authenticode 为 `NotSigned`。尚未完成安装后的 GUI 人工验收。
+- 安装器 `opencode-desktop-win-x64.exe`：279,868,420 字节，SHA256 `d5a3eea642d70fadc007d96a5dc8b88b94d23bc2f68f17fcc142f0d25d197cdc`。本地目录为 `dist/releases/v2.2.5-dev-my.1`。
+- [发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d) 的四个资产已全部上传并独立核对服务端 SHA256/大小与本地一致，`draft=true`、`prerelease=true`、`published_at=null`；尚未公开，不能使用公开下载入口。稳定 Latest `.3`、Windows 最新公开测试版 `.6`、Linux 最新公开测试版 `.5` 均保留。临时传输探针资产已清理。
+- 继续维护于 `dev-my`，未修改或新建 PR，未发送测试邀请。
+
 ## v2.2.3-dev-my.6 Windows x64 中文测试预发行
 
 - 发行页：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，2026/10/31 22:12（Asia/Shanghai）已公开，`draft=false`、`prerelease=true`。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Linux 最新测试版仍为 `v2.2.3-dev-my.5`。
