@@ -6,7 +6,9 @@
 
 ## 当前状态
 
-- Windows 最新测试版：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，源码 `9506fb6d69`；相关中文词条 31/31，详见 [翻译核对](sidebar-zh.md)。新版本自动检查与包内容核验通过，尚未安装后人工验收；旧 `.4` 的发行资产已清理，源码和历史人工验收记录保留。
+- 本地 Windows `2.2.5-dev-my.1` 测试包已构建，源码 `ca18869aaa`；[发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d) 尚未公开。包含下文的整组收起与深层子智能体状态修复，构建及核验见 [发行记录](releases.md)。
+
+- Windows 最新公开测试版：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，源码 `9506fb6d69`；相关中文词条 31/31，详见 [翻译核对](sidebar-zh.md)。新版本自动检查与包内容核验通过，尚未安装后人工验收；旧 `.4` 的发行资产已清理，源码和历史人工验收记录保留。
 
 - Linux 最新测试预发行：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，源码 `31d67160e0`，含 amd64/arm64 AppImage/deb 与本轮标题方向修复；自动验证与包内容核验通过，Linux GUI 尚未人工验收。
 

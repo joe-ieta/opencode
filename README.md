@@ -12,7 +12,9 @@
 
 自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，上游 [Draft PR #60867](https://github.com/anomalyco/opencode/pull/60867) 等待设计审核。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`。Linux 测试版 [v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5) 提供 amd64/arm64 的 AppImage、deb，并包含 Side bar 标题方向修复。
 
-Windows 最新测试版 [v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) 补齐 Side bar 的 29 个简体中文词条，[翻译核对记录](docs/fork/dev-my/sidebar-zh.md)。旧 Windows `.4` 安装包已按保留策略清理，源码标签保留。
+Windows 最新公开测试版 [v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) 补齐 Side bar 的 29 个简体中文词条，[翻译核对记录](docs/fork/dev-my/sidebar-zh.md)。旧 Windows `.4` 安装包已按保留策略清理，源码标签保留。
+
+`dev-my` 已合并官方 V2 2.2.5，Windows `2.2.5-dev-my.1` 测试包已构建，[发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d) 尚未公开。包含深层子智能体状态修复、项目整组收起及状态持久化；现有公开发行继续保留。[验证与构建记录](docs/fork/dev-my/releases.md)。
 
 ## 项目定位
 

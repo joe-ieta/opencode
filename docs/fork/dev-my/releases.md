@@ -2,6 +2,19 @@
 
 二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的实际资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
+## v2.2.5-dev-my.1 Windows x64 测试包准备
+
+- 构建源码：`ca18869aaa1b8c92e93c7db5a1d803e78830eefc`。合并官方 `dev@69269e4ebe309a08919b3c9be7948b9fd699c3a4`（V2 2.2.5），相对前次上游基线新增 81 个提交；合并提交为 `a7b90e8444`。SQLite 冲突采用上游官方客户端并保留数据库文件名错误诊断，V1 迁移文档保留本地确认与备份说明。
+- 修复深层子智能体执行时，因祖先元数据缺失而使顶层会话错误显示空闲的问题；Home 与 Side bar 同步受益。仅按需读取元数据，不读取祖先对话内容或改写服务器执行状态。
+- 项目标题增加整组收起/展开，按服务器及项目路径保存状态；收起后仅保留标题、计数和新建入口，与五条预览/More 独立。List 和运行概览继续保留，新建时展开项目。两个新增无障碍标签先提供英文源，既有 31 个中文词条保留。
+- 动画问题已定位：本机 Windows 客户端区域动画关闭，应用设置为跟随系统，因此主会话和子智能体图标均按官方减少动态效果设计保持静态。应用内将“减少动态效果”设为关闭即可允许动画。本轮没有覆盖系统偏好或修改共用 Spinner。
+- 验证：完整根检查 35/35；应用单元 948 项、browser 条件 303 项；数据库 67 项通过、2 项 Windows 条件跳过；完整生产 Home/标签回归 67 项无重试，最终无障碍标题/分组/状态/动画专项 5 项无重试；Windows 安装器及打包配置 22 项通过。新回归在修复前复现了缺失整组收起与深层子智能体状态错误。
+- 生产导航基准修改前后三次：内容首次显示中位数 386.2 → 382.0 ms，稳定显示中位数 432.2 → 432.3 ms。小样本未见明显退化，不作为通用性能保证。
+- Bun 1.4.4 完成 Windows x64 构建；模型目录完整比较 7,656 个模型，服务发现、V1 确认与迁移历史冒烟通过。实际 ASAR/CLI 版本、Side bar 功能标记、31 个中文值、固定标签更新源、清单 SHA512/大小及 7-Zip 完整性均已核对；Authenticode 为 `NotSigned`。尚未完成安装后的 GUI 人工验收。
+- 安装器 `opencode-desktop-win-x64.exe`：279,868,420 字节，SHA256 `d5a3eea642d70fadc007d96a5dc8b88b94d23bc2f68f17fcc142f0d25d197cdc`。本地目录为 `dist/releases/v2.2.5-dev-my.1`。
+- [发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d) 的四个资产已全部上传并独立核对服务端 SHA256/大小与本地一致，`draft=true`、`prerelease=true`、`published_at=null`；尚未公开，不能使用公开下载入口。稳定 Latest `.3`、Windows 最新公开测试版 `.6`、Linux 最新公开测试版 `.5` 均保留。临时传输探针资产已清理。
+- 继续维护于 `dev-my`，未修改或新建 PR，未发送测试邀请。
+
 ## v2.2.3-dev-my.6 Windows x64 中文测试预发行
 
 - 发行页：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，2026/10/31 22:12（Asia/Shanghai）已公开，`draft=false`、`prerelease=true`。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Linux 最新测试版仍为 `v2.2.3-dev-my.5`。
