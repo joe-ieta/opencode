@@ -415,6 +415,7 @@ $in.Dispose()
 - 公开的 Windows 下载链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
 - Linux/macOS 下载链接使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`。
 - 合并命令和 SHA256 记录见 [dev-my 发行记录](../dev-my/releases.md#windows-分卷下载与合并)。
+- 需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](self-hosted-release-storage.md)。
 
 ## 8. 经验与坑
 
@@ -468,6 +469,7 @@ $in.Dispose()
 - [维护、同步、验证与发布](../maintenance.md)
 - [dev-my 桌面发行与运行时约定](../dev-my/README.md)
 - [dev-my 发行记录](../dev-my/releases.md)
+- [自建发布物存储](self-hosted-release-storage.md)
 - [release-my.ts](../../../packages/desktop/script/release-my.ts)
 - [catalog-smoke.ts](../../../packages/cli/script/catalog-smoke.ts)
 - [官方 release workflow](../../../.github/workflows/release.yml)

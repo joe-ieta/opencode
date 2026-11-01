@@ -11,7 +11,7 @@
 | Windows 测试 | `v2.2.3-dev-my.6` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) |
 | Linux 测试   | `v2.2.3-dev-my.5` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)                        |
 
-Windows 分卷包含 `part1`、`part2`、`part3`、`SHA256SUMS`、独立 SHA256 文件和 `WINDOWS-README.txt`；Linux/macOS 只在上游下载。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
+Windows 分卷包含 `part1`、`part2`、`part3`、`SHA256SUMS`、独立 SHA256 文件和 `WINDOWS-README.txt`；Linux/macOS 只在上游下载。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](../KB/self-hosted-release-storage.md)。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
 
 ## Windows 分卷下载与合并
 
