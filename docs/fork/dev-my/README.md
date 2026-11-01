@@ -4,7 +4,8 @@
 
 跟随官方 `upstream/dev`，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码已同步官方 `dev@e7acf85bb7`，内核基于 V2 2.2.3；保留共享项目历史、独立 Side bar 模式、升级迁移及独立桌面发行补丁。`dev-my` 是桌面应用的唯一维护主线，旧 `sidebar-projects` 仅作历史参考。二进制与源码同步记录见 [releases.md](releases.md)。
+- 源码已同步官方 `dev@69269e4ebe`，内核基于 V2 2.2.5，合并提交 `a7b90e8444`；保留共享项目历史、独立 Side bar 模式、升级迁移及独立桌面发行补丁。`dev-my` 是桌面应用的唯一维护主线，旧 `sidebar-projects` 仅作历史参考。二进制与源码同步记录见 [releases.md](releases.md)。
+- 本轮准备 Windows `2.2.5-dev-my.1`：修复重连后深层子智能体无法关联顶层会话的忙碌状态，增加项目整组收起与展开。动画静止已确认是本机关闭系统动画且应用跟随系统的结果，应用内关闭“减少动态效果”即可允许动画；继续尊重官方动态效果偏好。
 - 最新 Windows x64 测试版：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，构建源码 `9506fb6d69`；补齐 Side bar 29 个简体中文词条，相关键 31/31。自动检查和实际安装包核验通过，新版本尚未人工验收；旧 `.4` 发行资产按保留策略清理，源码标签及其历史人工验收记录保留。
 - 当前稳定 Latest：[v2.2.3-dev-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)，构建源码 `393c371b65`；含 Windows x64 与 Ubuntu amd64/arm64。被替代的历史 GitHub Release 与安装包按策略清理，源码标签保留，详情见 [发行记录](releases.md#历史发行清理2026-10-31)。
 - 最新 Linux amd64/arm64 测试版：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，Ubuntu 24.04 基线，源码 `31d67160e0`；提供 AppImage/deb，包含独立 Side bar 与标题方向修复。两架构 CLI/目录/迁移冒烟和实际安装包校验通过，Linux GUI 未进行本轮人工验收。
@@ -33,7 +34,7 @@
 
 Running sessions 独立展示运行任务，包含项目、所在工作目录的当前分支和紧凑运行时长。Recent sessions 与首页共享项目/会话历史，默认按最近操作排序；显式设置的排序继续生效。
 
-Recent sessions 默认使用 By project 分组，已有偏好优先。按项目分组默认显示 5 条，超出可展开；分组数量使用紧凑最近/总数表示，hint 展示更完整信息，线程 hint 包含可获得的最近运行时间。关闭侧栏条目只隐藏，不删除历史；搜索仍可找到，重新打开后恢复。真正删除会话需走删除操作。
+Recent sessions 默认使用 By project 分组，已有偏好优先。按项目分组默认显示 5 条，超出可展开；项目标题可将整个分组收起为标题行，选择按服务器与规范化项目路径持久化，与原有 More/Show less 状态独立。普通 List 不受收起状态影响，Running sessions 始终保留；标题 `+` 新建时展开该项目。分组数量使用紧凑最近/总数表示，hint 展示更完整信息，线程 hint 包含可获得的最近运行时间。关闭侧栏条目只隐藏，不删除历史；搜索仍可找到，重新打开后恢复。真正删除会话需走删除操作。
 
 旧 Side tabs PR #60446 已关闭，由独立模式的 [Draft PR #60867](https://github.com/anomalyco/opencode/pull/60867) 替代，目标为官方 dev，设计审核仍待完成。贡献分支为 sidebar-mode；本地需求继续在 dev-my 推进。特性设计、需求检索与测试邀请见 [Side bar 独立模式](sidebar-mode.md)。
 
