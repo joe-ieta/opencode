@@ -2,7 +2,7 @@
 
 核对日期：2026-11-02（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
-> 当前仓库的远端/上游关系以顶层约束为准：`origin` 为 Gitee 镜像，`upstream` 为 GitHub fork。本文的官方链接与 PR 状态仅作历史记录，不再作为同步、比较或 PR 目标。
+> 当前仓库关系以顶层 [AGENTS.md](../../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
 维护约束：此次更新既有 PR 来自用户明确指示；后续 Side bar 开发只在 `dev-my`，不再并行维护贡献分支。不再发送测试邀请，下文邀请链接仅记录此前已发生的上游交互。
 
@@ -10,7 +10,7 @@
 
 - 当前测试版为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，源码 `3777b783c5`；Windows x64 与 Linux amd64/arm64 安装包均已公开并完成远端摘要/下载核验。包含下文的整组收起、后代状态与标题方向修复，详见 [发行记录](releases.md)。
 
-- Windows 提供 GitHub 完整安装包和 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)，既有中文词条 31/31 保留，详见 [翻译核对](sidebar-zh.md)。此前 Windows 测试包由用户确认手工测试通过；本次新包自动检查与包内容核验通过，尚未安装后人工验收。
+- Windows 提供 GitHub 完整安装包，既有中文词条 31/31 保留，详见 [翻译核对](sidebar-zh.md)。此前 Windows 测试包由用户确认手工测试通过；本次新包自动检查与包内容核验通过，尚未安装后人工验收。
 
 - Linux 两架构的 AppImage/deb 使用同一源码 `3777b783c5`、Ubuntu 24.04 基线构建，均通过 CLI、目录、迁移和实际安装包核验；Linux 与原生 ARM64 GUI 尚未人工验收。
 
@@ -76,4 +76,4 @@
 - [原需求更新](https://github.com/anomalyco/opencode/issues/60241#issuecomment-6542697449)与[项目分组需求帖测试入口](https://github.com/anomalyco/opencode/issues/55446#issuecomment-6542697849)：公开邀请更多关注该功能的人员参与。
 - 反馈建议包含 OS、准确构建/提交、模式、预期/实际行为和复现步骤，重点测试多项目/worktree、同名路径、四模式切换、未打开的运行/等待会话、子会话、隐藏后重新打开及重载后的排序。
 
-新的 [v2.2.5-dev-my.2 测试版](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 已公开 Windows x64 与同源码 Linux amd64/arm64 安装包，全部远端摘要与公开下载入口已核验；Windows 另提供 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)。后续优化只进入 `dev-my`；`sidebar-mode` 的远端引用保留以维持现有 PR，不再作为开发或发行分支。
+新的 [v2.2.5-dev-my.2 测试版](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 已公开 Windows x64 与同源码 Linux amd64/arm64 安装包，全部远端摘要与公开下载入口已核验。后续优化只进入 `dev-my`；`sidebar-mode` 的远端引用保留以维持现有 PR，不再作为开发或发行分支。

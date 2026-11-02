@@ -15,7 +15,7 @@
 | 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml` |
 | 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                |
 | 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                           |
-| 发布形态 | upstream GitHub Release 含全部平台；Gitee Release 仅含 Windows 分卷和 Windows 清单，单卷小于 100 MB |
+| 发布形态 | 本仓库 GitHub Release 保存全部平台完整安装包与更新清单 |
 | 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                        |
 
 ### 1.2 功能需求
@@ -118,7 +118,7 @@ bun install --frozen-lockfile --cpu=*
 
 1. 确认 WSL2 可用：`wsl --status`、`wsl -l -v`。
 2. 安装 GitHub CLI 并登录：`gh auth status`。
-3. 配置 Git 身份；确认 `origin`（Gitee 源码镜像）和 `upstream`（GitHub 发布仓库）的推送方式。
+3. 配置 Git 身份；确认 `origin` 指向本仓库 GitHub，`upstream` 指向官方 GitHub；源码、标签与发布物只发布到 `origin`。
 4. 确保系统盘有足够空间；WSL VHDX 建议放到数据盘。
 
 本机 GitHub 推送使用临时凭据 helper，不写入全局配置：
@@ -255,7 +255,7 @@ curl -fsSI https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux
 ### 4.6 克隆与检查
 
 ```bash
-git clone --branch dev-my https://gitee.com/ieta/opencode-my.git ~/opencode-my
+git clone --branch dev-my https://github.com/joe-ieta/opencode.git ~/opencode-my
 cd ~/opencode-my
 git config user.name frank
 git config user.email 48937772+joe-ieta@users.noreply.github.com
@@ -350,7 +350,7 @@ Windows 和 Linux 在不同文件系统构建，需要把 Linux 产物复制到 
 ### 6.4 发布后
 
 - [ ] GitHub Release 的 10 个资产大小与 SHA256 和本地一致。
-- [ ] GitHub Release 含全部平台；Gitee Release 只含 Windows 分卷和 Windows 清单。
+- [ ] 本仓库 GitHub Release 包含全部平台完整安装包及对应更新清单。
 - [ ] `draft=false`、`prerelease=false`，Latest 指向预期版本。
 - [ ] 公开下载 `latest-linux-arm64.yml` 和至少一个安装包成功。
 
@@ -360,10 +360,8 @@ Windows 和 Linux 在不同文件系统构建，需要把 Linux 产物复制到 
 # 1. 用 build.json 的源码提交打标签；标签对象指向构建来源
 git tag -a v<version> <build.json commit> -m 'OpenCode My <version>'
 git push origin dev-my
-git push upstream dev-my
 git push origin refs/tags/v<version>
-git push upstream refs/tags/v<version>
-# upstream 保存全部平台完整资产；Gitee 只保存 Windows 分卷和源码/标签
+# origin（本仓库 GitHub）保存源码、标签与全部平台完整资产
 
 # 2. 创建 draft，上传全部 10 个资产
 gh release create v<version> <assets...> --repo joe-ieta/opencode --verify-tag --draft `
@@ -377,45 +375,13 @@ gh release edit v<version> --repo joe-ieta/opencode --draft=false --prerelease=f
 git add FORK.md docs/fork/dev-my docs/fork/maintenance.md
 git commit -m 'docs: record <version> release'
 
-# 5. Gitee Windows-only Release
-# 只上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
-# 不上传 Linux/macOS 资产
 ```
 
 标签不可变。发现构建问题时创建新的 `.N` 迭代，不覆盖已发布标签或资产。
 
-### 7.1 Gitee Windows 分卷发布
+### 7.1 下载与更新源
 
-Gitee 免费版单个附件上限 100 MB、单仓库附件总容量 1 GB。Gitee 只保存 Windows 发布物，安装包按 95 MB 左右切分，确保每个分卷小于 100 MB：
-
-```powershell
-$src = "opencode-desktop-win-x64.exe"
-$partSize = 99614720
-$buf = New-Object byte[] (1048576)
-$i = 1
-$in = [System.IO.File]::OpenRead((Resolve-Path $src))
-while ($in.Position -lt $in.Length) {
-  $out = [System.IO.File]::Create("$src.part$i")
-  $left = [Math]::Min($partSize, $in.Length - $in.Position)
-  while ($left -gt 0) {
-    $n = $in.Read($buf, 0, [Math]::Min($buf.Length, $left))
-    $out.Write($buf, 0, $n)
-    $left -= $n
-  }
-  $out.Dispose()
-  $i++
-}
-$in.Dispose()
-```
-
-发布规则：
-
-- Gitee Release 只上传 Windows 的 `part1`–`part3`、`latest.yml`、`SHA256SUMS`、`build.json` 和 `WINDOWS-README.txt`。
-- 不上传 Linux/macOS 安装包，也不上传 `latest-linux*.yml`。
-- 公开的 Windows 下载链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
-- Linux/macOS 下载链接使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`。
-- 合并命令和 SHA256 记录见 [dev-my 发行记录](../dev-my/releases.md#windows-分卷下载与合并)。
-- 需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](self-hosted-release-storage.md)。
+全部平台直接下载本仓库 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整安装包。更新清单与安装包置于同一不可变标签，不再切分 Windows 安装包或维护额外镜像。顶层远端及维护分支约束见 [AGENTS.md](../../../AGENTS.md)。
 
 ## 8. 经验与坑
 

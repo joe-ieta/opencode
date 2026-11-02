@@ -1,7 +1,7 @@
 # 自建发布物存储 KB
 
-> 适用场景：Gitee 不提供大文件存储，需要为 OpenCode My 的 Windows/Linux/macOS 发布物提供独立下载源。  
-> 状态：设计草案，尚未接入当前发布脚本。当前仍由 Gitee 保存 Windows 分卷，GitHub upstream 保存完整资产。  
+> 适用场景：未来需要为 OpenCode My 的 Windows/Linux/macOS 发布物提供独立下载源时参考。
+> 状态：设计草案，尚未接入当前发布脚本。当前只使用本仓库 GitHub Release 保存全部平台完整资产；本文不改变顶层仓库约束。
 > 目标：单项目、低维护、可公开下载、可选作为 Electron 更新源。
 
 ## 1. 结论
@@ -20,7 +20,6 @@
 
 - 不开放匿名 HTTP 上传，也不让 Web 根目录可写。
 - 不用“覆盖已发布 tag”的方式修复发布物；出问题就发新的 `.N`。
-- 不把 Gitee 当大文件仓库；Gitee 继续只保存 Windows 分卷或说明页。
 - 不把认证令牌、私钥或构建凭据放进发布目录。
 
 ## 2. 架构
@@ -37,7 +36,7 @@
   ▼
 Caddy（自动 HTTPS）→ https://dl.example.com/releases/<tag>/...
   │
-  ├─ Gitee / GitHub Release 说明页放下载链接
+  ├─ GitHub Release 说明页放下载链接
   └─ 可选：public/latest/windows/ 作为 Electron 更新源
 ```
 
@@ -229,7 +228,7 @@ SHA256SUMS：
 https://dl.example.com/releases/v2.2.3-dev-my.6/SHA256SUMS
 ```
 
-Gitee 继续保存 Windows 分卷，Gitee 和 GitHub Release 说明页都指向自建地址。这样即使 Gitee 附件受限，Windows 用户仍可从自建服务器下载完整安装包。
+未来若接入独立存储，可在本仓库 GitHub Release 说明页附完整安装包地址；当前仍统一使用 GitHub Release。
 
 ### 7.1 自动更新
 
@@ -255,7 +254,7 @@ process.env.OPENCODE_DESKTOP_UPDATE_URL =
   `https://github.com/joe-ieta/opencode/releases/download/${tag}/`
 ```
 
-在未修改发布脚本前，建议只把自建服务器用于手动下载，GitHub 继续负责自动更新。分卷文件只用于 Gitee 手动下载，不进入更新链路。
+在未修改发布脚本前，建议只把自建服务器用于手动下载，GitHub 继续负责自动更新。所有安装包保持完整文件，不使用分卷。
 
 ### 7.2 发布前检查
 
@@ -319,5 +318,5 @@ MinIO 的代价是多一个常驻服务、控制台暴露面、凭据管理和�
 - [ ] 首个版本上传后，公开下载和 Range 请求通过。
 - [ ] `releases/*` 长缓存、`latest/*` 不缓存。
 - [ ] 备份任务和磁盘告警已配置。
-- [ ] 发行记录、README、Gitee/GitHub Release 说明已更新下载地址。
+- [ ] 发行记录、README、GitHub Release 说明已更新下载地址。
 - [ ] 明确是否启用自建自动更新源；未启用时继续使用 GitHub。

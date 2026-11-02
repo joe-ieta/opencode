@@ -2,7 +2,7 @@
 
 总体历史快照：2026-10-31（Asia/Shanghai）；#60867 单独更新于 2026-11-02，其他条目未在本轮重新查询。历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
 
-> 当前仓库的远端/上游关系以顶层约束为准：`origin` 为 Gitee 镜像，`upstream` 为 GitHub fork。本文的官方条目仅作历史记录，不再作为同步、比较或 PR 目标。
+> 当前仓库关系以顶层 [AGENTS.md](../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
 ## 当前 PR
 

@@ -1,17 +1,14 @@
-## Repository Relationship
+## Repository Constraints (highest priority within this repository)
 
-- Remote (`origin`, Gitee): https://gitee.com/ieta/opencode-my
-- Upstream (`upstream`, GitHub fork): https://github.com/joe-ieta/opencode
-- The local user has write access to both repositories. They are separate targets, not interchangeable:
-  - `origin` is the Gitee mirror: use it for daily fetch/push, `origin/dev-my` tracking, and Gitee's Windows-only release assets.
-  - `upstream` is the GitHub fork: use it for fork branches, synchronization, diffs, pull requests, and non-Windows release assets.
-  - `git push origin dev-my` writes only Gitee. `git push upstream dev-my` writes only the GitHub fork. Never assume one push updates the other.
-  - `origin/dev-my` and `upstream/dev-my` are different remote-tracking branches even when they point at the same commit. Before pushing, confirm the target with `git remote -v`, `git branch -vv`, and the explicit remote name.
-  - Keep any configured push URL for `origin` pointed at Gitee; do not add a GitHub push URL under `origin`.
-- Release assets: Gitee Releases host Windows artifacts only, split into parts below the 100 MB attachment limit. Linux/macOS artifacts and downloads point to the upstream GitHub Releases. Do not upload non-Windows release assets to Gitee.
-- This project does not directly interact with the official repository at https://github.com/anomalyco/opencode. Do not add it as a remote, fetch from it, push to it, compare against it, or open pull requests against it from this repository.
-- Use the fork above as the upstream for branches, synchronization, diffs, and pull requests. Official issue, pull request, release, and documentation links that remain in preserved upstream text or historical records are references only, not remotes or contribution targets.
-- The maintained branch is `dev-my`. Base branches and worktrees on `origin/dev-my` (Gitee); target PRs at the `dev-my` branch on `upstream` (GitHub fork); diff against `origin/dev-my` unless told otherwise.
+- Repository: https://github.com/joe-ieta/opencode. `origin` fetch and push must use this GitHub repository only (`git@github.com:joe-ieta/opencode.git`).
+- Official upstream: https://github.com/anomalyco/opencode. `upstream` must use the official GitHub repository (`git@github.com:anomalyco/opencode.git`); it is the source for official synchronization and upstream contributions.
+- These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes. Gitee configuration and workflows are retired: do not configure a Gitee remote, mirror or push URL, publish assets there, or restore the former GitHub-fork-as-upstream mapping.
+- Publish source, tags, and release assets to `origin` (GitHub) only. All platforms use https://github.com/joe-ieta/opencode/releases; the official `upstream` is not a fork release destination.
+- Maintain exactly three long-lived branches: `dev-my` (V2 desktop), `oc-headless` (V2 headless), and `qt-headless` (V1 headless). Track the same-named `origin` branches. Keep their code, builds, and release histories separate.
+- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`, and `qt-headless` from `upstream/v1`, preserving local patches with merges.
+- For a scoped official contribution, base a temporary branch on the corresponding official upstream branch and target that branch in the official repository. Do not mix fork branding, release tooling, or unrelated patches into the contribution.
+- Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. Do not delete official upstream branches. A default-branch change also needs explicit confirmation.
+- Historical Gitee release records are provenance only and never current configuration or publishing instructions. Do not delete remote repositories or existing release assets as part of retiring the configuration.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.

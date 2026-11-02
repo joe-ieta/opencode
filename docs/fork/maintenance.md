@@ -6,8 +6,8 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
-- 发布物：upstream GitHub 保存全部平台的完整资产；Gitee Release 只上传 Windows 分卷安装包和 Windows 清单，单个分卷必须小于 100 MB。Linux/macOS 不向 Gitee 上传，统一链接 upstream。
+- `origin`：`git@github.com:joe-ieta/opencode.git`（本仓库唯一发布远端）；`upstream`：`git@github.com:anomalyco/opencode.git`（官方上游）。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
+- 源码、标签及全部平台发布物只发布到 `origin` 的 GitHub；Windows 使用完整安装包，停用 Gitee 与分卷发布流程。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -42,11 +42,11 @@ gh pr view 60446 --repo anomalyco/opencode --json state,isDraft,mergeable,review
 gh issue view 60241 --repo anomalyco/opencode --comments
 ```
 
-以上命令只查阅历史官方 PR 记录，用于维护追踪表；它们不是本项目的 remote、同步源或 PR 目标。日常分支、同步、比较和 PR 只使用上游 fork。
+以上命令查阅官方上游贡献记录；官方仓库为 `upstream`，本仓库为 `origin`，不得混用。
 
 每次交互后更新 [PR 跟踪](upstream-prs.md)，必要时更新 [FORK.md](../../FORK.md)的状态快照。官方设计批准、机器人回复、测试成功、实际合并要分别记录；不要把一个状态推断成另一个。
 
-新 V2 贡献从上游 fork 的对应分支起短名称分支，使用 conventional commit，并向 fork 提交 PR。保持 fork 文档、品牌和发行脚本不混入无关 PR；不直接向官方仓库提交 PR。
+新 V2 官方贡献从 `upstream/dev` 起临时短名称分支，使用 conventional commit，PR 目标为官方 `dev`；V1 使用 `upstream/v1`。本仓库维护分别基于三条 `origin` 同名分支。保持 fork 文档、品牌和发行脚本不混入无关官方 PR。临时分支与关联 worktree 的清理须先列出并经用户确认。
 
 ## 3. 同步三条发行线
 
@@ -54,12 +54,15 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 
 桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从 GitHub/Gitee 删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
+
+2026-11-02 按用户确认核对并清理旧 Side tabs 分支：本地 `sidetab-overview@bb2f2669e9`、`sidetab-update@1f20601184` 及 GitHub `origin/sidetab-overview@1f20601184` 已删除；远端原本没有 `sidetab-update`。旧提交不是 `dev-my` 的直接祖先，但项目分组、共享历史、运行会话、新建入口、分支/工作树提示及子会话过滤已通过原维护提交和 `8a63200923` 吸收，随后 `0b82c40bff` 将其迁入独立 Side bar。旧提交保存在本地 `refs/archive/2026-11-02/heads/sidetab-overview` 和 `refs/archive/2026-11-02/heads/sidetab-update`；关联 `.cache/sidetab-pr` 工作树已转为 detached，文件保留。开放 PR 来源 `home-project-list`（#60570）、`sidebar-mode`（#60867）、`upstream-migration`（#56929）继续保留，其余候选分支本次未处理。
+
 在该分支的干净工作区中：
 
 ```powershell
 git switch dev-my
 git merge --ff-only origin/dev-my
-git merge upstream/dev-my
+git merge upstream/dev
 bun install --frozen-lockfile
 bun run check
 ```
@@ -83,7 +86,7 @@ bun run oc:build --skip-install --skip-typecheck
 bun run oc:smoke
 ```
 
-`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 GitHub 发布。
+V2 跟踪官方 `upstream/dev`。`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 GitHub 发布。
 
 V2 使用最小差异守卫，保留包结构，通过 `--skip-web-ui` 生成 headless 单二进制；避免误套 V1 包删除清单。公开协议变化后先按仓库要求从 `packages/client` 运行 `bun run generate`，不得手改生成客户端。API 契约基线更新必须审阅差异，不能为了让检查通过盲目 `--update`。
 
@@ -99,7 +102,7 @@ bun run qtoc:trim
 bun run qtoc:build --skip-install --skip-typecheck
 ```
 
-跟踪源固定为上游 fork 的 `qt-headless` 分支。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
+跟踪源固定为官方 `upstream/v1`。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 
@@ -158,19 +161,14 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```powershell
 git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
-git push upstream dev-my
 git push origin refs/tags/v2.2.3-dev-my.3
-git push upstream refs/tags/v2.2.3-dev-my.3
 gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
 gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 
-# 5. Gitee Windows-only Release
-# 用 Gitee Release 页面/API 上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
-# 不上传 Linux/macOS 资产；分卷步骤见发布环境 KB
 ```
 
-`gh release create` 只对 upstream GitHub 执行；Gitee Release 另行创建，只上传 Windows 分卷和 Windows 清单。Linux/macOS 不向 Gitee 上传，下载链接使用 upstream GitHub。公开的 Windows 分卷链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
+`gh release create` 只对本仓库 `joe-ieta/opencode` 执行，全部平台安装包及更新清单统一使用本仓库 GitHub Release。不要向官方 `upstream` 推送 fork 发行提交、标签或发布物。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 
@@ -196,7 +194,7 @@ gh run view <run-id> --repo joe-ieta/opencode
 
 ## 7. 标签和文档维护约定
 
-桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。Gitee 只保留当前稳定版和最新 Windows 测试版的分卷；替换后删除旧 Windows 分卷。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 

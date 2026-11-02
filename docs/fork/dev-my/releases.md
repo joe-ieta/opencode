@@ -1,37 +1,19 @@
 # dev-my 发行与源码同步记录
 
-二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整资产为准。upstream GitHub 保存全部平台；Gitee Release 只保存 Windows 分卷安装包和 Windows 清单（单卷小于 100 MB），Linux/macOS 不向 Gitee 上传，统一链接 upstream。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
+二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整资产为准。自 2026-11-02 起，所有平台仅使用本仓库 GitHub 的完整安装包与更新清单；旧镜像和分卷流程已停用。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
 ## 当前下载
 
 | 通道         | 版本              | 平台                            | 下载                                                                                              |
 | ------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
+| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
 | 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)                        |
-| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
+| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
 | Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)                        |
 
-Windows 分卷包含 `part1`、`part2`、`part3`、`SHA256SUMS`、独立 SHA256 文件和 `WINDOWS-README.txt`；Linux/macOS 只在上游下载。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](../KB/self-hosted-release-storage.md)。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
+全部平台使用上表的 GitHub 完整安装包。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
 
-## Windows 分卷下载与合并
-
-Gitee Release 仅托管 Windows 分卷。合并（Windows 命令提示符，在下载目录执行）：
-
-```bat
-copy /b opencode-desktop-win-x64.exe.part1+opencode-desktop-win-x64.exe.part2+opencode-desktop-win-x64.exe.part3 opencode-desktop-win-x64.exe
-```
-
-合并后校验：
-
-```powershell
-Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
-```
-
-| 版本              | Gitee Release                                                              | 完整安装包 SHA256                                                |
-| ----------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `v2.2.5-dev-my.2` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) | `e664ea654fa54e781595626318c45bdfed60d299d80100a39f3ddf3c8734e304` |
-| `v2.2.3-dev-my.3` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) | `44a32f97461eea5e76f01199fc5022a4628b5557837bc8daeab413c6eb5c9f84` |
-| `v2.2.3-dev-my.6` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6) | `ae83752b76955f50406c225f178aefe98427ca784d89a6fbeb4ef3fec258ce26` |
+> 以下为历史发行事实。出现的旧 Gitee、分卷及远端名称只用于来源追溯，不是当前配置或发布步骤；以顶层 [AGENTS.md](../../../AGENTS.md) 为准。
 
 ## v2.2.5-dev-my.2 Windows / Linux 测试预发行
 
