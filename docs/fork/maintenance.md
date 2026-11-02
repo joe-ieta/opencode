@@ -52,7 +52,7 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。独立 Side bar 的贡献稿 #60867 保留在 `sidebar-mode` 作为历史记录；旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从 GitHub/Gitee 删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
 在该分支的干净工作区中：
 

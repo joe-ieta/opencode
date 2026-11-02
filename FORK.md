@@ -10,13 +10,13 @@
 
 本项目独立维护三个发行分支：V2 桌面应用、V2 headless 内核、V1 headless 内核。Qt 客户端消费内核协议，桌面应用沿用 OpenCode 的 Electron 架构。
 
-> 桌面维护状态：2026-11-01；PR 历史快照：2026-10-31；其他分支快照：2026-10-30（Asia/Shanghai）。状态会变化；更新时按 [维护方法](docs/fork/maintenance.md)重新查询，不把本页快照当成实时状态。
+> 桌面维护与 #60867 状态：2026-11-02；其他 PR 历史快照：2026-10-31；其他分支快照：2026-10-30（Asia/Shanghai）。状态会变化；更新时按 [维护方法](docs/fork/maintenance.md)重新查询，不把本页快照当成实时状态。
 
 ## 三个维护分支
 
 | 分支                                           | 定位与跟踪源                                                           | 当前进度                                                                                                                                                         |
 | ---------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，跟随上游 `dev-my`，发行 OpenCode My                  | 已吸收上游 V2 2.2.5（官方 `dev@69269e4ebe`），Windows `2.2.5-dev-my.1` 测试包已构建并保留为发行草稿；当前公开 Windows `.6`、Linux `.5`、稳定 Latest `.3` 均基于 2.2.3；独立 Side bar 贡献稿 #60867 单独维护 |
+| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，发行 OpenCode My | 已同步 V2 2.2.5 `dev@ff90ed9160`；`2.2.5-dev-my.2` 三目标已构建核验，Windows Gitee 测试版已公开，GitHub 完整资产上传中。#60867 已更新，来源分支仅冻结保留 PR 引用 |
 | [oc-headless](docs/fork/oc-headless/README.md) | 跟随上游 `oc-headless`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入  | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成                      |
 | [qt-headless](docs/fork/qt-headless/README.md) | 跟随上游 `qt-headless`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                                               |
 
@@ -36,7 +36,7 @@
 | [#60496](https://github.com/anomalyco/opencode/pull/60496) 自定义模型未知发布日期 | **MERGED**，2026-10-30；上游合并提交 `986221af346f` | 已随本次上游同步吸收最终实现与回归测试；后续不重复移植本地修复             |
 | [#56929](https://github.com/anomalyco/opencode/pull/56929) V1 迁移清理批次提交    | **OPEN**，非 Draft；曾关闭，核对时已重新打开        | 继续跟踪审核；发行分支保留本地有效实现                                     |
 | [#60084](https://github.com/anomalyco/opencode/pull/60084) 单向 V1 升级确认       | **CLOSED / Draft**，未合并，2026-10-30              | 本地发行继续保留；关闭不表示已被上游接纳                                   |
-| [#60867](https://github.com/anomalyco/opencode/pull/60867) 独立 Side bar 模式     | **OPEN / Draft**，head `a18285fedb`；历史贡献稿     | 等待上游设计审核；dev-my 为维护主线，sidebar-mode 仅作历史参考             |
+| [#60867](https://github.com/anomalyco/opencode/pull/60867) 独立 Side bar 模式     | **OPEN / Draft**，head `b88b94a75d`，基线 `ff90ed9160` | 本次按用户明确要求同步项目收起、后代活动及 RTL 修复；开发统一 dev-my，本地来源分支已删除，远端仅冻结保留 PR 引用 |
 | [#60446](https://github.com/anomalyco/opencode/pull/60446) 原 Side tabs 概览      | **CLOSED**，未合并，2026-10-31                      | 由 #60867 替代，原设计和分支保留作历史参考                                 |
 
 完整 Issue、历史 PR、设计建议和补丁去留规则见 [上游跟踪](docs/fork/upstream-prs.md)。表中的官方 Issue/PR 链接是历史记录；日常开发、同步、比较和 PR 以上述 fork 为上游，不再直接连接官方仓库。三条发行线通过 merge 吸收各自上游，保留已发布历史。

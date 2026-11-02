@@ -12,9 +12,9 @@
 
 自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`，Windows 稳定版分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)，Linux 测试版 [v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5) 走上游 GitHub。
 
-Windows 最新公开测试版 [v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6) 补齐 Side bar 的 29 个简体中文词条，[翻译核对记录](docs/fork/dev-my/sidebar-zh.md)，分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6)。旧 Windows `.4` 安装包已按保留策略清理，源码标签保留。
+Windows 最新测试版 `v2.2.5-dev-my.2` 已提供 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)，八个附件的公开下载内容与本地哈希一致。GitHub 完整包与同源码 Linux amd64/arm64 AppImage/deb 正在上传发行草稿；详情见 [发行记录](docs/fork/dev-my/releases.md)。
 
-`dev-my` 已吸收上游 V2 2.2.5（官方 `dev@69269e4ebe`），Windows `2.2.5-dev-my.1` 测试包已构建并保留为未公开的[发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d)，包含深层子智能体状态修复、项目整组收起及状态持久化；现有公开发行继续保留。[验证与构建记录](docs/fork/dev-my/releases.md)。
+`dev-my` 已吸收上游 V2 2.2.5 `dev@ff90ed9160`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`；[#60867](https://github.com/anomalyco/opencode/pull/60867) 已同步最终修改，远端 `sidebar-mode` 仅冻结保留 PR 引用，本地分支及两端旧 `sidebar-projects` 已收口。测试版标签固定在 `3777b783c5`，不包含并行任务后来提交的 Session activity / goal state 工作。[验证与构建记录](docs/fork/dev-my/releases.md)。
 
 ## 项目定位
 
@@ -32,7 +32,7 @@ OpenCode My 是 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 的维
 - 编程、工具调用、子智能体、MCP 等核心能力随上游更新，不在 fork 中另起一套内核。
 - 桌面使用独立的 GUI 身份和本 fork 的更新源；后台仍沿用 OpenCode `dev` 渠道的服务、配置和历史约定。
 - 日常同步、比较和 PR 均以上述 fork 为上游，不直接连接官方仓库。
-- 当前发行以 Windows x64 为主，Linux x64 提供 AppImage/deb；macOS 尚未提供本 fork 的构建验证。
+- 当前发行包含 Windows x64 与 Linux x64/arm64 AppImage/deb；macOS 尚未提供本 fork 的构建验证。
 - 维护分支、同步方法和发行记录见 [FORK.md](FORK.md) 与 [docs/fork](docs/fork/README.md)。
 
 ## 本地模型支持

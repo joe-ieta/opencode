@@ -1,10 +1,10 @@
 # Side bar 独立模式：设计、需求与上游贡献
 
-核对日期：2026-11-01（Asia/Shanghai）。`dev-my` 继续作为本地桌面维护主线；`sidebar-mode` 曾用于向官方 `dev` 提交纯应用层补丁，现仅作历史贡献记录。本轮同步上游 V2 2.2.5（官方 `dev@69269e4ebe`），不修改贡献分支或 PR。
+核对日期：2026-11-02（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
 > 当前仓库的远端/上游关系以顶层约束为准：`origin` 为 Gitee 镜像，`upstream` 为 GitHub fork。本文的官方链接与 PR 状态仅作历史记录，不再作为同步、比较或 PR 目标。
 
-维护约束：本轮国际化检查与 Linux 发行不修改、新建 PR；本次及后续不再发送测试邀请。下文邀请链接仅记录此前已发生的上游交互。
+维护约束：此次更新既有 PR 来自用户明确指示；后续 Side bar 开发只在 `dev-my`，不再并行维护贡献分支。不再发送测试邀请，下文邀请链接仅记录此前已发生的上游交互。
 
 ## 当前状态
 
@@ -15,7 +15,7 @@
 - Linux 最新测试预发行：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，源码 `31d67160e0`，含 amd64/arm64 AppImage/deb 与本轮标题方向修复；自动验证与包内容核验通过，Linux GUI 尚未人工验收。
 
 - 历史 Windows 人工验收版本：[v2.2.3-dev-my.4 源码](https://github.com/joe-ieta/opencode/tree/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户曾确认人工测试通过；发行资产已由 `.6` 替代并清理。
-- 新上游贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；源码 `a18285fedba11a6f9cba5609d103a7d5f3d3f5b7`，独立更新到官方 `dev@bf544cd419`（2.2.5）。只包含 33 个应用层文件，不包含 fork 品牌、发行工具和内核补丁。
+- 既有贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；最终冻结源码 `b88b94a75d3d517c3bbd417274392e326b7cb1e7`，基线 `dev@ff90ed9160`（2.2.5）。只包含 35 个应用层文件，不包含 fork 品牌、发行工具、内核补丁或并行 Session activity 协议改动。
 - 旧 Side tabs PR [#60446](https://github.com/anomalyco/opencode/pull/60446) 已由作者关闭，顶部保留原说明并链接新 PR；关闭不表示其功能已被上游合并。
 - 新 PR 为 **Draft，等待上游设计评审**。`CONTRIBUTING.md` 要求新界面先获得设计批准；本地人工测试通过、自动检查通过、可合并和设计获批是不同状态。
 - 深浅色截图来自新贡献分支的真实生产组件与合成数据，存放在独立媒体提交 `8eb620976fd0460f2236cbcf3ebce7495a918ddf`，不混入功能 PR。
@@ -70,10 +70,10 @@
 
 ## 验证和历史人工测试记录
 
-- 最新贡献基线：根检查 35/35；应用单元测试 948 项、browser 条件测试 303 项；正式 TypeScript 编译通过；生产构建 Home/标签回归 63/63（五 workers，无重试）。这些是在 `sidebar-mode` 上重新执行的结果，未冒用旧发行记录。
+- 最终冻结贡献：Windows/Linux 根检查各 35/35；应用单元测试 948 项、Linux browser 条件测试 303 项（默认超时）；生产构建 Home/标签回归 67/67（五 workers，无重试）。覆盖项目整组收起与恢复、深层子智能体忙碌状态、RTL 标题及原有排序/布局；结果来自最终贡献源码，未冒用旧发行记录。
 - Windows 的类型声明链接在验证中临时按导入解析，检查后恢复；该平台兼容处理不在 PR 差异中。
 - [新 PR 测试邀请](https://github.com/anomalyco/opencode/pull/60867#issuecomment-6542697109)：集中邀请了在既有讨论中自愿提供人工测试的 `TylonHH`、`zhuzhutai`、`rahbi4-source`。
 - [原需求更新](https://github.com/anomalyco/opencode/issues/60241#issuecomment-6542697449)与[项目分组需求帖测试入口](https://github.com/anomalyco/opencode/issues/55446#issuecomment-6542697849)：公开邀请更多关注该功能的人员参与。
 - 反馈建议包含 OS、准确构建/提交、模式、预期/实际行为和复现步骤，重点测试多项目/worktree、同名路径、四模式切换、未打开的运行/等待会话、子会话、隐藏后重新打开及重载后的排序。
 
-Windows 下载包仍是基于 2.2.3 的 fork 测试预发行；最新贡献分支基于 2.2.5。后续优化先进入 `dev-my`，再按上游评审需要同步到 `sidebar-mode`；不把贡献分支变成本地发行主线。
+新的 Windows `v2.2.5-dev-my.2` 测试版已在 [Gitee](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) 公开；同源码 Linux 两架构安装包已构建核验，GitHub 草稿正在上传。后续优化只进入 `dev-my`；`sidebar-mode` 的远端引用保留以维持现有 PR，不再作为开发或发行分支。
