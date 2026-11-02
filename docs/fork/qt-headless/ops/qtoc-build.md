@@ -72,7 +72,7 @@ bun run qtoc:build
 
 ```bash
 git checkout qt-headless
-bun run qtoc:sync               # = fetch upstream/v1 → merge → 自动解决 modify/delete → trim → install → typecheck
+bun run qtoc:sync               # = fetch origin/v1 → merge → 自动解决 modify/delete → trim → install → typecheck
 bun run qtoc:build              # 构建 + 归档（CI 矩阵亦可）
 ```
 
@@ -81,8 +81,8 @@ bun run qtoc:build              # 构建 + 归档（CI 矩阵亦可）
 等价的底层命令（脚本内部步骤）：
 
 ```bash
-git fetch upstream
-git merge upstream/v1          # 解决冲突，见第 5 节
+git fetch origin
+git merge origin/v1          # 解决冲突，见第 5 节
 bun run qtoc:trim               # 重新应用 headless 裁剪（幂等；模式不匹配会报错）
 bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 ```
@@ -143,7 +143,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qt-headless-v1.18.31.6` | 上游同步 + 文档重组（docs 索引 / qtoc HTTP API 参考 / KB 上游跟踪）                                                                 |
 
 - 二进制内置版本来自构建时的 `Script.version`，`qtoc_core --version` 可查看（当前为 `1.19.5`）。
-- 2026-10-10 起上游 `dev`/`production` 晋升 V2（2.x），本线同步源为 `upstream/v1`（1.19.x）；`qtoc:sync` 默认分支已改为 `v1`。
+- 2026-10-10 起上游 `dev`/`production` 晋升 V2（2.x），本线同步源为 `origin/v1`（1.19.x）；`qtoc:sync` 默认分支已改为 `v1`。
 - 打标签流程：
   ```bash
   git tag -a qt-headless-v1.19.5 -m "opencode headless distribution profile for Qt integration"

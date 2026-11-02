@@ -1,7 +1,7 @@
 # 自建发布物存储 KB
 
 > 适用场景：未来需要为 OpenCode My 的 Windows/Linux/macOS 发布物提供独立下载源时参考。
-> 状态：设计草案，尚未接入当前发布脚本。当前只使用本仓库 GitHub Release 保存全部平台完整资产；本文不改变顶层仓库约束。
+> 状态：设计草案，尚未接入当前发布脚本。当前只使用 origin 的 Releases 保存发布资产；本文不改变顶层仓库约束。
 > 目标：单项目、低维护、可公开下载、可选作为 Electron 更新源。
 
 ## 1. 结论
@@ -36,7 +36,7 @@
   ▼
 Caddy（自动 HTTPS）→ https://dl.example.com/releases/<tag>/...
   │
-  ├─ GitHub Release 说明页放下载链接
+  ├─ origin Release 说明页放下载链接
   └─ 可选：public/latest/windows/ 作为 Electron 更新源
 ```
 
@@ -216,7 +216,7 @@ ssh publish@dl.example.com \
 
 ## 7. 与项目发布流程集成
 
-建议保留 GitHub upstream 作为完整资产的权威来源和默认自动更新源；自建服务器作为 Windows 安装包的主下载或加速镜像。
+建议保留 origin Releases 作为完整资产的权威来源和默认自动更新源；自建服务器作为 Windows 安装包的主下载或加速镜像。
 
 发行记录中可以增加：
 
@@ -228,7 +228,7 @@ SHA256SUMS：
 https://dl.example.com/releases/v2.2.3-dev-my.6/SHA256SUMS
 ```
 
-未来若接入独立存储，可在本仓库 GitHub Release 说明页附完整安装包地址；当前仍统一使用 GitHub Release。
+未来若接入独立存储，可在 origin Release 说明页附完整安装包地址；当前仍统一使用 origin Releases。
 
 ### 7.1 自动更新
 
@@ -246,15 +246,15 @@ Electron 自动更新需要 **完整安装包** 和 `latest.yml` 位于同一目
 https://dl.example.com/latest/windows/
 ```
 
-当前 `packages/desktop/script/release-my.ts` 把 `OPENCODE_DESKTOP_UPDATE_URL` 固定为 GitHub 地址。要启用自建更新源，应增加显式配置，例如：
+当前 `packages/desktop/script/release-my.ts` 把 `OPENCODE_DESKTOP_UPDATE_URL` 固定为 origin 的发布地址。要启用自建更新源，应增加显式配置，例如：
 
 ```ts
 process.env.OPENCODE_DESKTOP_UPDATE_URL =
   process.env.OPENCODE_DESKTOP_UPDATE_URL ??
-  `https://github.com/joe-ieta/opencode/releases/download/${tag}/`
+  `https://<origin-host>/<owner>/<repo>/releases/download/${tag}/`
 ```
 
-在未修改发布脚本前，建议只把自建服务器用于手动下载，GitHub 继续负责自动更新。所有安装包保持完整文件，不使用分卷。
+在未修改发布脚本前，建议只把自建服务器用于手动下载，origin 继续负责自动更新。所有安装包保持完整文件，不使用分卷。
 
 ### 7.2 发布前检查
 
@@ -280,7 +280,7 @@ process.env.OPENCODE_DESKTOP_UPDATE_URL =
 - 发布目录按版本隔离，文件名固定，避免路径穿越和符号链接。
 - 定期检查磁盘、Caddy 进程和 HTTP 状态；Caddy 日志已按大小轮转。
 - 用 `restic`、`rsync` 或对象存储把 `public/` 备份到另一块盘或另一台机器。
-- 发布物未签名；如果后续需要供应链校验，可增加 SHA256SUMS、cosign 或 GitHub Attestations，但这不替代 TLS 和主机安全。
+- 发布物未签名；如果后续需要供应链校验，可增加 SHA256SUMS、cosign 或平台提供的构建证明，但这不替代 TLS 和主机安全。
 
 ## 10. 可选：MinIO
 
@@ -318,5 +318,5 @@ MinIO 的代价是多一个常驻服务、控制台暴露面、凭据管理和�
 - [ ] 首个版本上传后，公开下载和 Range 请求通过。
 - [ ] `releases/*` 长缓存、`latest/*` 不缓存。
 - [ ] 备份任务和磁盘告警已配置。
-- [ ] 发行记录、README、GitHub Release 说明已更新下载地址。
-- [ ] 明确是否启用自建自动更新源；未启用时继续使用 GitHub。
+- [ ] 发行记录、README、origin Release 说明已更新下载地址。
+- [ ] 明确是否启用自建自动更新源；未启用时继续使用 origin Releases。

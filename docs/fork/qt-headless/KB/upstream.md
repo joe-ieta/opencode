@@ -9,11 +9,11 @@
 
 | 项目           | 值                                                                                                                 |
 | -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 上游仓库       | https://github.com/anomalyco/opencode （remote `upstream`）                                                        |
-| 本仓库（fork） | https://github.com/joe-ieta/opencode （remote `origin`）                                                           |
+| 上游仓库       | 按项目定义从 `origin` 的官方分支获取（V1 `v1`）；不配置 `upstream` remote                                          |
+| 本仓库（fork） | 唯一远端 `origin`，地址见 `.git/config`                                                                            |
 | 跟踪分支       | `qt-headless`                                                                                                      |
 | 同步工具       | `bun run qtoc:sync`（见 [../ops/qtoc-build.md](../ops/qtoc-build.md) 第 4 节）                                     |
-| 上游同步源     | `upstream/v1`（V1 维护线，1.19.x）；`upstream/dev` 于 2026-10-10 晋升 V2/2.x（无 `packages/opencode`），本线不同步 |
+| 上游同步源     | `origin/v1`（V1 维护线，1.19.x）；`origin/dev` 于 2026-10-10 晋升 V2/2.x（无 `packages/opencode`），本线不同步；origin 缺少 `v1` 时先报告缺口 |
 | 当前内核版本   | `1.19.5`（channel `qt-headless`；上游 2026-10-29 同步）                                                            |
 
 ## 上游政策备忘
@@ -23,7 +23,7 @@
 - **机器人检查**：`check-standards`、`check-compliance`、`check-duplicates`、`add-contributor-label`。
 - 首次贡献者的 `test` / `typecheck` 工作流可能需要维护者批准后才运行。
 - `mergeStateStatus: BLOCKED` 且无 reviewDecision 属于"等待维护者 review"的正常状态。
-- **分支策略（2026-10-10 起）**：`dev`/`production` 已晋升 V2（2.x，包结构重构，无 `packages/opencode`）；V1 线由 `v1` 分支维护（1.19.x）。本发行线同步源切换为 `upstream/v1`；V2 适配与补丁迁移由其他线程推进（见「本地 delta」）。
+- **分支策略（2026-10-10 起）**：`dev`/`production` 已晋升 V2（2.x，包结构重构，无 `packages/opencode`）；V1 线由 `v1` 分支维护（1.19.x）。本发行线同步源切换为 `origin/v1`；V2 适配与补丁迁移由其他线程推进（见「本地 delta」）。
 
 ## 我方 Issues
 

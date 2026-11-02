@@ -16,9 +16,9 @@ A desktop AI coding workspace for everyday development. Built on OpenCode, it re
 
 ## 简体中文
 
-自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 完整安装包在 [GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)。
+自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 分卷安装包见本仓库 Releases 的 `v2.2.3-dev-my.3`。
 
-最新测试版 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 提供 Windows x64 完整安装包与 Linux amd64/arm64 AppImage/deb。三个目标安装包提测试核验；安装文件未签名。详情见 [发行记录](docs/fork/dev-my/releases.md)。
+最新测试版 `v2.2.5-dev-my.2` 在 origin 的 Releases 提供 Windows x64 分卷安装包与清单；Linux amd64/arm64 的 AppImage/deb 属于历史发布，尚未随 origin 重新发布。安装文件未签名。详情见 [发行记录](docs/fork/dev-my/releases.md)。
 
 `dev-my` 已吸收上游 V2 2.2.5 `dev@ff90ed9160`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
 
@@ -30,11 +30,11 @@ OpenCode My 把改动集中在每天都会用到的三件事上：
 - **个性化流程定制**：最近会话默认按项目分组，每个项目默认显示 5 条并可展开；项目旁可直接新建会话。关闭标签或隐藏历史条目会保留会话，Home/搜索可重新打开。
 - **本地使用偏好**：沿用系统语言与主题，记住标签布局、分组和排序偏好；项目、会话历史与配置保存在本机，使用本地模型不依赖额外的云端账户。
 
-欢迎在 [Issues](https://github.com/joe-ieta/opencode/issues) 提出功能建议或反馈问题，帮助我们改善界面、消息查看等使用体验，尤其是长任务跟踪和多项目并发开发监控。我们会尽力改进完善。
+欢迎在本仓库 Issues 提出功能建议或反馈问题，帮助我们改善界面、消息查看等使用体验，尤其是长任务跟踪和多项目并发开发监控。我们会尽力改进完善。
 
 ### 项目来源
 
-OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护，官方上游为 [anomalyco/opencode](https://github.com/anomalyco/opencode)，发行桌面应用 **OpenCode My**。
+OpenCode My 在本仓库维护，官方上游为 `anomalyco/opencode`，发行桌面应用 **OpenCode My**。`origin` 是唯一远端，发布物只推送到 origin。
 
 ### 本地模型支持
 
@@ -51,13 +51,13 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 - [FORK.md](FORK.md)：fork 定位、三个维护分支和上游贡献状态
 - [docs/fork](docs/fork/README.md)：维护、同步、验证、发布与 Qt/headless 资料
 - [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side bar、桌面身份、配置和运行时约定
-- [Releases](https://github.com/joe-ieta/opencode/releases)：所有平台的完整安装包与更新清单统一在本仓库 GitHub 发布。
+- Releases（origin）：发布物统一发布到 `origin`；超过单附件上限的大文件按分卷发布并附合并说明。
 
 ## English
 
-Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md). The stable Latest release remains `v2.2.3-dev-my.3`; the complete Windows installer is available from [GitHub Releases](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3).
+Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md). The stable Latest release remains `v2.2.3-dev-my.3`; the split Windows installer is available from this repository's Releases (`v2.2.3-dev-my.3`).
 
-The latest test release, [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2), provides a complete Windows x64 installer and Linux amd64/arm64 AppImage and deb packages. Packages for all three targets have been tested and verified; the installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
+The latest test release, `v2.2.5-dev-my.2`, provides the Windows x64 split installer and manifests in this repository's Releases. Linux amd64/arm64 AppImage and deb packages belong to the historical release and have not been republished on origin. The installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
 
 `dev-my` includes upstream V2 2.2.5 at `dev@ff90ed9160`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
 
@@ -69,11 +69,11 @@ OpenCode My focuses on three parts of everyday development:
 - **Personal workflows**: recent sessions are grouped by project by default, showing five per project with an option to expand. Create a session directly beside a project. Closing a tab or hiding a history entry preserves the session, which can be reopened through Home or search.
 - **Local preferences**: follow the system language and theme, and remember layout, grouping, and sorting preferences. Projects, session history, and configuration stay on your machine; local models do not require an additional cloud account.
 
-We welcome [feature requests and bug reports](https://github.com/joe-ieta/opencode/issues) about the interface, browsing messages, and the overall experience, especially tracking long-running tasks and monitoring concurrent work across projects. We'll do our best to improve.
+We welcome feature requests and bug reports in this repository's Issues about the interface, browsing messages, and the overall experience, especially tracking long-running tasks and monitoring concurrent work across projects. We'll do our best to improve.
 
 ### Project origins
 
-OpenCode My is maintained in [joe-ieta/opencode](https://github.com/joe-ieta/opencode), with [anomalyco/opencode](https://github.com/anomalyco/opencode) as the official upstream, and ships the **OpenCode My** desktop application.
+OpenCode My is maintained in this repository, with `anomalyco/opencode` as the official upstream, and ships the **OpenCode My** desktop application. `origin` is the only remote, and release assets are published to origin only.
 
 ### Local model support
 
@@ -90,7 +90,7 @@ Local models use OpenCode's existing provider system for straightforward configu
 - [FORK.md](FORK.md): fork scope, the three maintained branches, and upstream contribution status
 - [docs/fork](docs/fork/README.md): maintenance, synchronization, validation, releases, and Qt/headless documentation
 - [dev-my desktop releases](docs/fork/dev-my/README.md): Side bar, desktop identity, configuration, and runtime conventions
-- [Releases](https://github.com/joe-ieta/opencode/releases): complete installers and update manifests for all platforms are published in this repository's GitHub Releases.
+- Releases (origin): release assets are published to `origin`; large files are split with merge instructions when they exceed the per-attachment limit.
 
 ---
 

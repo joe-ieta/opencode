@@ -2,7 +2,7 @@
 
 # opencode Headless 发行版（Qt 集成专用）
 
-> 分支：`qt-headless`（当前基线 `v1.19.3`，源自 `upstream/v1`）
+> 分支：`qt-headless`（当前基线 `v1.19.3`，源自 `origin/v1`）
 > 用途：供 Qt/C++ 壳通过 HTTP + SSE 集成，无界面、无桌面/Web 应用。
 > 统一发布规范见 [release-runbook.md](release-runbook.md)。
 
@@ -109,7 +109,7 @@ bun run --cwd packages/opencode script/build.ts --single --skip-install
 
 ## 5. 与上游同步
 
-从 `v1` 合并上游时注意（`upstream/dev` 已于 2026-10-10 晋升 V2/2.x，本线不再同步）：
+从 `origin/v1` 合并上游时注意（`origin/dev` 已于 2026-10-10 晋升 V2/2.x，本线不再同步）：
 
 1. 恢复被删除的 `workspaces` 引用会重新引入 UI 应用，需要重新裁剪；
 2. `packages/opencode/src/index.ts` 的命令注册与 `script/build.ts` 的 Web UI 内嵌逻辑是本地改动点；

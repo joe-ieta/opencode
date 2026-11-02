@@ -21,7 +21,7 @@
 | 项               | 要求/说明                                                                                                                                             |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bun              | ≥ 1.4.2（V2 根 `packageManager` 声明；CI 用 latest）                                                                                                  |
-| 分支             | `oc-headless`，工作区干净；`origin`=joe-ieta/opencode，`upstream`=anomalyco/opencode                                                                  |
+| 分支             | `oc-headless`，工作区干净；`origin` 是唯一远端，官方 V2 分支从 `origin/dev` 获取                                                                       |
 | 预推送钩子       | 钩子执行 `bun run check`（lint + typecheck）。本机 Node < 23.6 时需 `NODE_OPTIONS=--experimental-strip-types`（oxlint 加载 TS 插件）；CI 自带合适环境 |
 | Windows 符号链接 | 上游 `packages/app                                                                                                                                    | enterprise/src/custom-elements.d.ts`与多处`public/\*`为 symlink；无 symlink 权限的检出会得到占位内容，导致`app`/`enterprise`typecheck 误报`TS1128`。临时以目标内容替换（不提交）后跑检查，推送后 `git checkout --` 还原 |
 | git 身份         | 与 V1 线一致：合并/附注标签前注入 `GIT_AUTHOR_*`/`GIT_COMMITTER_*`（frank <48937772+joe-ieta@users.noreply.github.com>）；`GIT_MERGE_AUTOEDIT=no`     |
@@ -68,12 +68,11 @@ git push origin oc-headless
 git push origin oc-headless-v2.0.26
 # 同一内核重发：新 tag oc-headless-v2.0.26.1；发行线 tag 用 -f 移动（如适用）
 
-# 5) CI 监控（tag 触发 oc-headless.yml 三平台矩阵）
-gh run list -R joe-ieta/opencode --workflow=oc-headless.yml --limit 5
-gh run watch <id> -R joe-ieta/opencode --exit-status
+# 5) 流水线（仅当 origin 托管 oc-headless.yml 三平台矩阵时）
+#    历史 GitHub Actions 记录只作追溯，不再由本仓库推送触发
 ```
 
-CI 通过标准：三平台构建成功并上传产物（含 `.sha256`）；Linux 冒烟通过；`bun run oc:trim`、`oc:contract` 与 Linux typecheck 通过。
+流水线通过标准（未配置时以本地构建代替）：三平台构建成功并上传产物（含 `.sha256`）；Linux 冒烟通过；`bun run oc:trim`、`oc:contract` 与 Linux typecheck 通过。
 
 ## 5. 记录与验收
 
@@ -84,7 +83,7 @@ CI 通过标准：三平台构建成功并上传产物（含 `.sha256`）；Linu
 - [ ] `oc:sync` 干净合并（冲突已处置并提交），`oc:trim` ok，typecheck 通过；
 - [ ] `oc:build` 产出稳定名 + 版本化产物 + `.sha256`，OPENCODE_VERSION 与产物版本一致；
 - [ ] `oc:smoke` PASS（含 401 与事件流）；
-- [ ] 记录已提交；tag 已推送；CI 三平台全绿、产物可下载；
+- [ ] 记录已提交；tag 已推送；流水线三平台全绿（如已配置）或本地构建/冒烟通过，产物可下载；
 - [ ] 工作区干净，分支与 origin 一致。
 
 ## 6. 已知问题

@@ -1,19 +1,19 @@
 # dev-my 发行与源码同步记录
 
-二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整资产为准。自 2026-11-02 起，所有平台仅使用本仓库 GitHub 的完整安装包与更新清单；旧镜像和分卷流程已停用。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
+二进制发行以 origin 的 Releases 资产为准。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
 ## 当前下载
 
-| 通道         | 版本              | 平台                            | 下载                                                                                              |
-| ------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)                        |
-| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
-| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)                        |
+| 通道         | 版本              | 平台                            | 下载                                                  |
+| ------------ | ----------------- | ------------------------------- | ----------------------------------------------------- |
+| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | origin Releases（分卷）                               |
+| 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64              | 历史发布，见下文；未随 origin 重新发布                |
+| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | origin Releases（分卷）                               |
+| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64              | 历史发布，见下文；未随 origin 重新发布                |
 
-全部平台使用上表的 GitHub 完整安装包。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
+origin 是唯一发布目标；超过单附件限制时按分卷发布并附合并说明。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
 
-> 以下为历史发行事实。出现的旧 Gitee、分卷及远端名称只用于来源追溯，不是当前配置或发布步骤；以顶层 [AGENTS.md](../../../AGENTS.md) 为准。
+> 以下为历史发行事实。出现的旧发布平台、分卷及远端名称只用于来源追溯，不是当前配置或发布步骤；以顶层 [AGENTS.md](../../../AGENTS.md) 为准。
 
 ## v2.2.5-dev-my.2 Windows / Linux 测试预发行
 
@@ -42,7 +42,7 @@
 - 同步目标 `upstream/dev-my@8593792301`，相对上次共同基线 `3747a8caa9` 吸收 84 个上游提交；官方基线由 V2 2.2.3 `dev@e7acf85bb7` 推进到 V2 2.2.5 `dev@69269e4ebe`（官方段 81 个提交），并包含 fork 的 `ca18869aaa`（深层子智能体状态与项目整组收起）和 `8593792301`（Windows 2.2.5 测试包准备记录）。
 - 上游 2.2.4 的主要变化：持久桌面终端及其重命名、实验性交互 artifacts、Claude Agent 引导安装、worktree 基础分支快捷键等。
 - 上游 2.2.5 的主要变化：worktree 与 Shell 模式快捷键、引用弹窗直接发送、`compaction.buffer` 支持百分比，以及 MCP/stdio、上下文压缩和推理恢复等修复；完整清单见 `CHANGELOG.md` 的 v2.2.4 与 v2.2.5。
-- 本地保留独立 Side bar、Gitee Windows 分卷、V1 升级与迁移、SQLite/Layer 诊断和桌面发行脚本；本次未改动两条 headless 分支。文档继续按 Gitee `origin` 与 GitHub fork `upstream` 的关系维护。
+- 本地保留独立 Side bar、Gitee Windows 分卷、V1 升级与迁移、SQLite/Layer 诊断和桌面发行脚本；本次未改动两条 headless 分支。文档按 `origin` 与官方上游分支的关系维护。
 - 验证：`bun install --frozen-lockfile` 无依赖变化；`bun run check` 35/35 通过（本机需以 `NODE_OPTIONS=--experimental-strip-types` 加载 oxlint 的 TypeScript 插件）；从 `packages/client` 重新执行 `bun run generate`，生成客户端与合并结果一致。
 - 本次只同步源码并更新发行记录，不构建或发布新安装包；Windows `2.2.5-dev-my.1` 仍为未公开的发行草稿。
 

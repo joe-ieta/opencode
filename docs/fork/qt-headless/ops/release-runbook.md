@@ -4,7 +4,7 @@
 
 > 定位：`qt-headless` 分支上 `qtoc_core`（headless opencode 内核）发布的**唯一操作规范**：发布目的、标准步骤、脚本命令、产物存放与推送、CI 矩阵、多平台注意事项、使用模式与验收清单。
 > 适用范围：本仓库（fork `joe-ieta/opencode`）qt-headless 分支的所有发布；人工或按技能 `qtoc-release` 由 AI 代理执行均可。
-> 版本基线：opencode `1.19.3`（channel `qt-headless`；同步源 `upstream/v1`）；流程自 1.18.31 起持续验证（2026-10-18 更新）。
+> 版本基线：opencode `1.19.3`（channel `qt-headless`；同步源 `origin/v1`）；流程自 1.18.31 起持续验证（2026-10-18 更新）。
 > 关联文档：[qtoc-build.md](qtoc-build.md)（构建脚本/裁剪/冲突热点细节）、[qt-headless.md](qt-headless.md)（发行内容/冒烟清单）、[bun-install.md](bun-install.md)（Bun 安装）、[../KB/upstream.md](../KB/upstream.md)（同步与发布记录）、[../KB/architecture.md](../KB/architecture.md)（维护策略）、[../KB/data-agent-faq.md](../KB/data-agent-faq.md)（单二进制多配置使用模式）。
 
 ---
@@ -24,10 +24,10 @@
 | 构建目录           | `packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]`（os：`windows`/`linux`/`darwin`；arch：`x64`/`arm64`） |
 | 本地归档（稳定名） | `artifacts/qtoc/qtoc_core[.exe]`                                                                                         |
 | 本地归档（版本化） | `artifacts/qtoc/qtoc_core-<version>-<os>-<arch>[.exe]`                                                                   |
-| CI 产物            | GitHub Actions Artifacts：`qtoc_core-Linux` / `qtoc_core-Windows` / `qtoc_core-macOS`（保留 14 天）                      |
+| CI 产物            | CI Artifacts：`qtoc_core-Linux` / `qtoc_core-Windows` / `qtoc_core-macOS`（保留 14 天；仅当 origin 托管流水线）          |
 
 - `artifacts/` 已被 `.gitignore` 忽略（上游 `/artifacts/`），**不提交**；分发以 CI 产物或本地归档为准。
-- 当前工作流**不创建 GitHub Release**；长期留存需自行保存 CI 产物或另行扩展（见第 8 节）。
+- 当前工作流**不创建 Release**；长期留存需自行保存 CI 产物或另行扩展（见第 8 节）。
 
 **版本语义**
 
@@ -41,10 +41,10 @@
 | 项       | 要求                                                                                                                                                                         |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 分支     | `qt-headless`，工作区干净                                                                                                                                                    |
-| 远端     | `origin` = `joe-ieta/opencode`（推送目标）；`upstream` = `anomalyco/opencode`，同步源为 **`v1`**（V1 维护线，1.19.x；`dev` 已于 2026-10-10 晋升 V2/2.x，不可作为本线同步源） |
+| 远端     | `origin` 是唯一远端和推送目标；官方 V1 分支从 `origin/v1` 获取（`dev` 已于 2026-10-10 晋升 V2/2.x，不可作为本线同步源）；不配置 `upstream` remote |
 | Bun      | ≥ 1.3.14（仓库 `packageManager` 声明；CI 用 latest，本机验证 1.4.2）；安装见 [bun-install.md](bun-install.md)                                                                |
 | Git 身份 | 本机未配置全局身份：合并提交与附注标签前必须设置 `GIT_AUTHOR_*` / `GIT_COMMITTER_*` 环境变量（见第 4 节 Step 1），否则报 `Committer identity unknown`                        |
-| gh CLI   | 已登录（`gh auth status`）；监控/重跑 CI 时使用 `-R joe-ieta/opencode`                                                                                                       |
+| 凭据     | `origin` 的推送凭据由用户在本机提供（SSH 私钥或令牌）；历史 GitHub Actions 命令仅作追溯                                                                                     |
 | Windows  | 建议安装 Git（shell 工具依赖 Git Bash）；磁盘不足时设置 `BUN_INSTALL_CACHE_DIR`/`TMP`                                                                                        |
 | macOS    | 产物未签名/未公证；对外分发需另行 `codesign` + `notarytool`                                                                                                                  |
 
@@ -54,7 +54,7 @@
 
 | 命令（仓库根执行）                                                        | 作用                                                                                                   |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `bun run qtoc:sync`                                                       | 同步上游：fetch `upstream/v1` → merge → 自动解决 modify/delete（保持删除）→ trim → install → typecheck |
+| `bun run qtoc:sync`                                                       | 同步上游：fetch `origin/v1` → merge → 自动解决 modify/delete（保持删除）→ trim → install → typecheck |
 | `bun run qtoc:trim`                                                       | 幂等重新应用 headless 裁剪（删除 UI/无关包、精简配置/命令/CI）；模式漂移时 fail-fast                   |
 | `bun run qtoc:build`                                                      | 构建编排：`bun install` → `bun run typecheck` → `script/build.ts --single --skip-install` → 归档       |
 | `bun run --cwd packages/opencode script/build.ts --single --skip-install` | 底层构建命令（多平台发布不单独使用，见第 5 节）                                                        |
@@ -84,7 +84,7 @@
 git status --short                 # 必须干净
 git fetch --all --prune
 git pull --ff-only
-git log --oneline HEAD..upstream/v1   # 查看待同步的上游提交
+git log --oneline HEAD..origin/v1   # 查看待同步的上游提交
 ```
 
 ### Step 1 同步上游
@@ -159,7 +159,7 @@ git push origin qt-headless-v1.18.36.1
 ```
 
 - 推送标签即触发 CI 矩阵（每次标签一个运行；`workflow_dispatch` 亦可手动触发）。
-- GitHub 偶发 `Internal Server Error` 时直接重试推送。
+- 远端偶发 `Internal Server Error` 时直接重试推送。
 - **迭代标签不可变**；修复发布创建下一个 `.N`，失败迭代在记录中标注"未采用"。
 
 ### Step 4 监控 CI 并处理失败
@@ -217,7 +217,7 @@ git status -sb    # 最终必须干净
 | 构建临时   | `packages/opencode/dist/opencode-<os>-<arch>/`（本地，gitignore 覆盖 `dist`）                         |
 | 本地归档   | `artifacts/qtoc/qtoc_core[.exe]` + `qtoc_core-<version>-<os>-<arch>[.exe]`（gitignore `/artifacts/`） |
 | 代码与标签 | 推送 `origin/qt-headless` 分支 + `qt-headless-v*` 标签（触发 CI）                                     |
-| CI 产物    | GitHub Actions Artifacts（`qtoc_core-<OS>`，14 天）                                                   |
+| CI 产物    | CI Artifacts（`qtoc_core-<OS>`，14 天；仅当 origin 托管流水线）                                        |
 | 记录       | [KB/upstream.md](../KB/upstream.md)、[ops/qtoc-build.md](qtoc-build.md) 随分支提交                    |
 
 ---
@@ -264,7 +264,7 @@ qtoc_core serve --hostname 127.0.0.1 --port 0    # 0 = 随机端口，从 stdout
 | Linux CI 冒烟偶发挂起                   | runner 环境偶发（同提交其他 runner 通过）；冒烟已加固（`curl --connect-timeout/--max-time`、失败输出内核日志）；失败重跑即可       |
 | macOS codesign 路径漂移                 | 上游新增签名步骤曾引用 `bin/opencode` 导致 macOS 构建失败；已修 `build.ts` 并由 `trim.ts` 守卫（残留 `bin/opencode` 即 fail-fast） |
 | 上游合并本地补丁                        | 见 [../KB/upstream.md](../KB/upstream.md)「本地 delta」表；上游合并后删除本地补丁                                                  |
-| 标签推送 500                            | GitHub 偶发错误，重试推送                                                                                                          |
+| 标签推送 500                            | 远端偶发错误，重试推送                                                                                                             |
 | 归档 `EBUSY`（Windows）                 | 目标 exe 被运行中内核占用；脚本 `copyRetry`（10×1s），或先停止进程                                                                 |
 | 旧内核进程占用端口                      | 冒烟后务必 `Stop-Process`/`kill`；发布构建与冒烟使用不同目录                                                                       |
 | CI 产物过期                             | Actions Artifacts 保留 14 天；需要长期留存请及时下载                                                                               |

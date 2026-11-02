@@ -1,6 +1,6 @@
 # qt-headless：V1 qtoc_core 维护线
 
-跟随官方 `upstream/v1`，发行 V1 `qtoc_core[.exe]`，保留原生 Qt 客户端、集成设计及已验证的本地补丁。V1 维护与 V2 开发分开。
+跟随官方 `origin/v1`，发行 V1 `qtoc_core[.exe]`，保留原生 Qt 客户端、集成设计及已验证的本地补丁。V1 维护与 V2 开发分开。
 
 ## 进度快照（2026-10-30）
 

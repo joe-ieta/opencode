@@ -1,14 +1,17 @@
 ## Repository Constraints (highest priority within this repository)
 
-- Repository: https://github.com/joe-ieta/opencode. `origin` fetch and push must use this GitHub repository only (`git@github.com:joe-ieta/opencode.git`).
-- Official upstream: https://github.com/anomalyco/opencode. `upstream` must use the official GitHub repository (`git@github.com:anomalyco/opencode.git`); it is the source for official synchronization and upstream contributions.
-- These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes. Gitee configuration and workflows are retired: do not configure a Gitee remote, mirror or push URL, publish assets there, or restore the former GitHub-fork-as-upstream mapping.
-- Publish source, tags, and release assets to `origin` (GitHub) only. All platforms use https://github.com/joe-ieta/opencode/releases; the official `upstream` is not a fork release destination.
+- `origin` is the only remote of this project, and its URL in `.git/config` is the single authoritative fetch and push destination. Never add, restore, or use a second remote or mirror, and never push refs, tags, or release assets to an address other than `origin`.
+- Address `origin` explicitly in every remote operation (`git fetch origin`, `git push origin <branch>`). Do not publish the same refs to another host as a fallback or in parallel.
+- If this machine cannot push to `origin` (missing credential or SSH key), stop and report exactly which access is missing so the user can help set up the access private key. Do not switch the remote, rewrite its URL, or push to another address to work around the failure.
+- Upstream is obtained from `origin` itself, using the official branches named by the project definition in this repository (`FORK.md` and `docs/fork/`): `dev` for V2 and `v1` for V1. Do not configure an `upstream` remote and do not fetch the upstream project from another address.
+- If a required official branch is missing from `origin`, stop and report the missing branch instead of adding another remote or fetching it from elsewhere. Official branches are read-only: never push them or rewrite their history.
+- Publish source, tags, and release assets to `origin` only. Release pages and asset uploads follow `origin`; no other host is a fork release destination.
+- These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes.
 - Maintain exactly three long-lived branches: `dev-my` (V2 desktop), `oc-headless` (V2 headless), and `qt-headless` (V1 headless). Track the same-named `origin` branches. Keep their code, builds, and release histories separate.
-- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`, and `qt-headless` from `upstream/v1`, preserving local patches with merges.
-- For a scoped official contribution, base a temporary branch on the corresponding official upstream branch and target that branch in the official repository. Do not mix fork branding, release tooling, or unrelated patches into the contribution.
-- Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. Do not delete official upstream branches. A default-branch change also needs explicit confirmation.
-- Historical Gitee release records are provenance only and never current configuration or publishing instructions. Do not delete remote repositories or existing release assets as part of retiring the configuration.
+- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. When synchronizing, fetch `origin` and merge its official branch (`dev` or `v1`) into the matching maintained branch, then push only to `origin`, preserving local patches with merges.
+- Scoped official contributions are not pushed from this project. They need a separate checkout with its own remote configuration; never retarget `origin` or push upstream branches from here.
+- Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. A default-branch change also needs explicit confirmation.
+- Historical release records and assets are provenance only; do not delete remote repositories or existing release assets when configuration changes.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.
