@@ -8,11 +8,11 @@
 
 ## 当前状态
 
-- 本地 Windows `2.2.5-dev-my.1` 测试包已构建，源码 `ca18869aaa`；[发行草稿](https://github.com/joe-ieta/opencode/releases/tag/untagged-883f9a89dc0f7c23428d) 尚未公开。包含下文的整组收起与深层子智能体状态修复，构建及核验见 [发行记录](releases.md)。
+- 当前测试版为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，源码 `3777b783c5`；Windows x64 与 Linux amd64/arm64 安装包均已公开并完成远端摘要/下载核验。包含下文的整组收起、后代状态与标题方向修复，详见 [发行记录](releases.md)。
 
-- Windows 最新公开测试版：[v2.2.3-dev-my.6](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.6)，源码 `9506fb6d69`；相关中文词条 31/31，详见 [翻译核对](sidebar-zh.md)。新版本自动检查与包内容核验通过，尚未安装后人工验收；旧 `.4` 的发行资产已清理，源码和历史人工验收记录保留。
+- Windows 提供 GitHub 完整安装包和 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)，既有中文词条 31/31 保留，详见 [翻译核对](sidebar-zh.md)。此前 Windows 测试包由用户确认手工测试通过；本次新包自动检查与包内容核验通过，尚未安装后人工验收。
 
-- Linux 最新测试预发行：[v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)，源码 `31d67160e0`，含 amd64/arm64 AppImage/deb 与本轮标题方向修复；自动验证与包内容核验通过，Linux GUI 尚未人工验收。
+- Linux 两架构的 AppImage/deb 使用同一源码 `3777b783c5`、Ubuntu 24.04 基线构建，均通过 CLI、目录、迁移和实际安装包核验；Linux 与原生 ARM64 GUI 尚未人工验收。
 
 - 历史 Windows 人工验收版本：[v2.2.3-dev-my.4 源码](https://github.com/joe-ieta/opencode/tree/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户曾确认人工测试通过；发行资产已由 `.6` 替代并清理。
 - 既有贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；最终冻结源码 `b88b94a75d3d517c3bbd417274392e326b7cb1e7`，基线 `dev@ff90ed9160`（2.2.5）。只包含 35 个应用层文件，不包含 fork 品牌、发行工具、内核补丁或并行 Session activity 协议改动。
