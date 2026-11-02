@@ -97,6 +97,7 @@ import type {
   ExperimentalSessionImportOutput,
   ExperimentalSessionExportInput,
   ExperimentalSessionExportOutput,
+  ExperimentalSessionActivityOutput,
   ExperimentalSessionSkillInput,
   ExperimentalSessionSkillOutput,
   ExperimentalSessionWaitInput,
@@ -828,6 +829,14 @@ const EndpointExperimentalSessionExport =
       ),
     )
 
+const EndpointExperimentalSessionActivity = (raw: RawClient["server.session"]) => () =>
+  preserveEffect<ExperimentalSessionActivityOutput>()(
+    raw["experimental.session.activity"]({}).pipe(
+      Effect.mapError(mapClientError),
+      Effect.map((value) => value.data),
+    ),
+  )
+
 const EndpointExperimentalSessionSkill = (raw: RawClient["server.session"]) => (input: ExperimentalSessionSkillInput) =>
   preserveEffect<ExperimentalSessionSkillOutput>()(
     raw["session.skill"]({
@@ -884,6 +893,7 @@ const adaptGroupExperimentalSession = (raw: RawClient["server.session"]) => ({
   stats: EndpointExperimentalSessionStats(raw),
   import: EndpointExperimentalSessionImport(raw),
   export: EndpointExperimentalSessionExport(raw),
+  activity: EndpointExperimentalSessionActivity(raw),
   skill: EndpointExperimentalSessionSkill(raw),
   wait: EndpointExperimentalSessionWait(raw),
   instructions: {
@@ -2005,6 +2015,8 @@ const adaptClient = (raw: RawClient) => {
       import: client.experimental.session.import,
       /** @deprecated Use `client.experimental.session.export`. Removed in the next minor. */
       export: client.experimental.session.export,
+      /** @deprecated Use `client.experimental.session.activity`. Removed in the next minor. */
+      activity: client.experimental.session.activity,
       /** @deprecated Use `client.experimental.session.skill`. Removed in the next minor. */
       skill: client.experimental.session.skill,
       /** @deprecated Use `client.experimental.session.wait`. Removed in the next minor. */

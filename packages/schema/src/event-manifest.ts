@@ -31,6 +31,7 @@ import { ServerEvent } from "./server-event.js"
 import { Shell } from "./shell.js"
 import { Skill } from "./skill.js"
 import { SessionEvent } from "./session-event.js"
+import { SessionActivity } from "./session-activity.js"
 import { SessionStatusEvent } from "./session-status-event.js"
 import { TuiEvent } from "./tui-event.js"
 import { VcsEvent } from "./vcs-event.js"
@@ -52,6 +53,7 @@ const foundationDefinitions = Event.inventory(
 )
 
 const featureDefinitions = Event.inventory(
+  ...SessionActivity.Event.Definitions,
   ...FileSystem.Event.Definitions,
   ...Reference.Event.Definitions,
   ...Permission.Event.Definitions,

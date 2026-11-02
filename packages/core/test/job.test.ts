@@ -2,6 +2,7 @@ import { describe, expect } from "bun:test"
 import { Database } from "@opencode/core/database/database"
 import jobMigration from "@opencode/core/database/migration/20261030054400_job"
 import { Job } from "@opencode/core/job"
+import { SessionActivitySource } from "@opencode/core/session/activity-source"
 import { JobTable } from "@opencode/core/job/sql"
 import { KVTable } from "@opencode/core/kv/sql"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
@@ -14,7 +15,9 @@ import { SessionMessage } from "@opencode/core/session/message"
 import { SessionSchema } from "@opencode/core/session/schema"
 import { testEffect } from "./lib/effect"
 
-const it = testEffect(AppNodeBuilder.build(LayerNode.group([Job.node, Database.node, Global.node])))
+const it = testEffect(
+  AppNodeBuilder.build(LayerNode.group([Job.node, Database.node, Global.node, SessionActivitySource.node])),
+)
 
 describe("Job", () => {
   it.live("tracks process-local work through explicit observation", () =>

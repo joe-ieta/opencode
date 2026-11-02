@@ -91,6 +91,7 @@ import type {
   ExperimentalSessionImportOutput,
   ExperimentalSessionExportInput,
   ExperimentalSessionExportOutput,
+  ExperimentalSessionActivityOutput,
   ExperimentalSessionSkillInput,
   ExperimentalSessionSkillOutput,
   ExperimentalSessionWaitInput,
@@ -1092,6 +1093,17 @@ export function make(options: ClientOptions) {
               query: { sanitize: input["sanitize"] },
               successStatus: 200,
               declaredStatuses: [400, 401, 404, 500],
+              empty: false,
+            },
+            requestOptions,
+          ).then((value) => value.data),
+        activity: (requestOptions?: RequestOptions) =>
+          request<{ readonly data: ExperimentalSessionActivityOutput }>(
+            {
+              method: "GET",
+              path: `/api/experimental/session/activity`,
+              successStatus: 200,
+              declaredStatuses: [400, 401],
               empty: false,
             },
             requestOptions,
@@ -2692,6 +2704,8 @@ export function make(options: ClientOptions) {
       import: client.experimental.session.import,
       /** @deprecated Use `client.experimental.session.export`. Removed in the next minor. */
       export: client.experimental.session.export,
+      /** @deprecated Use `client.experimental.session.activity`. Removed in the next minor. */
+      activity: client.experimental.session.activity,
       /** @deprecated Use `client.experimental.session.skill`. Removed in the next minor. */
       skill: client.experimental.session.skill,
       /** @deprecated Use `client.experimental.session.wait`. Removed in the next minor. */

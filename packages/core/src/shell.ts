@@ -22,6 +22,7 @@ import { SessionSchema } from "./session/schema.js"
 import { Config } from "./config.js"
 import { ToolOutput } from "./tool-output.js"
 import { ShellResult } from "./shell/result.js"
+import { SessionActivitySource } from "./session/activity-source.js"
 
 export class NotFoundError extends Schema.TaggedError<NotFoundError>()("Shell.NotFoundError", {
   id: Shell.ID,
@@ -129,6 +130,7 @@ const layer = () =>
     Service,
     Effect.gen(function* () {
       const bus = yield* Bus.Service
+      const activity = yield* SessionActivitySource.Service
       const location = yield* Location.Service
       const global = yield* Global.Service
       const shell = yield* ShellSelect.Service
@@ -189,6 +191,27 @@ const layer = () =>
           .filter((command) => command.info.status === "running")
           .map((command) => command.info)
       })
+
+      const sessionID = Schema.decodeUnknownOption(SessionSchema.ID)
+      yield* activity.register(
+        list().pipe(
+          Effect.map((items) =>
+            items.flatMap((info) => {
+              const owner = sessionID(info.metadata.sessionID)
+              if (owner._tag === "None") return []
+              return [
+                {
+                  id: `shell:${info.id}`,
+                  sessionID: owner.value,
+                  kind: "shell" as const,
+                  title: info.command,
+                  startedAt: info.time.started,
+                },
+              ]
+            }),
+          ),
+        ),
+      )
 
       const get = Effect.fn("Shell.get")(function* (id: Shell.ID) {
         return (yield* require(id)).info
@@ -461,6 +484,7 @@ export const node = makeLocationNode({
   layer: layer(),
   deps: [
     Bus.node,
+    SessionActivitySource.node,
     Location.node,
     Global.node,
     ShellSelect.node,

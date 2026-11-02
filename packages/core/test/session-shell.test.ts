@@ -10,6 +10,9 @@ import { AbsolutePath } from "@opencode/core/schema"
 import { Session } from "@opencode/core/session"
 import { SessionEvent } from "@opencode/core/session/event"
 import { SessionExecution } from "@opencode/core/session/execution"
+import { SessionActivity } from "@opencode/core/session/activity"
+import { SessionActivitySource } from "@opencode/core/session/activity-source"
+import { SessionStore } from "@opencode/core/session/store"
 import { SessionRunCoordinator } from "@opencode/core/session/run-coordinator"
 import { Shell } from "@opencode/core/shell"
 import { LayerNode } from "@opencode/util/effect/layer-node"
@@ -57,11 +60,21 @@ const executionLayer = Layer.effect(
 )
 
 const it = testEffect(
-  AppNodeBuilder.build(LayerNode.group([Bus.node, Session.node, SessionExecution.node, LocationServiceMap.node]), [
-    Bus.node.replace(Bus.configured({ persist: true })),
-    SessionExecution.node.replace(executionLayer.pipe(Layer.provide(controlLayer))),
-    offlineModels,
-  ]).pipe(Layer.provideMerge(controlLayer)),
+  AppNodeBuilder.build(
+    LayerNode.group([
+      Bus.node,
+      Session.node,
+      SessionExecution.node,
+      LocationServiceMap.node,
+      SessionActivitySource.node,
+      SessionStore.node,
+    ]),
+    [
+      Bus.node.replace(Bus.configured({ persist: true })),
+      SessionExecution.node.replace(executionLayer.pipe(Layer.provide(controlLayer))),
+      offlineModels,
+    ],
+  ).pipe(Layer.provideMerge(controlLayer)),
 )
 
 const setup = Effect.gen(function* () {
@@ -114,6 +127,11 @@ describe("Session.shell", () => {
       const first = yield* launch(fixture, "first")
       const second = yield* launch(fixture, "second")
 
+      expect((yield* SessionActivity.list()).map((work) => work.id)).toEqual([
+        `shell:${first.shellID}`,
+        `shell:${second.shellID}`,
+      ])
+
       expect(yield* fixture.execution.active).toContain(fixture.created.id)
       expect(first.caller.pollUnsafe()).toBeUndefined()
       expect(second.caller.pollUnsafe()).toBeUndefined()
@@ -136,6 +154,7 @@ describe("Session.shell", () => {
       ])
       yield* first.release
       yield* Fiber.join(first.caller).pipe(Effect.timeout("5 seconds"))
+      expect(yield* SessionActivity.list()).toEqual([])
       expect(
         (yield* fixture.session.inbox(fixture.created.id))
           .filter((item) => item.type === "synthetic")

@@ -1,6 +1,7 @@
 import { Instance } from "@opencode/core/instance/service"
 import { Session } from "@opencode/core/session"
 import { SessionStats } from "@opencode/core/session/stats"
+import { SessionActivity } from "@opencode/core/session/activity"
 import { SessionTitle } from "@opencode/core/session/title"
 import { SessionTransfer } from "@opencode/core/session/transfer"
 import { InstructionEntry } from "@opencode/core/session/instruction-entry"
@@ -152,6 +153,12 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
                 Effect.catchTag("Session.MessageDecodeError", failedMessageDecode),
               ),
           }
+        }),
+      )
+      .handle(
+        "experimental.session.activity",
+        Effect.fn(function* () {
+          return { data: yield* SessionActivity.list() }
         }),
       )
       .handle(

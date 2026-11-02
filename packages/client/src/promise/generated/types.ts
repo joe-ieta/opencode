@@ -409,6 +409,15 @@ export type PermissionRule = { action: string; resource: string; effect: Permiss
 
 export type PluginInfo = { id?: PluginID; source: PluginSource; features: PluginFeatures; state: PluginState }
 
+export type SessionActivityInfo = {
+  id: string
+  sessionID: SessionID
+  kind: "shell" | "subagent" | "image" | "job"
+  title?: string
+  startedAt: number
+  ancestors: Array<SessionID>
+}
+
 export type SessionForkBoundary =
   | { type: "before"; messageID: SessionMessageID }
   | { type: "through"; messageID: SessionMessageID }
@@ -1741,6 +1750,15 @@ export type SessionCompactionDelta = {
   data: { sessionID: SessionID; text: string }
 }
 
+export type ExperimentalSessionActivityChanged = {
+  id: EventID
+  created: number
+  metadata?: { [x: string]: any }
+  type: "experimental.session.activity.changed"
+  location?: LocationRef
+  data: {}
+}
+
 export type FilesystemChanged = {
   id: EventID
   created: number
@@ -2854,6 +2872,7 @@ export type V2Event =
   | SessionRevertStaged
   | SessionRevertCleared
   | SessionRevertCommitted
+  | ExperimentalSessionActivityChanged
   | FilesystemChanged
   | ReferenceUpdated
   | PermissionAsked
@@ -3810,6 +3829,8 @@ export type ExperimentalSessionExportInput = { readonly sessionID: string; reado
 
 export type ExperimentalSessionExportOutput = { data: SessionTransferData }["data"]
 
+export type ExperimentalSessionActivityOutput = { data: Array<SessionActivityInfo> }["data"]
+
 export type ExperimentalSessionSkillInput = {
   readonly sessionID: string
   readonly id: string
@@ -4344,6 +4365,7 @@ export type EventSubscribeInput = {
         | "session.revert.staged"
         | "session.revert.cleared"
         | "session.revert.committed"
+        | "experimental.session.activity.changed"
         | "filesystem.changed"
         | "reference.updated"
         | "permission.asked"
@@ -4819,6 +4841,9 @@ export type SessionExportInput = ExperimentalSessionExportInput
 
 /** @deprecated Use `ExperimentalSessionExportOutput`. Removed in the next minor. */
 export type SessionExportOutput = ExperimentalSessionExportOutput
+
+/** @deprecated Use `ExperimentalSessionActivityOutput`. Removed in the next minor. */
+export type SessionActivityOutput = ExperimentalSessionActivityOutput
 
 /** @deprecated Use `ExperimentalSessionSkillInput`. Removed in the next minor. */
 export type SessionSkillInput = ExperimentalSessionSkillInput

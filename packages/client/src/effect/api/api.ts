@@ -450,6 +450,9 @@ export interface SessionApi<E = never> {
   /** @deprecated Use `client.experimental.session.export`. Removed in the next minor. */
   readonly export: ExperimentalSessionExportOperation<E>
 
+  /** @deprecated Use `client.experimental.session.activity`. Removed in the next minor. */
+  readonly activity: ExperimentalSessionActivityOperation<E>
+
   /** @deprecated Use `client.experimental.session.skill`. Removed in the next minor. */
   readonly skill: ExperimentalSessionSkillOperation<E>
 
@@ -560,6 +563,16 @@ export type ExperimentalSessionExportOutput = {
 export type ExperimentalSessionExportOperation<E = never> = (
   input: ExperimentalSessionExportInput,
 ) => Effect.Effect<ExperimentalSessionExportOutput, E>
+
+export type ExperimentalSessionActivityOutput = ReadonlyArray<{
+  readonly id: string
+  readonly sessionID: Session.ID
+  readonly kind: "shell" | "subagent" | "image" | "job"
+  readonly title?: string | undefined
+  readonly startedAt: number
+  readonly ancestors: ReadonlyArray<Session.ID>
+}>
+export type ExperimentalSessionActivityOperation<E = never> = () => Effect.Effect<ExperimentalSessionActivityOutput, E>
 
 export type ExperimentalSessionSkillInput = {
   readonly sessionID: Session.ID
@@ -1423,6 +1436,7 @@ export interface ExperimentalSessionApi<E = never> {
   readonly stats: ExperimentalSessionStatsOperation<E>
   readonly import: ExperimentalSessionImportOperation<E>
   readonly export: ExperimentalSessionExportOperation<E>
+  readonly activity: ExperimentalSessionActivityOperation<E>
   readonly skill: ExperimentalSessionSkillOperation<E>
   readonly wait: ExperimentalSessionWaitOperation<E>
   readonly instructions: {
@@ -2106,6 +2120,7 @@ export type EventSubscribeInput = {
         | "session.revert.staged"
         | "session.revert.cleared"
         | "session.revert.committed"
+        | "experimental.session.activity.changed"
         | "filesystem.changed"
         | "reference.updated"
         | "permission.asked"
@@ -2817,6 +2832,12 @@ export type SessionExportOutput = ExperimentalSessionExportOutput
 
 /** @deprecated Use `ExperimentalSessionExportOperation`. Removed in the next minor. */
 export type SessionExportOperation<E = never> = ExperimentalSessionExportOperation<E>
+
+/** @deprecated Use `ExperimentalSessionActivityOutput`. Removed in the next minor. */
+export type SessionActivityOutput = ExperimentalSessionActivityOutput
+
+/** @deprecated Use `ExperimentalSessionActivityOperation`. Removed in the next minor. */
+export type SessionActivityOperation<E = never> = ExperimentalSessionActivityOperation<E>
 
 /** @deprecated Use `ExperimentalSessionSkillInput`. Removed in the next minor. */
 export type SessionSkillInput = ExperimentalSessionSkillInput

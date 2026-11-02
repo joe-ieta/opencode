@@ -16,6 +16,8 @@ import { PersistentPty } from "@opencode/core/persistent-pty"
 import { Project } from "@opencode/core/project"
 import { Worktree } from "@opencode/core/worktree"
 import { Session } from "@opencode/core/session"
+import { SessionActivitySource } from "@opencode/core/session/activity-source"
+import { SessionStore } from "@opencode/core/session/store"
 import { Instance } from "@opencode/core/instance/service"
 import { SessionTransfer } from "@opencode/core/session/transfer"
 import { InstructionEntry } from "@opencode/core/session/instruction-entry"
@@ -66,6 +68,8 @@ const applicationServiceNodes = [
   Project.sweepNode,
   Worktree.node,
   Session.node,
+  SessionActivitySource.node,
+  SessionStore.node,
   Instance.node,
   SessionTransfer.node,
   InstructionEntry.node,
@@ -175,6 +179,8 @@ function makeRoutes<AuthError, AuthServices>(
         Layer.succeedContext(
           Context.pick(
             Database.Service,
+            SessionActivitySource.Service,
+            SessionStore.Service,
             Credential.Service,
             PermissionSaved.Service,
             PluginUpdate.Service,

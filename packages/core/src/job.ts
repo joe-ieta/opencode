@@ -7,6 +7,7 @@ import { Database } from "./database/database.js"
 import { JobTable } from "./job/sql.js"
 import { SessionMessage } from "./session/message.js"
 import { SessionSchema } from "./session/schema.js"
+import { SessionActivitySource } from "./session/activity-source.js"
 
 const Background = Schema.Struct({
   id: Schema.String,
@@ -203,10 +204,33 @@ function decrementSession(input: Map<SessionSchema.ID, number>, sessionID: Sessi
  */
 export const make = Effect.gen(function* () {
   const db = (yield* Database.Service).db
+  const activity = yield* SessionActivitySource.Service
   const state: State = {
     jobs: yield* SynchronizedRef.make(new Map()),
     scope: yield* Scope.Scope,
   }
+
+  // Shell processes have their own source, including user shells that never create a Job.
+  // A subagent Job and its child execution share one identity in the observation layer.
+  yield* activity.register(
+    SynchronizedRef.get(state.jobs).pipe(
+      Effect.map((jobs) =>
+        [...jobs.values()].flatMap((job) => {
+          const recovery = job.recovery
+          if (job.info.status !== "running" || !recovery || recovery.kind === "shell") return []
+          return [
+            {
+              id: recovery.kind === "subagent" ? `session:${recovery.childSessionID}` : `job:${job.info.id}`,
+              sessionID: recovery.kind === "subagent" ? recovery.childSessionID : recovery.sessionID,
+              kind: recovery.kind,
+              title: job.info.title,
+              startedAt: job.info.started_at,
+            },
+          ]
+        }),
+      ),
+    ),
+  )
 
   const consume = (id: string, generation: Scope.Closeable) =>
     SynchronizedRef.update(state.jobs, (jobs) => {
@@ -284,6 +308,7 @@ export const make = Effect.gen(function* () {
         return [{ info: snapshot(next), done: job.done, scope: job.scope }, new Map(jobs).set(id, next)]
       }),
     )
+    if (result.done) yield* activity.changed
     if (result.info && result.done) yield* Deferred.succeed(result.done, result.info)
     if (result.scope) {
       yield* Scope.close(result.scope, Exit.void).pipe(Effect.forkIn(state.scope, { startImmediately: true }))
@@ -332,6 +357,7 @@ export const make = Effect.gen(function* () {
             return [{ info: snapshot(job), scope }, new Map(jobs).set(input.id, job)]
           }),
         )
+        if ("scope" in result) yield* activity.changed
         if ("scope" in result)
           yield* restore(input.run).pipe(
             Effect.exit,
@@ -481,6 +507,7 @@ export const make = Effect.gen(function* () {
       }),
     )
     if (result.info && result.done) yield* Deferred.succeed(result.done, result.info)
+    if (result.done) yield* activity.changed
     if (result.scope) yield* Scope.close(result.scope, Exit.void)
     if (result.generation) yield* consume(id, result.generation)
     return result.info
@@ -566,4 +593,4 @@ export const make = Effect.gen(function* () {
 
 const layer = Layer.effect(Service, make)
 
-export const node = makeGlobalNode({ service: Service, layer, deps: [Database.node] })
+export const node = makeGlobalNode({ service: Service, layer, deps: [Database.node, SessionActivitySource.node] })

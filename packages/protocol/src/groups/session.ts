@@ -3,6 +3,7 @@ import { SessionInbox } from "@opencode/schema/session-inbox"
 import { PromptInput } from "@opencode/schema/prompt-input"
 import { Session } from "@opencode/schema/session"
 import { SessionStats } from "@opencode/schema/session-stats"
+import { SessionActivity } from "@opencode/schema/session-activity"
 import { InstructionEntry } from "@opencode/schema/instruction-entry"
 import { Project } from "@opencode/schema/project"
 import { DateTimeUtcFromMillis, NonNegativeInt, PositiveInt } from "@opencode/schema/schema"
@@ -213,6 +214,18 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
           identifier: "experimental.session.export",
           summary: "Export session",
           description: "Export a complete projected session transcript.",
+        }),
+      ),
+    )
+    .add(
+      HttpApiEndpoint.get("experimental.session.activity", "/api/experimental/session/activity", {
+        success: Schema.Struct({ data: Schema.Array(SessionActivity.Info) }),
+      }).annotateMerge(
+        OpenApi.annotations({
+          identifier: "experimental.session.activity",
+          summary: "Observe session background activity",
+          description:
+            "Experimental: may change without compatibility guarantees. Lists live tool and background work with Session ancestry. Execution ownership remains separate in session.active.",
         }),
       ),
     )

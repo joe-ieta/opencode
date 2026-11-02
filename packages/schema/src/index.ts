@@ -48,4 +48,5 @@ export {
   AgentAttachment,
 } from "./prompt.js"
 export { PromptInput } from "./prompt-input.js"
+export { SessionActivity } from "./session-activity.js"
 export * from "./schema.js"
