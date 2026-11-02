@@ -11,8 +11,17 @@
 | 2026-10-29 | `oc-headless-v2.2.0` | `c32c227981`（同步上游 V2 2.2.0；tag 指向本记录提交） | 2.2.0 | `oc_core-2.2.0-windows-x64.exe`（227,193,344 B）+ `.sha256` | `8b022fb7d2db2266c64629fac70af4d0752c0e650e0d7d597a4282d21182d2ec` | `oc:contract` PASS（130 路径；较基线新增 12 条信息性路径）；`bun run typecheck` 36/36；`oc:build` 产出 216.7 MB；`oc:smoke` PASS（`/api/info` 200 + 版本 2.2.0 / 无凭据 401 / `server.connected` / stderr 空）；CI **待补**：仓库 GitHub Actions 被禁用（dispatch HTTP 422），恢复后补跑 |
 | 2026-10-31 | `oc-headless-v2.2.5` | `2f409d1682`（同步上游 V2 2.2.0 → 2.2.5；tag 指向本记录提交） | 2.2.5 | `oc_core-2.2.5-windows-x64.exe`（234,496,512 B）+ `.sha256` | `f864f46d0dd459e187cc7c5b395d4f4ea041bd456eb0638c11c5190844c0ddbe` | `oc:contract` PASS（138 路径；较基线新增 20 条信息性路径）；`bun run typecheck` 36/36；`oc:build` 产出 223.6 MB；`oc:smoke` PASS（`/api/info` 200 + 版本 2.2.5 / 无凭据 401 / `server.connected` / stderr 空）；CI **待补**：仓库 GitHub Actions 被禁用（dispatch HTTP 422），恢复后补跑 |
 
+| 2026-11-02 | 仅本地（无标签） | `29ab8a48a1` | 2.2.5 | `oc_core-2.2.5-windows-x64.exe`（238,231,040 B）+ `.sha256`、`build.json` | `a61ab0ded89aa76811dbc837bf6850bfeb9401218d021a6c543ce8b3b0e16724` | 官方 `dev@67139d6827` 同步；trim、客户端重新生成及契约门禁通过；根检查 36/36、SQLite 回归 8/8；隔离系统临时目录与随机端口下，info 200/版本一致、无凭据 401、SSE `server.connected`、stderr 空均通过；不推送、不运行远端 CI |
+
 ## 备注
 
 - `v0.1.0` 与 `v2.0.26` 产物尺寸相同但哈希不同：构建不可字节复现，发布以侧车哈希与复测为准。
 - Zen 默认模型 `exo-free` 已弃用（410 `ModelDeprecated`）；端到端与演示使用 `opencode/ling-3.1-flash-free`（免费）或自配模型。
 - 后续发布模板：`<tag> | <commit> | <kernel> | <artifact>(<bytes>) | <sha256> | <smoke>`。
+
+## 2026-11-02 本地同步说明
+
+- 从 `origin/oc-headless@ec1894086f` 拉取，吸收官方上游新增 84 个提交；合并提交 `cc14ebab3d`。SQLite 使用官方 Effect 客户端并保留数据库文件名诊断；本地回归断言按新客户端的 `executeValues` / `connect` 操作名更新，仍验证路径及 SQLite 错误码。
+- 公开协议同步后从 `packages/client` 重新生成客户端，无实质差异；稳定 API 契约通过，不刷新基线。
+- Windows 无符号链接权限，完整检查时临时展开 `packages/app/src/custom-elements.d.ts` 的目标内容，检查后恢复占位文件，未将平台处理写入源码提交。
+- 已将当前顶层 GitHub 仓库约定同步到本分支。源码、记录、版本标签与二进制全部保留本地，不向任何远端推送。
