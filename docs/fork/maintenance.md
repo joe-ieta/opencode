@@ -6,7 +6,8 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：`git@github.com:joe-ieta/opencode.git`；`upstream`：`git@github.com:anomalyco/opencode.git`。
+- `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
+- 发布物：upstream GitHub 保存全部平台的完整资产；Gitee Release 只上传 Windows 分卷安装包和 Windows 清单，单个分卷必须小于 100 MB。Linux/macOS 不向 Gitee 上传，统一链接 upstream。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -15,7 +16,7 @@
 ```powershell
 git status --short --branch
 git fetch origin --prune --no-tags
-git fetch upstream dev v1 --no-tags
+git fetch upstream --prune --no-tags
 git branch -vv
 git log -1 --oneline origin/dev-my
 git log -1 --oneline origin/oc-headless
@@ -30,7 +31,7 @@ gh release list --repo joe-ieta/opencode --limit 20
 gh release view v2.2.1-dev-my.2 --repo joe-ieta/opencode --json tagName,isDraft,assets
 ```
 
-不要因官方“Latest Release”当前展示 V1 而误判 V2 代码版本；同步目标由分支定位确定。
+不要因上游“Latest Release”当前展示 V1 而误判 V2 代码版本；同步目标由分支定位确定。
 
 ## 2. 跟踪上游贡献
 
@@ -41,22 +42,24 @@ gh pr view 60446 --repo anomalyco/opencode --json state,isDraft,mergeable,review
 gh issue view 60241 --repo anomalyco/opencode --comments
 ```
 
+以上命令只查阅历史官方 PR 记录，用于维护追踪表；它们不是本项目的 remote、同步源或 PR 目标。日常分支、同步、比较和 PR 只使用上游 fork。
+
 每次交互后更新 [PR 跟踪](upstream-prs.md)，必要时更新 [FORK.md](../../FORK.md)的状态快照。官方设计批准、机器人回复、测试成功、实际合并要分别记录；不要把一个状态推断成另一个。
 
-新 V2 上游贡献从 `upstream/dev` 起分支，使用短名称和 conventional commit；按当前 CONTRIBUTING、AGENTS 和 PR 模板提交。保持 fork 文档、品牌和发行脚本不混入无关 PR。
+新 V2 贡献从上游 fork 的对应分支起短名称分支，使用 conventional commit，并向 fork 提交 PR。保持 fork 文档、品牌和发行脚本不混入无关 PR；不直接向官方仓库提交 PR。
 
 ## 3. 同步三条发行线
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；独立 Side bar 的上游贡献 #60867 单独维护在 `sidebar-mode`。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。独立模式设计和测试邀请见 [Side bar 记录](dev-my/sidebar-mode.md)。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。独立 Side bar 的贡献稿 #60867 保留在 `sidebar-mode` 作为历史记录；旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考。旧 `sidebar-projects` 仅保留最初实现的历史参考，不再接收功能更新或用于发行。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，后续优化以 `dev-my` 为准；不要将旧分支再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
 在该分支的干净工作区中：
 
 ```powershell
 git switch dev-my
 git merge --ff-only origin/dev-my
-git merge upstream/dev
+git merge upstream/dev-my
 bun install --frozen-lockfile
 bun run check
 ```
@@ -96,7 +99,7 @@ bun run qtoc:trim
 bun run qtoc:build --skip-install --skip-typecheck
 ```
 
-跟踪源固定为 `upstream/v1`。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
+跟踪源固定为上游 fork 的 `qt-headless` 分支。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 
@@ -155,11 +158,19 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```powershell
 git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
+git push upstream dev-my
 git push origin refs/tags/v2.2.3-dev-my.3
+git push upstream refs/tags/v2.2.3-dev-my.3
 gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
 gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
+
+# 5. Gitee Windows-only Release
+# 用 Gitee Release 页面/API 上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
+# 不上传 Linux/macOS 资产；分卷步骤见发布环境 KB
 ```
+
+`gh release create` 只对 upstream GitHub 执行；Gitee Release 另行创建，只上传 Windows 分卷和 Windows 清单。Linux/macOS 不向 Gitee 上传，下载链接使用 upstream GitHub。公开的 Windows 分卷链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 
@@ -185,7 +196,7 @@ gh run view <run-id> --repo joe-ieta/opencode
 
 ## 7. 标签和文档维护约定
 
-桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。Gitee 只保留当前稳定版和最新 Windows 测试版的分卷；替换后删除旧 Windows 分卷。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 

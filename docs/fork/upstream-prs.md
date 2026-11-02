@@ -1,6 +1,8 @@
 # 上游 PR、Issue 与补丁跟踪
 
-核对日期：2026-10-31（Asia/Shanghai）；上游 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
+核对日期：2026-10-31（Asia/Shanghai）；历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
+
+> 当前仓库的远端/上游关系以顶层约束为准：`origin` 为 Gitee 镜像，`upstream` 为 GitHub fork。本文的官方条目仅作历史记录，不再作为同步、比较或 PR 目标。
 
 ## 当前 PR
 
