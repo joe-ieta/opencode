@@ -8,8 +8,8 @@
 | ------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
 | 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
 | 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)                        |
-| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)（GitHub 完整包上传中） |
-| Linux 测试   | `v2.2.3-dev-my.5` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5)                        |
+| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
+| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)                        |
 
 Windows 分卷包含 `part1`、`part2`、`part3`、`SHA256SUMS`、独立 SHA256 文件和 `WINDOWS-README.txt`；Linux/macOS 只在上游下载。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](../KB/self-hosted-release-storage.md)。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
 
@@ -33,16 +33,18 @@ Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
 | `v2.2.3-dev-my.3` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) | `44a32f97461eea5e76f01199fc5022a4628b5557837bc8daeab413c6eb5c9f84` |
 | `v2.2.3-dev-my.6` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6) | `ae83752b76955f50406c225f178aefe98427ca784d89a6fbeb4ef3fec258ce26` |
 
-## v2.2.5-dev-my.2 Windows / Linux 测试版（发布中）
+## v2.2.5-dev-my.2 Windows / Linux 测试预发行
+
+- [GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 于 2026-11-02 17:09:40（Asia/Shanghai）公开，`draft=false`、`prerelease=true`；十个资产均已完成服务端 SHA256/大小独立核对。三份公开更新清单与本地字节一致（HTTP 200），Windows 安装包与两架构 AppImage 的公开入口及 PE/ELF 文件头验证通过（HTTP 206）。稳定 Latest 独立查询仍为 `v2.2.3-dev-my.3`。
 
 - 构建源码与不可变标签：`3777b783c5647651707cccc939c25ccdb09e27ff` / `v2.2.5-dev-my.2`。同步官方 `dev@ff90ed9160`（V2 2.2.5），相对前次 `69269e4ebe` 新增 53 个提交；先以 `0779e086ec` 整合既有 Side bar 贡献历史，再以 `3777b783c5` 合并上游。Windows x64 与 Linux x64/arm64 均从此提交构建。
 - 保留项目整组收起/展开及持久化、项目内与平面列表排序、深层子智能体祖先状态恢复、相反文字方向标题修复和既有 31 个中文词条。官方 Top tabs、Side tabs、Inbox 及原有布局偏好保持原语义。
 - 验证：Windows 和 Ubuntu 根检查各 35/35；最终 PR 分支两平台根检查各 35/35、应用单元 948 项、Linux browser 条件 303 项（默认超时）、生产 Home/标签回归 67/67（五 workers、无重试）。发行源码的应用正式 TypeScript 检查通过；Windows 安装器/打包配置 18 项通过。Windows browser 条件测试在并行构建期间对实际启动子进程采用 30 秒预算后 303/303 通过，测试断言与产品代码未为此修改。
 - 使用 Bun 1.4.4；三个目标的模型目录均完整比较 7,653 个模型，服务发现、共享 V1 数据库、升级确认及迁移历史冒烟通过。Windows 的一次独立目录冒烟遇到五秒插件激活超时，随后复用同一已编译 CLI，以已有 `--via-server` 路径通过，继续执行相同桌面打包阶段。
 - 实际 Windows ASAR/CLI 版本、四种模式、收起状态键、中文词条、固定标签更新源、NSIS 7-Zip 完整性与清单 SHA512/大小均已核对；Linux 两架构的 AppImage/deb 已实际解包，ASAR 内容一致，ELF/deb 架构、版本、桌面/metainfo、更新源与两份更新清单均通过核验。
-- [Gitee Windows 测试版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) 已公开为预览版本，八个附件全部从公开下载入口读回并比较大小和 SHA256。三卷分别为 94,371,840、94,371,840、91,118,164 字节，均小于 100 MB；合并 SHA256 与完整安装包相同。GitHub 草稿的十个资产正在上传，待全部服务端摘要核对后再公开；稳定 Latest 保持 `v2.2.3-dev-my.3`。
+- [Gitee Windows 测试版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) 已公开为预览版本，八个附件全部从公开下载入口读回并比较大小和 SHA256。三卷分别为 94,371,840、94,371,840、91,118,164 字节，均小于 100 MB；合并 SHA256 与完整安装包相同。GitHub 提供全部平台完整资产，Gitee 仅提供 Windows 分卷及清单。
 - 用户已于 2026-11-02 确认此前 Windows 2.2.5 测试包手工测试通过；本次同步后的新包尚未执行安装后 GUI 人工验收，Linux/原生 ARM64 GUI 未人工验收。所有目标未签名，Windows Authenticode 为 `NotSigned`；固定标签更新源的后续版本需手动下载安装。
-- 用户确认本次二进制只包含冻结时已提交的内容。并行任务随后提交的 Session activity / goal state 工作保留于本地 `dev-my`，并通过 `453084892e` 合回本次源码同步；它不属于 `v2.2.5-dev-my.2` 标签或安装包。合回后客户端重新生成无差异，完整检查 35/35 通过。
+- 用户确认本次二进制只包含冻结时已提交的内容。并行任务随后提交的 Session activity / goal state 工作保留于维护线 `dev-my`，并通过 `453084892e` 合回本次源码同步；它不属于 `v2.2.5-dev-my.2` 标签或安装包。合回后客户端重新生成无差异，完整检查 35/35、客户端回归 40 项、核心活动回归 2 项通过；维护线与记录分别推送 GitHub/Gitee，源码标签保持固定。
 - [PR #60867](https://github.com/anomalyco/opencode/pull/60867) 已按用户本次明确要求更新到 `b88b94a75d3d517c3bbd417274392e326b7cb1e7`，基线 `ff90ed9160`，仅 35 个应用层文件。项目收起、后代活动、RTL 标题与原有分组/排序回归已同步；未混入 fork 发行、品牌或 Session activity 协议改动。本地 `sidebar-mode` 分支已删除，远端仅冻结保留 PR 来源引用，不再并行开发；旧 `sidebar-projects` 在 GitHub/Gitee 均已删除。本地旧项目工作区原以 `dev` 指向 `966e97bf71`，现已转为 detached 历史检出并删除该旧本地分支；文件及 `refs/archive/sidebar-projects` 归档引用保留。未发送测试邀请。
 
 | 安装包 | 字节 | SHA256 |

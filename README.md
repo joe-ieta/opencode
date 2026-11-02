@@ -10,9 +10,9 @@
 </p>
 <p align="center"><sub>Side bar（本地模式）：运行中的任务、按项目分组的最近会话、分支与运行时长一屏可见。截图为合成数据。</sub></p>
 
-自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `.3`，Windows 稳定版分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)，Linux 测试版 [v2.2.3-dev-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.5) 走上游 GitHub。
+自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。首次人工测试已通过，[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 稳定版分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)。
 
-Windows 最新测试版 `v2.2.5-dev-my.2` 已提供 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)，八个附件的公开下载内容与本地哈希一致。GitHub 完整包与同源码 Linux amd64/arm64 AppImage/deb 正在上传发行草稿；详情见 [发行记录](docs/fork/dev-my/releases.md)。
+最新测试版 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 提供 Windows x64 完整安装包与 Linux amd64/arm64 AppImage/deb，Windows 另提供 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)。三个目标的安装包、远端摘要与公开下载入口均已核验；产物未签名，本次新包 GUI 尚未人工验收。详情见 [发行记录](docs/fork/dev-my/releases.md)。
 
 `dev-my` 已吸收上游 V2 2.2.5 `dev@ff90ed9160`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`；[#60867](https://github.com/anomalyco/opencode/pull/60867) 已同步最终修改，远端 `sidebar-mode` 仅冻结保留 PR 引用，本地分支及两端旧 `sidebar-projects` 已收口。测试版标签固定在 `3777b783c5`，不包含并行任务后来提交的 Session activity / goal state 工作。[验证与构建记录](docs/fork/dev-my/releases.md)。
 
@@ -50,7 +50,7 @@ OpenCode My 是 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 的维
 - [FORK.md](FORK.md)：fork 定位、三个维护分支和上游贡献状态
 - [docs/fork](docs/fork/README.md)：维护、同步、验证、发布与 Qt/headless 资料
 - [dev-my 桌面发行](docs/fork/dev-my/README.md)：Side bar、桌面身份、配置和运行时约定
-- [Releases](https://github.com/joe-ieta/opencode/releases)：全部平台完整资产在上游 GitHub；Windows 稳定版与测试版另提供 Gitee 分卷下载（[稳定版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)、[Windows 测试版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6)）
+- [Releases](https://github.com/joe-ieta/opencode/releases)：全部平台完整资产在上游 GitHub；Windows 稳定版与测试版另提供 Gitee 分卷下载（[稳定版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)、[Windows 测试版](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)）
 
 ---
 

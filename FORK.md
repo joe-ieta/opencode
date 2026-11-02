@@ -16,7 +16,7 @@
 
 | 分支                                           | 定位与跟踪源                                                           | 当前进度                                                                                                                                                         |
 | ---------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，发行 OpenCode My | 已同步 V2 2.2.5 `dev@ff90ed9160`；`2.2.5-dev-my.2` 三目标已构建核验，Windows Gitee 测试版已公开，GitHub 完整资产上传中。#60867 已更新，来源分支仅冻结保留 PR 引用 |
+| [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，发行 OpenCode My | 已同步 V2 2.2.5 `dev@ff90ed9160`；[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 的 Windows x64、Linux amd64/arm64 测试包均已公开并核对远端摘要，Windows Gitee 分卷已公开。#60867 已更新，来源分支仅冻结保留 PR 引用 |
 | [oc-headless](docs/fork/oc-headless/README.md) | 跟随上游 `oc-headless`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入  | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成                      |
 | [qt-headless](docs/fork/qt-headless/README.md) | 跟随上游 `qt-headless`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                                               |
 

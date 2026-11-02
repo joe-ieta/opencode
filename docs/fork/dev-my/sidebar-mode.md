@@ -76,4 +76,4 @@
 - [原需求更新](https://github.com/anomalyco/opencode/issues/60241#issuecomment-6542697449)与[项目分组需求帖测试入口](https://github.com/anomalyco/opencode/issues/55446#issuecomment-6542697849)：公开邀请更多关注该功能的人员参与。
 - 反馈建议包含 OS、准确构建/提交、模式、预期/实际行为和复现步骤，重点测试多项目/worktree、同名路径、四模式切换、未打开的运行/等待会话、子会话、隐藏后重新打开及重载后的排序。
 
-新的 Windows `v2.2.5-dev-my.2` 测试版已在 [Gitee](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) 公开；同源码 Linux 两架构安装包已构建核验，GitHub 草稿正在上传。后续优化只进入 `dev-my`；`sidebar-mode` 的远端引用保留以维持现有 PR，不再作为开发或发行分支。
+新的 [v2.2.5-dev-my.2 测试版](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 已公开 Windows x64 与同源码 Linux amd64/arm64 安装包，全部远端摘要与公开下载入口已核验；Windows 另提供 [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)。后续优化只进入 `dev-my`；`sidebar-mode` 的远端引用保留以维持现有 PR，不再作为开发或发行分支。
