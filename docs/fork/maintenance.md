@@ -107,6 +107,24 @@ bun run qtoc:build --skip-install --skip-typecheck
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 
+
+### Headless 本地发布与固定交付目录
+
+两条 headless 线分别归档，不建立日期或时间戳汇总目录：
+
+| 分支 | 最终交付目录 | 稳定名 | 版本化名 |
+| --- | --- | --- | --- |
+| `qt-headless` | `artifacts/qtoc/` | `qtoc_core[.exe]` | `qtoc_core-<version>-<os>-<arch>[.exe]` |
+| `oc-headless` | `artifacts/oc/` | `oc_core[.exe]` | `oc_core-<version>-<os>-<arch>[-baseline][.exe]` |
+
+每份二进制附同名 `.sha256`；两个目录分别保存自己的 `build.json`，记录实际构建源提交、官方上游提交、版本、平台、文件大小、SHA256 及验收结果。不要用后续文档提交冒充构建来源。
+
+独立 worktree 的构建脚本先产出其工作区内的 `artifacts/qtoc/` 或 `artifacts/oc/`。完成本轮同步、裁剪、安装、检查和隔离冒烟后，将稳定名、版本化文件、校验侧车及清单原名复制到主仓库对应目录；本机最终位置为 `E:\ChatGPT\opencode\artifacts\qtoc\` 和 `E:\ChatGPT\opencode\artifacts\oc\`。核对旧稳定版已有版本化归档，保留历史版本，再更新稳定名；复制后重新校验全部哈希。
+
+冒烟使用仓库之外的系统临时目录、独立配置和数据库、随机端口及独立密码，避免加载父级 `.opencode` 开发工具或接触正在使用的服务。V1 检查版本、健康、401、`question` 与 SSE；V2 检查 info 200/版本、401 与 SSE，两者均要求 stderr 空。测试后关闭其进程。
+
+默认只做本地发布：源码和发布记录可提交到本地分支，二进制由 Git 忽略；不推送分支、标签或发布物，不触发远端 CI。远端发布须另有用户明确授权。两条维护分支的 `packages/qtui/docs/ops/release-runbook.md` 已分别固化这一流程。
+
 ## 4. 按变更范围验证
 
 - 根目录 `bun run check` 为规范的完整 lint/类型检查；受影响包可先运行 `bun typecheck`。CI/发布的正式编译器验证使用包内 `bun run typecheck:tsc`，不直接调用 tsc。
