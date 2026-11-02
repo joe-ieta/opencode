@@ -11,6 +11,18 @@
 - 上游通用文档、CONTRIBUTING、AGENTS、CONTEXT/STATS 等原有说明不搬动；操作脚本及 `.opencode/skills/qtoc-release/SKILL.md` 等需要发现机制的功能入口保持原位。
 - 这是 dev-my 上的文档汇集；两条 headless 原分支中的原路径尚未更改。将来传播此文档结构时使用文档专用提交，在对应分支更新引用，不整分支合入 dev-my，也不重复维护两份不注明来源的说明。
 
+
+## dev 镜像对齐核对（2026-11-02）
+
+本仓库默认分支已切换为 `dev-my`，`origin/dev` 仅用于镜像官方 `upstream/dev`。本次核对时，旧 `origin/dev@2d17a1bdef` 相对官方有七笔同步合并提交及两笔 Qt 文档提交：
+
+- `e29515c957`：新增 Qt 集成方案与方法论文档。
+- `79c6ea981b`：补充业务上下文注入与 Qt 端点面。
+
+两笔提交均为本地及远端 `qt-headless@81c50bd59a` 的祖先，原始历史完整保留。`dev-my` 已分别收录为 [Qt 集成方案](qt-headless/legacy/opencode-qt-integration.md) 与 [方法论](qt-headless/legacy/opencode-qt-integration-methodology.md)；排除归档说明、路径调整和 Markdown 表格排版后，两份正文与旧 `origin/dev` 一致。它们是 V1 设计资料，无需将原提交再次合入 V2 维护线。
+
+旧镜像提交保存在本地 `refs/archive/2026-11-02/heads/dev`；本次对齐目标为官方 `dev@ef6dd07aab`。仅更新本仓库的 `dev` 镜像引用，不将这些文档重新放入镜像，也不改变三条维护线的上游同步进度。
+
 ## 首页与界面截图
 
 - 根 README 顶部为 OpenCode My 简介，包含项目定位、上游来源、本地模型支持和 Side bar 截图；官方 OpenCode 首页原文附在其后，随上游同步保留。

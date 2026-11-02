@@ -8,6 +8,7 @@
 
 - `origin`：`git@github.com:joe-ieta/opencode.git`（本仓库唯一发布远端）；`upstream`：`git@github.com:anomalyco/opencode.git`（官方上游）。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
 - 源码、标签及全部平台发布物只发布到 `origin` 的 GitHub；Windows 使用完整安装包，停用 Gitee 与分卷发布流程。
+- GitHub 默认分支为 `dev-my`；`dev` 仅镜像官方 `upstream/dev`，不放 fork 改动或额外同步合并提交。三条维护线仍为 `dev-my`、`oc-headless`、`qt-headless`。对齐镜像前核对独有提交归属并保留归档，更新时使用明确旧 SHA 的 `--force-with-lease`，不改写三条维护线。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -109,6 +110,8 @@ V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/del
 ## 4. 按变更范围验证
 
 - 根目录 `bun run check` 为规范的完整 lint/类型检查；受影响包可先运行 `bun typecheck`。CI/发布的正式编译器验证使用包内 `bun run typecheck:tsc`，不直接调用 tsc。
+- 拉取涉及依赖升级的源码后先执行 `bun install --frozen-lockfile`，确认实际安装版本与锁文件一致，再运行检查。2026-11-02 的 util 五个类型错误源于本机残留 Effect 4.0.6，而源码与锁文件已要求 4.1.0；按锁文件安装即可消除，不删减 `duplex` 支持或修改类型断言。修复后根检查 35/35、util 正式 TypeScript 检查及现有子进程回归 25/25 均通过。
+- 正常推送保留 `.husky/pre-push` 的 Bun 版本与完整检查，不设置 `HUSKY=0` 或覆盖 `core.hooksPath` 跳过检查。
 - 测试从包目录执行；写测试前读相应 `.opencode/skills`。不要从仓库根跑测试。
 - GUI 行为采用正式构建和隔离数据验证；不得为了测试重启用户正在运行的应用/后台。附着 live Electron 时遵守 `noDefaults: true` 等仓库诊断规范。
 - 纯文档整理检查链接、来源与命令，不需要重新构建二进制；文档提交不能冒用此前二进制的源码 provenance。
