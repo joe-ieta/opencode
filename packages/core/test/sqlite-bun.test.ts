@@ -15,7 +15,7 @@ test.each(["records", "values"] as const)("reports %s preparation failures as SQ
     }).pipe(Effect.provide(sqliteLayer({ filename: ":memory:" })), Effect.scoped),
   )
   expect(error).toBeInstanceOf(SqlError)
-  expect(error.reason.operation).toBe("execute")
+  expect(error.reason.operation).toBe(mode === "values" ? "executeValues" : "execute")
   expect(error.reason.cause).toMatchObject({ message: "no such table: missing_table" })
 })
 
@@ -30,6 +30,6 @@ test.each(["open", "wal"] as const)("identifies the database and %s initializati
   expect(error).toBeInstanceOf(SqlError)
   if (!(error instanceof SqlError)) throw error
   expect(error.message).toContain(filename)
-  expect(error.reason.operation).toBe(operation === "open" ? "open" : "PRAGMA journal_mode = WAL")
+  expect(error.reason.operation).toBe("connect")
   expect(error.reason.cause).toMatchObject({ code: operation === "open" ? "SQLITE_CANTOPEN" : "SQLITE_NOTADB" })
 })
