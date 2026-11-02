@@ -16,7 +16,7 @@ import { createSessionBranches } from "./session-branches"
 import { pathKey } from "@/workspaces/path-key"
 import "./active-sessions.css"
 
-/** The server-wide active index includes running sessions without an open tab, including child sessions. */
+/** Observation includes background work and ancestors, independently of model execution ownership. */
 export function ActiveSessions() {
   const global = useGlobal()
   const language = useLanguage()
@@ -37,7 +37,7 @@ export function ActiveSessions() {
 
       if (!ctx || ctx.sdk.connection.status() !== "connected") return []
 
-      return ctx.data.session.active().map((id) => ({
+      return ctx.data.session.activity.active().map((id) => ({
         key: JSON.stringify([ServerConnection.key(item.conn), id]),
         id,
         server: ServerConnection.key(item.conn),
@@ -49,6 +49,8 @@ export function ActiveSessions() {
 
   const byKey = createMemo(() => new Map(entries().map((entry) => [entry.key, entry])))
   const disconnected = () => connections().some((item) => item.ctx?.sdk.connection.status() !== "connected")
+  const unavailable = () => connections().some((item) => item.ctx?.data.session.activity.unavailable())
+  const loading = () => connections().some((item) => item.ctx && !item.ctx.data.session.activity.ready())
 
   createEffect(() => {
     if (!entries().length) return
@@ -88,7 +90,19 @@ export function ActiveSessions() {
       <div data-slot="active-sessions-list" data-scrollable>
         <For
           each={[...byKey().keys()]}
-          fallback={<p data-slot="active-sessions-empty">{language.t("sidebar.running.empty")}</p>}
+          fallback={
+            <p data-slot="active-sessions-empty">
+              {language.t(
+                disconnected()
+                  ? "sidebar.running.disconnected"
+                  : unavailable()
+                    ? "sidebar.running.unavailable"
+                    : loading()
+                      ? "common.loading"
+                      : "sidebar.running.empty",
+              )}
+            </p>
+          }
         >
           {(key) => (
             <Show when={byKey().get(key)}>
@@ -116,8 +130,19 @@ export function ActiveSessions() {
                   return !!root && !!directory && pathKey(root) !== pathKey(directory)
                 }
                 const duration = () => {
-                  const value = session()
-                  return value ? workingDuration(value, clock.now, language) : undefined
+                  const since = entry().ctx.data.session.activity.since(entry().id, true)
+                  return since === undefined
+                    ? undefined
+                    : workingDuration({ time: { busy: since } }, clock.now, language)
+                }
+                const summary = () => {
+                  const work = entry().ctx.data.session.activity.list(entry().id, true)
+                  return language.plural("sidebar.running.activity", work.length, {
+                    models: work.filter((item) => item.kind === "model").length,
+                    agents: work.filter((item) => item.kind === "subagent").length,
+                    shells: work.filter((item) => item.kind === "shell").length,
+                    other: work.filter((item) => item.kind === "image" || item.kind === "job").length,
+                  })
                 }
 
                 const status = createMemo(() => {
@@ -155,6 +180,10 @@ export function ActiveSessions() {
                       branch(),
                       session()?.location.directory,
                       sessionLastRunLabel(session()?.time, language),
+                      summary(),
+                      ...entry()
+                        .ctx.data.session.activity.list(entry().id, true)
+                        .map((item) => item.title),
                     ]
                       .filter(Boolean)
                       .join("\n")}
@@ -179,11 +208,7 @@ export function ActiveSessions() {
                     <span
                       data-slot="active-session-status"
                       data-waiting={status() !== "working" ? "" : undefined}
-                      title={
-                        status() === "working" && duration()
-                          ? language.t("sidebar.inbox.status.workingFor", { duration: duration()! })
-                          : language.t(`sidebar.inbox.status.${status()}`)
-                      }
+                      title={status() === "working" ? summary() : language.t(`sidebar.inbox.status.${status()}`)}
                     >
                       <span class="sr-only">{language.t(`sidebar.inbox.status.${status()}`)}</span>
                       <span aria-hidden="true">
@@ -195,6 +220,12 @@ export function ActiveSessions() {
                     <span data-slot="active-session-project" dir="auto">
                       <Show when={project()} fallback={language.t("common.loading")}>
                         <span class="min-w-0 truncate">{projectName()}</span>
+                      </Show>
+                      <Show when={entry().ctx.data.session.status(entry().id) !== "running"}>
+                        <span aria-hidden="true">·</span>
+                        <span class="truncate" title={summary()}>
+                          {language.t("sidebar.running.background")}
+                        </span>
                       </Show>
                       <Show when={branch() || worktree()}>
                         <span aria-hidden="true">·</span>
@@ -216,8 +247,11 @@ export function ActiveSessions() {
           )}
         </For>
       </div>
-      <Show when={disconnected()}>
+      <Show when={disconnected() && entries().length > 0}>
         <p data-slot="active-sessions-empty">{language.t("sidebar.running.disconnected")}</p>
+      </Show>
+      <Show when={unavailable() && entries().length > 0}>
+        <p data-slot="active-sessions-empty">{language.t("sidebar.running.unavailable")}</p>
       </Show>
     </section>
   )

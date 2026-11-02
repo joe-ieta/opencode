@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
-import type { OpenCodeEvent, SessionMessageInfo } from "@opencode/client/promise"
+import type { OpenCodeEvent, SessionActivityInfo, SessionMessageInfo } from "@opencode/client/promise"
 import {
   NO_PROVIDER,
   REMOTE_SERVER,
@@ -113,6 +113,69 @@ test("Side bar keeps project history and running sessions separate from the offi
   await sidebar.locator(`a[data-titlebar-tab-link][href="${sessionHref(b.id)}"]`).click()
   await expectPath(page, sessionHref(b.id))
   await expectSessionTitle(page, b.title)
+})
+
+test("Side bar keeps idle parents visible while descendant background work runs", async ({ page }) => {
+  let activity: SessionActivityInfo[] = [
+    {
+      id: `session:${b.id}`,
+      sessionID: b.id,
+      ancestors: [a.id],
+      kind: "subagent",
+      title: "Review changes",
+      startedAt: T0,
+    },
+    {
+      id: "shell:sh_nested",
+      sessionID: c.id,
+      ancestors: [b.id, a.id],
+      kind: "shell",
+      title: "Run checks",
+      startedAt: T0,
+    },
+  ]
+  const workspace = await mockWorkspace(page, {
+    name: "Background activity",
+    sessions: [a, { ...b, parentID: a.id }, { ...c, parentID: b.id }],
+    sessionStatus: { [b.id]: { type: "running" } },
+    sessionActivity: () => activity,
+    seed: { tabs: [a.id], settings: { appearance: { tabLayout: "sidebar" } } },
+  })
+  await page.goto(sessionHref(a.id))
+  const running = page.getByRole("region", { name: "Running sessions" })
+  const parent = running.getByRole("button", { name: new RegExp(a.title) })
+  await expect(parent).toContainText("Background work")
+  await expect(parent).toHaveAttribute("title", /2 active tasks — models: 0; subagents: 1; shells: 1; other: 0/)
+  await expect(running.getByRole("button")).toHaveCount(3)
+  await running.getByRole("button", { name: new RegExp(c.title) }).click()
+  await expectPath(page, sessionHref(c.id))
+  await expectSessionTitle(page, c.title)
+  await page.reload()
+  await expect(parent).toContainText("Background work")
+  activity = activity.filter((item) => item.kind === "shell")
+  await workspace.push([
+    {
+      type: "session.execution.succeeded",
+      id: "evt_child_done",
+      created: T0 + 1,
+      durable: { aggregateID: b.id, seq: 1, version: 1 },
+      data: { sessionID: b.id },
+    },
+    { type: "experimental.session.activity.changed", id: "evt_activity", created: T0 + 2, data: {} },
+  ])
+  await expect(parent).toHaveAttribute("title", /1 active task — models: 0; subagents: 0; shells: 1; other: 0/)
+  activity = []
+  await workspace.push([
+    {
+      type: "shell.exited",
+      id: "evt_shell_done",
+      created: T0 + 3,
+      location: { directory: workspace.directory },
+      data: { id: "sh_nested", exit: 0, status: "exited" },
+    },
+  ])
+  await expect(running.getByRole("button")).toHaveCount(0)
+  await expect(running).toContainText("No running sessions")
 })
 
 test("sidebar and Home share projects and history without opening session tabs", async ({ page }) => {

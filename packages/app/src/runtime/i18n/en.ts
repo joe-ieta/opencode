@@ -784,6 +784,12 @@ export const dict = {
   "sidebar.session.lastRun": "Last run ended: {{time}}",
   "sidebar.running.title": "Running sessions",
   "sidebar.running.empty": "No running sessions",
+  "sidebar.running.background": "Background work",
+  "sidebar.running.unavailable": "Activity status is unavailable",
+  "sidebar.running.activity.one":
+    "{{count}} active task — models: {{models}}; subagents: {{agents}}; shells: {{shells}}; other: {{other}}",
+  "sidebar.running.activity.other":
+    "{{count}} active tasks — models: {{models}}; subagents: {{agents}}; shells: {{shells}}; other: {{other}}",
   "sidebar.running.disconnected": "Some servers are disconnected",
   "sidebar.running.count.one": "{{count}} running session",
   "sidebar.running.count.other": "{{count}} running sessions",

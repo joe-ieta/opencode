@@ -1110,6 +1110,7 @@ test("preserves sibling catalogs through location preload, branch, shell, and we
       const pathname = new URL((input instanceof Request ? input : new Request(input, init)).url).pathname
       requests.push(pathname)
       if (pathname === "/api/session/active") return Response.json({})
+      if (pathname === "/api/experimental/session/activity") return Response.json({ data: [] })
       if (pathname === "/api/project") return Response.json([])
       if (pathname === "/api/location") return Response.json(location)
       if (pathname === "/api/vcs")
@@ -1183,6 +1184,7 @@ test("preserves sibling catalogs through location preload, branch, shell, and we
     expect(setup.data.shell.get(shell.id)).toBe(first)
     expect(setup.data.location.vcs.info()?.branch).toEqual({ current: "feature", default: "main" })
     expect(requests.toSorted()).toEqual([
+      "/api/experimental/session/activity",
       "/api/location",
       "/api/project",
       "/api/reference",
@@ -1516,7 +1518,46 @@ function modelInfo(name: string): ModelInfo {
   }
 }
 
-function activityFixture(read: () => Response | Promise<Response>, sessions: SessionInfo[] = []) {
+test("observes work outside the loaded location without changing execution status", async () => {
+  const owner = { ...session(0), id: "ses_background", location: { directory: "/unopened" } }
+  let work = [{ id: "shell:sh_background", sessionID: owner.id, kind: "shell", startedAt: 1, ancestors: [] }]
+  const execution = Promise.withResolvers<Response>()
+  const setup = activityFixture(
+    () => execution.promise,
+    [owner],
+    () => Response.json({ data: work }),
+  )
+  try {
+    setup.emit({ type: "server.connected", data: {} })
+    await wait(() => setup.data.session.activity.busy(owner.id))
+    expect(setup.data.session.activity.ready()).toBe(false)
+    expect(setup.data.session.status(owner.id)).toBe("idle")
+    execution.resolve(Response.json({ data: {} }))
+    await wait(() => setup.data.session.activity.ready() && !!setup.data.session.get(owner.id))
+    work = []
+    setup.emit({
+      type: "shell.exited",
+      location: owner.location,
+      id: "evt_background_done",
+      created: 2,
+      data: { id: "sh_background", status: "exited", exit: 0 },
+    })
+    await wait(() => setup.data.session.activity.ready() && !setup.data.session.activity.busy(owner.id))
+    work = [{ id: "job:background", sessionID: owner.id, kind: "image", startedAt: 2, ancestors: [] }]
+    setup.emit({ type: "experimental.session.activity.changed", id: "evt_activity", created: 3, data: {} })
+    await wait(() => setup.data.session.activity.busy(owner.id))
+    expect(setup.data.session.status(owner.id)).toBe("idle")
+  } finally {
+    execution.resolve(Response.json({ data: {} }))
+    setup.dispose()
+  }
+})
+
+function activityFixture(
+  read: () => Response | Promise<Response>,
+  sessions: SessionInfo[] = [],
+  background = () => Response.json({ data: [] }),
+) {
   const listeners = new Set<Parameters<CreateDataInput["event"]["listen"]>[0]>()
   const api = OpenCode.make({
     baseUrl: "http://opencode.local",
@@ -1524,6 +1565,7 @@ function activityFixture(read: () => Response | Promise<Response>, sessions: Ses
       const request = input instanceof Request ? input : new Request(input, init)
       const path = new URL(request.url).pathname
       if (path === "/api/session/active") return read()
+      if (path === "/api/experimental/session/activity") return background()
       const known = sessions.find((item) => path === `/api/session/${item.id}`)
       if (known) return Response.json({ data: known })
       if (path === "/api/project") return Response.json([])

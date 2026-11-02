@@ -42,7 +42,11 @@ export function useSessionTabAvatarState(
 
     if (needsAttention()) return false
 
-    if (root?.()) return [sessionId(), ...data.session.family(sessionId())].some((id) => sessionBusy(data, id))
+    if (root?.())
+      return (
+        data.session.activity.busy(sessionId(), true) ||
+        [sessionId(), ...data.session.family(sessionId())].some((id) => sessionBusy(data, id))
+      )
 
     return sessionBusy(data, sessionId())
   })
@@ -70,6 +74,7 @@ export function sessionRequests(data: ServerData, sessionId: string, root: boole
 export function sessionBusy(data: ServerData, sessionId: string) {
   return (
     data.session.status(sessionId) === "running" ||
+    data.session.activity.busy(sessionId) ||
     data.session.pending.list(sessionId).some((item) => item.type !== "synthetic")
   )
 }
