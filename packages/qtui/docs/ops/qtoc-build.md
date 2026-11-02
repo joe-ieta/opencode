@@ -172,3 +172,7 @@ bun run qtoc:build              # 安装 + 类型检查 + 构建 + 归档
 | `qtoc:trim` 抛 "no longer matches the expected outfile pattern" | 上游改了 `build.ts`，更新 `packages/qtui/src/trim.ts` 中的模式后重跑 |
 | `qtoc:build` 找不到产物 | 确认 `build.ts` 未报错、`packages/opencode/dist/opencode-<os>-<arch>/bin/qtoc_core[.exe]` 存在 |
 | `git push` 报 husky `bun: command not found` | 将 `%USERPROFILE%\.bun\bin` 加入当前会话 PATH 后再推送 |
+
+## 2026-11-02 本地构建验证
+
+本次没有新发行标签。基于 `81c50bd59a` 本地重新构建 `qtoc_core 1.19.5`（Windows x64），18/18 类型检查、lint、版本/健康/鉴权/工具/SSE 冒烟通过。完整来源、哈希和验收记录见 [上游跟踪](../KB/upstream.md#本地构建与冒烟2026-11-02仅本地)。产物及校验文件仅留在 `artifacts/qtoc/`，不推送远端。

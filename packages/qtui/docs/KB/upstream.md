@@ -132,3 +132,12 @@ bun run qtoc:sync
 | 日期 | 类型 | 链接 | 标题 | 状态 | 备注 |
 |---|---|---|---|---|---|
 | YYYY-MM-DD | issue / PR / merge | URL | … | … | … |
+
+## 本地构建与冒烟（2026-11-02，仅本地）
+
+- 已拉取 `origin/qt-headless@81c50bd59a` 并核对官方 `upstream/v1@006d837c50`；已包含全部上游提交，本次无需新增同步合并。
+- 产物源码：`81c50bd59afb419c7fd3da1a0553b3d59d3cd473`；Bun 1.4.4，Windows x64，版本 1.19.5。
+- 本地归档：`artifacts/qtoc/qtoc_core.exe`、`qtoc_core-1.19.5-windows-x64.exe`，均附 `.sha256`；`build.json` 记录来源与验证结果。PE 架构为 x64，两份文件一致。
+- 大小：163,079,168 字节；SHA256：`30108a661f7f0d7bfaa2b7a50ef4613bade49d1d17ee4a8717974c8514cd8fc3`。
+- `qtoc:trim` 无变更；类型检查 18/18；lint 无错误。隔离系统临时目录与随机端口冒烟：版本正确、健康接口 200、无凭据 401、14 个工具中包含 `question`、SSE `server.connected`、stderr 空，全部通过。首次在仓库内的临时项目读到了父级 V2 开发工具，改用仓库外临时目录后通过；未修改运行时行为。
+- 仅本地验收，不创建或移动发行标签，不推送源码、记录或发布物，不运行远端 CI。本次将当前 GitHub 远端及三条维护线的顶层约束同步到本分支。
