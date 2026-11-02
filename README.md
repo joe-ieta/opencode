@@ -55,6 +55,43 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 
 ## English
 
+Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md). The stable Latest release remains `v2.2.3-dev-my.3`; the complete Windows installer is available from [GitHub Releases](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3).
+
+The latest test release, [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2), provides a complete Windows x64 installer and Linux amd64/arm64 AppImage and deb packages. Packages for all three targets have been tested and verified; the installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
+
+`dev-my` includes upstream V2 2.2.5 at `dev@ff90ed9160`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
+
+### Project focus
+
+OpenCode My focuses on three parts of everyday development:
+
+- **Interface improvements**: the local Side bar (`sidebar`) mode brings Home, running tasks, recent sessions, and project history into one sidebar. The official Top tabs, Side tabs, and Inbox modes follow upstream. Running tasks remain visible even without an open tab, with branch, worktree, and elapsed-time details updated alongside them.
+- **Personal workflows**: recent sessions are grouped by project by default, showing five per project with an option to expand. Create a session directly beside a project. Closing a tab or hiding a history entry preserves the session, which can be reopened through Home or search.
+- **Local preferences**: follow the system language and theme, and remember layout, grouping, and sorting preferences. Projects, session history, and configuration stay on your machine; local models do not require an additional cloud account.
+
+We welcome [feature requests and bug reports](https://github.com/joe-ieta/opencode/issues) about the interface, browsing messages, and the overall experience, especially tracking long-running tasks and monitoring concurrent work across projects. We'll do our best to improve.
+
+### Project origins
+
+OpenCode My is maintained in [joe-ieta/opencode](https://github.com/joe-ieta/opencode), with [anomalyco/opencode](https://github.com/anomalyco/opencode) as the official upstream, and ships the **OpenCode My** desktop application.
+
+### Local model support
+
+Local models use OpenCode's existing provider system for straightforward configuration and switching:
+
+- Connect local services such as Ollama, LM Studio, vLLM, and llama.cpp through OpenAI-compatible configuration and local model discovery.
+- Local and cloud models share model selection, sessions, and tool workflows, with no separate client for local inference.
+- Custom and local models with unknown release dates are no longer incorrectly treated as old models and hidden. Explicit manual hiding still takes precedence.
+- Cloud sign-in is optional. Model endpoints, credentials, and custom model configuration stay on your machine, supporting offline or intranet development. We plan to simplify local setup for popular open-source models.
+- Local models remain subject to their own context-window and tool-calling limits. See the [OpenCode Providers documentation](https://opencode.ai/v2/docs/providers) for configuration.
+
+### Documentation and releases
+
+- [FORK.md](FORK.md): fork scope, the three maintained branches, and upstream contribution status
+- [docs/fork](docs/fork/README.md): maintenance, synchronization, validation, releases, and Qt/headless documentation
+- [dev-my desktop releases](docs/fork/dev-my/README.md): Side bar, desktop identity, configuration, and runtime conventions
+- [Releases](https://github.com/joe-ieta/opencode/releases): complete installers and update manifests for all platforms are published in this repository's GitHub Releases.
+
 ---
 
 ## 官方 OpenCode 首页
