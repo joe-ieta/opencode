@@ -4,14 +4,24 @@
 
 ## 当前下载
 
-| 通道         | 版本              | 平台               | 下载                                                                             |
-| ------------ | ----------------- | ------------------ | -------------------------------------------------------------------------------- |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64        | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)      |
-| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64        | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
-| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)      |
+| 通道         | 版本              | 平台               | 下载                                                                               |
+| ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| Windows 测试 | `v2.2.5-my.3`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) |
+| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
 
-全部平台使用上表的 GitHub 完整安装包。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
+本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。本次使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.2.5-my.3 Windows x64 测试预发行
+
+- [GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) 于 2026/11/3 15:28:47（Asia/Shanghai）公开，`draft=false`、`prerelease=true`；仅发布 Windows x64，本轮未重建 Linux。
+- 不可变构建源码为 `97c429b635882143714d13702defda324b3d818f`，版本号改为 `2.2.5-my.3`，应用标识仍为 `ai.opencode.desktop.dev-my`。后续文档合并提交不作为二进制构建来源。
+- 修复模型执行结束后后台 Shell 未纳入会话活动汇总的问题。兼容旧后端活动接口 404，侧栏、Running 与根会话标题跟随 Shell 活动显示和清除；模型执行、排队和中断状态保持独立。只读现场核验确认模型空闲、Shell 运行时汇总仍忙碌，服务注册未改变。
+- 包含项目名称排序、独立固定区域及 40% 上限、滚动条、折叠未读提示、底部最多五行 Running 区域、无占位的悬浮操作、草稿标识，以及右键菜单 Close。
+- 自动验证：根检查 35/35；Home/tabs 73/73、零重试；客户端相关测试 40/40；桌面打包相关测试 24/24。应用及客户端官方 TypeScript 检查通过，E2E 仍有原有 13 处类型诊断。
+- Bun 1.4.4 构建；模型目录比较覆盖 7,657 个模型，CLI 服务发现、V1 升级确认与历史迁移冒烟通过。实际 ASAR/CLI 版本、既有 31 个中文词条、更新源、NSIS 完整性及 latest.yml 的 SHA512/大小均已核验。
+- 安装器 `opencode-desktop-win-x64.exe` 为 279,878,027 字节，SHA256 `a8b78309bdd88521d6831cedc081c3dd36c1fe193a4b26596aa093259f77fe96`。四个远端资产大小及 SHA256 与本地一致；四个公开下载文件再次核对一致。
+- 安装包未签名，等待安装后的人工验收。PR #60867 与来源 `sidebar-mode@b88b94a75d` 保持冻结，未发送测试邀请，未重启用户应用或后台。
+- 合并了 GitHub 上并行的文档更新；Gitee 不再作为远端或发行目标，未上传本版任何数据，也未清理历史远端资产。
 
 > 以下为历史发行事实。出现的旧 Gitee、分卷及远端名称只用于来源追溯，不是当前配置或发布步骤；以顶层 [AGENTS.md](../../../AGENTS.md) 为准。
 

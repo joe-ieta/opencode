@@ -1,6 +1,6 @@
 # Side bar 独立模式：设计、需求与上游贡献
 
-核对日期：2026-11-02（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
+核对日期：2026-11-03（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
 > 当前仓库关系以顶层 [AGENTS.md](../../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
@@ -67,9 +67,9 @@ Live 连接组件已实连安装包原进程并读到相同的 17 个工程、56
 
 ## 当前状态
 
-- 当前测试版为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，源码 `3777b783c5`；Windows x64 与 Linux amd64/arm64 安装包均已公开并完成远端摘要/下载核验。包含下文的整组收起、后代状态与标题方向修复，详见 [发行记录](releases.md)。
+- 当前 Windows 测试版为 [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3)，源码 `97c429b635`；本轮未重建 Linux，其测试版仍为 `v2.2.5-dev-my.2`。Windows 四个发布文件已完成本地、服务端及公开下载核验，见 [发行记录](releases.md)。
 
-- Windows 提供 GitHub 完整安装包，既有中文词条 31/31 保留，详见 [翻译核对](sidebar-zh.md)。此前 Windows 测试包由用户确认手工测试通过；本次新包自动检查与包内容核验通过，尚未安装后人工验收。
+- Windows 使用 GitHub 完整安装包，版本为 2.2.5-my.3；Gitee 不再作为远端或发布目标。自动检查与包内容核验通过，安装后的人工验收仍待用户完成，现有 PR 保持冻结。
 
 - Linux 两架构的 AppImage/deb 使用同一源码 `3777b783c5`、Ubuntu 24.04 基线构建，均通过 CLI、目录、迁移和实际安装包核验；Linux 与原生 ARM64 GUI 尚未人工验收。
 

@@ -16,9 +16,9 @@ A desktop AI coding workspace for everyday development. Built on OpenCode, it re
 
 ## 简体中文
 
-自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。稳定 Latest 仍为 `v2.2.3-dev-my.3`，Windows 完整安装包在 [GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)。
+自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。
 
-最新测试版 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) 提供 Windows x64 完整安装包与 Linux amd64/arm64 AppImage/deb。三个目标安装包提测试核验；安装文件未签名。详情见 [发行记录](docs/fork/dev-my/releases.md)。
+最新 Windows 测试版 [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) 提供 x64 完整安装包，包含项目名称排序、独立固定区域、折叠未读提示和后台 Shell 活动汇总修复。自动检查及发布文件校验通过，安装后的人工验收仍待完成，PR #60867 保持冻结。Linux amd64/arm64 的 AppImage/deb 测试版仍为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。安装文件未签名，详情见 [发行记录](docs/fork/dev-my/releases.md)。
 
 `dev-my` 已吸收上游 V2 2.2.5 `dev@ff90ed9160`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
 
@@ -55,9 +55,9 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 
 ## English
 
-Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md). The stable Latest release remains `v2.2.3-dev-my.3`; the complete Windows installer is available from [GitHub Releases](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3).
+Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md).
 
-The latest test release, [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2), provides a complete Windows x64 installer and Linux amd64/arm64 AppImage and deb packages. Packages for all three targets have been tested and verified; the installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
+The latest Windows test release, [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3), provides a complete x64 installer with alphabetical project sorting, a separate pinned area, collapsed unread indicators, and background Shell activity tracking. Automated checks and release asset verification passed; installation testing is still pending, and PR #60867 remains frozen. Linux amd64/arm64 AppImage and deb test packages remain at [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). Installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
 
 `dev-my` includes upstream V2 2.2.5 at `dev@ff90ed9160`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
 
