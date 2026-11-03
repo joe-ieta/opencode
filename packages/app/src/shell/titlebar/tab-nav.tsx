@@ -17,6 +17,7 @@ import { sessionLastRunLabel, sessionTabTitle } from "./tab-title"
 import { TabPreviewPopover } from "./tab-popover"
 import { createSessionBranches } from "./session-branches"
 import { pathKey } from "@/workspaces/path-key"
+import { useSessionExport } from "@/session/commands/export-controller"
 import "./tab-nav.css"
 
 // MouseEvent.button uses 1 for the middle/wheel button.
@@ -48,6 +49,7 @@ export function TabNavItem(props: {
   orientation?: "horizontal" | "vertical"
 }) {
   const language = useLanguage()
+  const exportSession = useSessionExport()
   const [menu, setMenu] = createStore({ open: false, rename: false })
   const [editing, setEditing] = createSignal(false)
   const [titleOverflowing, setTitleOverflowing] = createSignal(false)
@@ -58,6 +60,7 @@ export function TabNavItem(props: {
   const closeTab = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
+
     if (props.closable === false) return
     props.onClose()
   }
@@ -140,29 +143,37 @@ export function TabNavItem(props: {
 
   const [popoverOpen, setPopoverOpen] = createSignal(false)
   const branches = createSessionBranches()
+
   const branchEntry = () => {
     if (!props.showSessionDetails) return
     const ctx = serverCtx()
     const session = props.session
+
     return ctx && session ? { ctx, session, server: props.server } : undefined
   }
+
   createEffect(() => {
     if (!popoverOpen()) return
     const entry = branchEntry()
+
     if (entry) branches.load([entry])
   })
+
   const worktree = createMemo(() => {
     if (!props.showSessionDetails) return
     const value = project()
     const directory = props.session?.location.directory
+
     if (!value || !directory || !("sandboxes" in value)) return
     const key = pathKey(directory)
+
     return (
       value.sandboxes
         .filter((root) => key === pathKey(root) || key.startsWith(`${pathKey(root)}/`))
         .toSorted((a, b) => b.length - a.length)[0] ?? value.worktree
     )
   })
+
   const previewBlocked = () => !!props.dragging || editing() || menu.open || !!props.pressed || !props.session
 
   const measureTitleOverflow = () => {
@@ -452,6 +463,19 @@ export function TabNavItem(props: {
           <Menu.Item disabled={!props.session} onSelect={() => setMenu("rename", true)}>
             {language.t("common.rename")}
           </Menu.Item>
+          <Show when={props.showSessionDetails}>
+            <Menu.Item
+              disabled={!props.session}
+              onSelect={() => {
+                const ctx = serverCtx()
+
+                if (!props.session || !ctx) return
+                void exportSession({ sessionID: props.session.id, api: ctx.sdk.api })
+              }}
+            >
+              {language.t("common.export")}…
+            </Menu.Item>
+          </Show>
           <Show when={props.closable !== false}>
             <Menu.Item onSelect={props.onClose}>{props.closeLabel ?? language.t("common.close")}</Menu.Item>
           </Show>
