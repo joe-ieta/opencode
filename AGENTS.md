@@ -11,7 +11,7 @@
 - Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. Do not delete official upstream branches. A default-branch change also needs explicit confirmation.
 - Historical Gitee release records are provenance only and never current configuration or publishing instructions. Do not delete remote repositories or existing release assets as part of retiring the configuration.
 
-- Existing PR #60867 uses the frozen origin/sidebar-mode reference. Do not update that PR before the user confirms manual testing of the new Windows installer.
+- Windows 2.2.5-my.3 installer acceptance passed on 2026-11-03. Maintain Side bar in dev-my; origin/sidebar-mode is only the existing PR transport ref, updated when the user requests synchronization, never a parallel development line.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.

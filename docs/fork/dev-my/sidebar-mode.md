@@ -1,6 +1,8 @@
 # Side bar 独立模式：设计、需求与上游贡献
 
-核对日期：2026-11-03（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
+**最新状态（2026-11-03）**：用户确认 Windows 2.2.5-my.3 安装后人工验收通过。既有 PR #60867 已更新至 `703db47378`，目标为官方 `dev@3ba597f776`，保留 Draft 等待设计评审；`sidebar-mode` 仅作 PR 传输引用，开发仍统一在 `dev-my`。
+
+历史整合记录（2026-11-02，Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
 > 当前仓库关系以顶层 [AGENTS.md](../../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
@@ -44,7 +46,7 @@
 
 Shell 汇总修复前后各串行采样三次导航：内容首次出现中位数 265.7→313.4 ms，全部里程碑稳定中位数 301.4→351.6 ms；小样本中修改后较慢，不据此作通用性能结论。原始记录为 `.cache/shell-aggregate-{before,after}-benchmark.log`，汇总为 `.cache/shell-aggregate-performance.json`；与根检查同时运行的一轮单独保留为 `shell-aggregate-loaded-benchmark.log`，不混入对照。
 
-Session 右键菜单关闭项已改为 Close。后续 Windows 测试包版本采用 `2.2.5-my.3`，应用标识和数据目录保持兼容；既有 PR #60867 继续冻结，安装包人工验收前不更新。
+Session 右键菜单关闭项已改为 Close。后续 Windows 测试包版本采用 `2.2.5-my.3`，应用标识和数据目录保持兼容；用户于 2026-11-03 确认安装包人工验收通过后，已按要求更新既有 PR #60867。
 
 人工验收：先保持已安装桌面版的后台运行，从本工作区运行 `bun run dev:desktop:live`，选择 Side bar。
 
@@ -69,12 +71,12 @@ Live 连接组件已实连安装包原进程并读到相同的 17 个工程、56
 
 - 当前 Windows 测试版为 [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3)，源码 `97c429b635`；本轮未重建 Linux，其测试版仍为 `v2.2.5-dev-my.2`。Windows 四个发布文件已完成本地、服务端及公开下载核验，见 [发行记录](releases.md)。
 
-- Windows 使用 GitHub 完整安装包，版本为 2.2.5-my.3；Gitee 不再作为远端或发布目标。自动检查与包内容核验通过，安装后的人工验收仍待用户完成，现有 PR 保持冻结。
+- Windows 使用 GitHub 完整安装包，版本为 2.2.5-my.3；自动检查、包内容和公开下载核验均通过，用户已确认安装后人工验收通过。对应改动已同步 PR #60867 的 `703db47378`，等待上游设计评审。Gitee 已停用。
 
 - Linux 两架构的 AppImage/deb 使用同一源码 `3777b783c5`、Ubuntu 24.04 基线构建，均通过 CLI、目录、迁移和实际安装包核验；Linux 与原生 ARM64 GUI 尚未人工验收。
 
 - 历史 Windows 人工验收版本：[v2.2.3-dev-my.4 源码](https://github.com/joe-ieta/opencode/tree/v2.2.3-dev-my.4)，构建源码 `0b82c40bff`，基于 V2 2.2.3，用户曾确认人工测试通过；发行资产已由 `.6` 替代并清理。
-- 既有贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；最终冻结源码 `b88b94a75d3d517c3bbd417274392e326b7cb1e7`，基线 `dev@ff90ed9160`（2.2.5）。只包含 35 个应用层文件，不包含 fork 品牌、发行工具、内核补丁或并行 Session activity 协议改动。
+- 既有贡献：[#60867](https://github.com/anomalyco/opencode/pull/60867)，`joe-ieta:sidebar-mode` → `anomalyco:dev`；当前来源 `703db47378ab63960fc53899b0ae389b9dc3994d`，基线 `dev@3ba597f776`。差异为 41 个界面、图标和客户端缓存相关文件，不包含 fork 品牌、发行工具、内核补丁或并行 Session activity/goal 协议；验证详见 [发行记录](releases.md)。
 - 旧 Side tabs PR [#60446](https://github.com/anomalyco/opencode/pull/60446) 已由作者关闭，顶部保留原说明并链接新 PR；关闭不表示其功能已被上游合并。
 - 新 PR 为 **Draft，等待上游设计评审**。`CONTRIBUTING.md` 要求新界面先获得设计批准；本地人工测试通过、自动检查通过、可合并和设计获批是不同状态。
 - 深浅色截图来自新贡献分支的真实生产组件与合成数据，存放在独立媒体提交 `8eb620976fd0460f2236cbcf3ebce7495a918ddf`，不混入功能 PR。
