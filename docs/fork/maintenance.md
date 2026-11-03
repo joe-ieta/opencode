@@ -6,8 +6,8 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：`https://gitee.com/ieta/opencode-my`（日常拉取和推送）；`upstream`：`https://github.com/joe-ieta/opencode`（分支、同步、比较和 PR 的上游）。本项目不直接与官方 `anomalyco/opencode` 仓库发生关联。
-- 发布物：upstream GitHub 保存全部平台的完整资产；Gitee Release 只上传 Windows 分卷安装包和 Windows 清单，单个分卷必须小于 100 MB。Linux/macOS 不向 Gitee 上传，统一链接 upstream。
+- `origin`：`https://github.com/joe-ieta/opencode`（fork 分支、标签和发行）；`upstream`：`https://github.com/anomalyco/opencode`（官方上游同步和授权贡献）。不得把 fork 发行分支或标签推送到 `upstream`。
+- 2026-11-03 起忽略 Gitee，不再作为远端、源码镜像或发行目标；旧记录仅供追溯。所有平台的本次实际构建资产统一发布到 GitHub fork。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -59,7 +59,7 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 ```powershell
 git switch dev-my
 git merge --ff-only origin/dev-my
-git merge upstream/dev-my
+git merge upstream/dev
 bun install --frozen-lockfile
 bun run check
 ```
@@ -158,16 +158,12 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 ```powershell
 git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
-git push upstream dev-my
 git push origin refs/tags/v2.2.3-dev-my.3
-git push upstream refs/tags/v2.2.3-dev-my.3
 gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
 # 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
 gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 
-# 5. Gitee Windows-only Release
-# 用 Gitee Release 页面/API 上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
-# 不上传 Linux/macOS 资产；分卷步骤见发布环境 KB
+# Gitee 已停用；新测试版使用 -my.N 后缀并设置 --prerelease --latest=false。
 ```
 
 `gh release create` 只对 upstream GitHub 执行；Gitee Release 另行创建，只上传 Windows 分卷和 Windows 清单。Linux/macOS 不向 Gitee 上传，下载链接使用 upstream GitHub。公开的 Windows 分卷链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。

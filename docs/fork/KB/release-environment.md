@@ -4,19 +4,21 @@
 > 实测环境：Windows 11 x64 + WSL2 Ubuntu 24.04.1 LTS；发布目标为 Windows x64 与 Ubuntu amd64/arm64。  
 > 本文面向需要复现 OpenCode My 发布环境的维护者。实际发行记录与哈希以 [dev-my 发行记录](../dev-my/releases.md) 为准。
 
+2026-11-03 起只使用 GitHub：`origin` 为 `joe-ieta/opencode`，`upstream` 为官方 `anomalyco/opencode`。Gitee 不再作为远端、源码镜像或发行目标；历史记录保留供追溯。
+
 ## 1. 需求定义
 
 ### 1.1 发布目标
 
-| 目标     | 约定                                                                                                |
-| -------- | --------------------------------------------------------------------------------------------------- |
-| Windows  | x64 NSIS 安装包，`opencode-desktop-win-x64.exe`                                                     |
-| Ubuntu   | 24.04 LTS 为验证基线，amd64/arm64 的 AppImage 与 deb                                                |
-| 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml`            |
-| 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                           |
-| 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                                      |
-| 发布形态 | upstream GitHub Release 含全部平台；Gitee Release 仅含 Windows 分卷和 Windows 清单，单卷小于 100 MB |
-| 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                                   |
+| 目标     | 约定                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------- |
+| Windows  | x64 NSIS 安装包，`opencode-desktop-win-x64.exe`                                          |
+| Ubuntu   | 24.04 LTS 为验证基线，amd64/arm64 的 AppImage 与 deb                                     |
+| 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml` |
+| 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                |
+| 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                           |
+| 发布形态 | GitHub fork Release 保存本版实际构建的平台及完整清单                                     |
+| 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                        |
 
 ### 1.2 功能需求
 
@@ -118,7 +120,7 @@ bun install --frozen-lockfile --cpu=*
 
 1. 确认 WSL2 可用：`wsl --status`、`wsl -l -v`。
 2. 安装 GitHub CLI 并登录：`gh auth status`。
-3. 配置 Git 身份；确认 `origin`（Gitee 源码镜像）和 `upstream`（GitHub 发布仓库）的推送方式。
+3. 配置 Git 身份；确认 `origin` 为 GitHub fork，`upstream` 为官方仓库；发行只推送 `origin`。
 4. 确保系统盘有足够空间；WSL VHDX 建议放到数据盘。
 
 本机 GitHub 推送使用临时凭据 helper，不写入全局配置：
@@ -255,7 +257,7 @@ curl -fsSI https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux
 ### 4.6 克隆与检查
 
 ```bash
-git clone --branch dev-my https://gitee.com/ieta/opencode-my.git ~/opencode-my
+git clone --branch dev-my https://github.com/joe-ieta/opencode.git ~/opencode-my
 cd ~/opencode-my
 git config user.name frank
 git config user.email 48937772+joe-ieta@users.noreply.github.com
@@ -349,73 +351,37 @@ Windows 和 Linux 在不同文件系统构建，需要把 Linux 产物复制到 
 
 ### 6.4 发布后
 
-- [ ] GitHub Release 的 10 个资产大小与 SHA256 和本地一致。
-- [ ] GitHub Release 含全部平台；Gitee Release 只含 Windows 分卷和 Windows 清单。
-- [ ] `draft=false`、`prerelease=false`，Latest 指向预期版本。
-- [ ] 公开下载 `latest-linux-arm64.yml` 和至少一个安装包成功。
+- [ ] GitHub Release 的全部资产大小与 SHA256 和本地一致。
+- [ ] Release 仅含本版实际构建的平台；不再发布到 Gitee。
+- [ ] 测试版 `draft=false`、`prerelease=true`、`--latest=false`；正式版另行确认。
+- [ ] 公开下载本版更新清单和安装包成功。
 
 ## 7. 发布流程
 
 ```powershell
 # 1. 用 build.json 的源码提交打标签；标签对象指向构建来源
 git tag -a v<version> <build.json commit> -m 'OpenCode My <version>'
-git push origin dev-my
-git push upstream dev-my
 git push origin refs/tags/v<version>
-git push upstream refs/tags/v<version>
-# upstream 保存全部平台完整资产；Gitee 只保存 Windows 分卷和源码/标签
+# 分支仅在可快进且已确认内容时推送 origin；不要覆盖并行开发的远端提交。
+# upstream 是官方仓库，不接收本 fork 的发行分支或标签。
 
-# 2. 创建 draft，上传全部 10 个资产
+# 2. 创建测试版 draft，上传本次实际构建的资产
 gh release create v<version> <assets...> --repo joe-ieta/opencode --verify-tag --draft `
-  --title 'OpenCode My <version> (Windows amd64 + Ubuntu amd64/arm64)' `
+  --prerelease --latest=false --title 'OpenCode My <version> (test)' `
   --notes-file <release-notes.md>
 
 # 3. 核对服务端大小与 SHA256 后再公开
-gh release edit v<version> --repo joe-ieta/opencode --draft=false --prerelease=false --latest
+gh release edit v<version> --repo joe-ieta/opencode --draft=false --prerelease --latest=false
 
 # 4. 单独提交发行记录文档，不改变已发布标签
 git add FORK.md docs/fork/dev-my docs/fork/maintenance.md
 git commit -m 'docs: record <version> release'
 
-# 5. Gitee Windows-only Release
-# 只上传 Windows part1-3、latest.yml、SHA256SUMS、build.json、WINDOWS-README.txt
-# 不上传 Linux/macOS 资产
 ```
 
 标签不可变。发现构建问题时创建新的 `.N` 迭代，不覆盖已发布标签或资产。
 
-### 7.1 Gitee Windows 分卷发布
-
-Gitee 免费版单个附件上限 100 MB、单仓库附件总容量 1 GB。Gitee 只保存 Windows 发布物，安装包按 95 MB 左右切分，确保每个分卷小于 100 MB：
-
-```powershell
-$src = "opencode-desktop-win-x64.exe"
-$partSize = 99614720
-$buf = New-Object byte[] (1048576)
-$i = 1
-$in = [System.IO.File]::OpenRead((Resolve-Path $src))
-while ($in.Position -lt $in.Length) {
-  $out = [System.IO.File]::Create("$src.part$i")
-  $left = [Math]::Min($partSize, $in.Length - $in.Position)
-  while ($left -gt 0) {
-    $n = $in.Read($buf, 0, [Math]::Min($buf.Length, $left))
-    $out.Write($buf, 0, $n)
-    $left -= $n
-  }
-  $out.Dispose()
-  $i++
-}
-$in.Dispose()
-```
-
-发布规则：
-
-- Gitee Release 只上传 Windows 的 `part1`–`part3`、`latest.yml`、`SHA256SUMS`、`build.json` 和 `WINDOWS-README.txt`。
-- 不上传 Linux/macOS 安装包，也不上传 `latest-linux*.yml`。
-- 公开的 Windows 下载链接使用 `https://gitee.com/ieta/opencode-my/releases/tag/<tag>`。
-- Linux/macOS 下载链接使用 `https://github.com/joe-ieta/opencode/releases/tag/<tag>`。
-- 合并命令和 SHA256 记录见 [dev-my 发行记录](../dev-my/releases.md#windows-分卷下载与合并)。
-- 需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](self-hosted-release-storage.md)。
+Windows 使用 GitHub 完整安装包，不再制作 Gitee 分卷。历史分卷的合并说明仅保留在旧发行记录中。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](self-hosted-release-storage.md)。
 
 ## 8. 经验与坑
 

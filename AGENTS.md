@@ -1,17 +1,12 @@
 ## Repository Relationship
 
-- Remote (`origin`, Gitee): https://gitee.com/ieta/opencode-my
-- Upstream (`upstream`, GitHub fork): https://github.com/joe-ieta/opencode
-- The local user has write access to both repositories. They are separate targets, not interchangeable:
-  - `origin` is the Gitee mirror: use it for daily fetch/push, `origin/dev-my` tracking, and Gitee's Windows-only release assets.
-  - `upstream` is the GitHub fork: use it for fork branches, synchronization, diffs, pull requests, and non-Windows release assets.
-  - `git push origin dev-my` writes only Gitee. `git push upstream dev-my` writes only the GitHub fork. Never assume one push updates the other.
-  - `origin/dev-my` and `upstream/dev-my` are different remote-tracking branches even when they point at the same commit. Before pushing, confirm the target with `git remote -v`, `git branch -vv`, and the explicit remote name.
-  - Keep any configured push URL for `origin` pointed at Gitee; do not add a GitHub push URL under `origin`.
-- Release assets: Gitee Releases host Windows artifacts only, split into parts below the 100 MB attachment limit. Linux/macOS artifacts and downloads point to the upstream GitHub Releases. Do not upload non-Windows release assets to Gitee.
-- This project does not directly interact with the official repository at https://github.com/anomalyco/opencode. Do not add it as a remote, fetch from it, push to it, compare against it, or open pull requests against it from this repository.
-- Use the fork above as the upstream for branches, synchronization, diffs, and pull requests. Official issue, pull request, release, and documentation links that remain in preserved upstream text or historical records are references only, not remotes or contribution targets.
-- The maintained branch is `dev-my`. Base branches and worktrees on `origin/dev-my` (Gitee); target PRs at the `dev-my` branch on `upstream` (GitHub fork); diff against `origin/dev-my` unless told otherwise.
+- Remote (`origin`, GitHub fork): https://github.com/joe-ieta/opencode
+- Upstream (`upstream`, official GitHub): https://github.com/anomalyco/opencode
+- The maintained fork branch is `dev-my`; use `origin` for fork branches, tags, and releases, and `upstream` for authorized synchronization and contributions.
+- Confirm the actual fetch and push URLs before publishing. Never push fork release branches or tags to the official `upstream` repository.
+- Since 2026-11-03, Gitee is no longer a remote or release destination for this project. Do not configure, synchronize, or publish to Gitee; existing historical links are references only.
+- Release assets for all built platforms belong to GitHub Releases on `joe-ieta/opencode`.
+- Existing PR #60867 uses the frozen `origin/sidebar-mode` reference. Do not update that PR before the user confirms manual testing of the new Windows installer.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.
