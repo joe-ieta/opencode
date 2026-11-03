@@ -38,6 +38,10 @@ import { createSessionIndexes } from "@/home/sessions/queries"
 import { Persist, persisted } from "@/runtime/persistence/storage"
 import { Schema } from "effect"
 import { useQueryClient } from "@tanstack/solid-query"
+import { Menu } from "@opencode/ui/menu"
+import { createProjectActions } from "@/home/projects/actions"
+import { ProjectMenuItems } from "@/home/projects/menu"
+import type { LocalProject } from "@/shell/state/layout"
 
 import { previousSessionCommand, nextSessionCommand } from "./tab-strip"
 
@@ -175,6 +179,7 @@ function SessionTabEntry(props: {
         props.indexed ??
         (loadedSession.state === "ready" || loadedSession.state === "refreshing" ? loadedSession.latest : undefined)),
   )
+
   const missingSession = createMemo(() => !pending() && !!props.serverCtx && !loadedSession.loading && !session())
   const visible = createMemo(() => !!pending() || !!session() || missingSession() || !!persisted()?.title)
 
@@ -189,6 +194,7 @@ function SessionTabEntry(props: {
     try {
       await ctx.sdk.api.session.update({ sessionID: value.id, title })
       const conn = servers.list.find((item) => ServerConnection.key(item) === props.tab.server)
+
       if (conn)
         queryClient.setQueryData<SessionInfo[]>(["home-sessions", conn], (current) =>
           current?.map((item) => (item.id === value.id ? { ...item, title } : item)),
@@ -440,6 +446,9 @@ export function SidebarSessions(props: {
   const settings = useSettings()
   const tabs = useTabs()
   const vertical = () => props.orientation === "vertical"
+  const projectActions = createProjectActions()
+  const [projectMenu, setProjectMenu] = createStore<{ open?: string }>({})
+  let projectMenuFocus: HTMLButtonElement | undefined
   const grouped = () => vertical() && props.grouping && settings.appearance.tabGrouping() === "project"
   let listRef!: HTMLDivElement
   let boundsRef!: HTMLDivElement
@@ -465,18 +474,23 @@ export function SidebarSessions(props: {
   const collator = createMemo(() => new Intl.Collator(language.intl(), { numeric: true, sensitivity: "base" }))
 
   const servers = useServers()
+
   const sidebar = props.grouping
     ? createSessionIndexes(() => servers.visible.map((conn) => ({ conn, ctx: global.ensureServerCtx(conn) })))
     : undefined
+
   const sidebarOrder = props.grouping
     ? persisted(Persist.window("sidebar.order"), Schema.Array(Schema.String), [])
     : undefined
+
   const collapsed = props.grouping
     ? persisted(Persist.window("sidebar.collapsedProjects"), Schema.Array(Schema.String), [])
     : undefined
+
   const pinned = props.grouping
     ? persisted(Persist.window("sidebar.pinnedProjects"), Schema.Array(Schema.String), [])
     : undefined
+
   const indexed = createMemo(
     () =>
       new Map(
@@ -493,22 +507,27 @@ export function SidebarSessions(props: {
           ),
       ),
   )
+
   const positions = new Map<string, number>()
+
   // Keep row identities and display order when a tab opens or closes. History is never copied into the tab store.
   const displayedTabs = createMemo((previous: Tab[]) => {
     if (!sidebar) return props.tabs
+
     if (!tabs.sidebar.ready()) return []
     const before = new Map(previous.map((tab) => [tabKey(tab), tab]))
     const candidates = new Map(props.tabs.filter((tab) => !tabs.sidebar.hidden(tab)).map((tab) => [tabKey(tab), tab]))
     indexed().forEach((entry, key) => {
       if (candidates.has(key)) return
       const tab = before.get(key) ?? { type: "session" as const, server: entry.server, sessionId: entry.session.id }
+
       if (!tabs.sidebar.hidden(tab)) candidates.set(key, tab)
     })
     // Equal timestamps keep their original order even while server metadata arrives at different times.
     candidates.forEach((_, key) => {
       if (!positions.has(key)) positions.set(key, positions.size)
     })
+
     const projects = new Map(
       sidebar
         .sources()
@@ -517,16 +536,24 @@ export function SidebarSessions(props: {
           new Set(source.ctx.projects.visible().map((project) => pathKey(project.worktree))),
         ]),
     )
+
     candidates.forEach((tab, key) => {
-      if (tab.type !== "session") return
       const ctx = global.serverCtx(tab.server)
-      const session = ctx?.data.session.get(tab.sessionId) ?? indexed().get(key)?.session
+
+      const session =
+        tab.type === "session" ? (ctx?.data.session.get(tab.sessionId) ?? indexed().get(key)?.session) : undefined
+
       // Child sessions stay accessible through their parent's subagent view.
       if (session?.parentID) candidates.delete(key)
-      const project = session && ctx?.projects.forSession(session)
+
+      const project =
+        tab.type === "draft" ? ctx?.projects.forDirectory(tab.directory) : session && ctx?.projects.forSession(session)
+
       if (project && !projects.get(tab.server)?.has(pathKey(project.worktree))) candidates.delete(key)
     })
-    const recent = [...candidates.values()]
+
+    const recent = candidates
+      .values()
       .filter((tab) => tab.type === "session")
       .map((tab) => ({
         key: tabKey(tab),
@@ -535,32 +562,50 @@ export function SidebarSessions(props: {
           indexed().get(tabKey(tab))?.session.time.updated ?? 0,
         ),
       }))
+      .toArray()
       .toSorted(
         (a, b) =>
           b.updated - a.updated || (positions.get(a.key) ?? positions.size) - (positions.get(b.key) ?? positions.size),
       )
       .map((item) => item.key)
       .values()
+
     const order = [...candidates.values()].map((tab) => (tab.type === "draft" ? tabKey(tab) : recent.next().value!))
+
     return [...new Set([...(sidebarOrder?.[0] ?? []), ...order])].flatMap((key) => candidates.get(key) ?? [])
   }, [])
+
   const opened = createMemo(() => new Set(props.tabs.map(tabKey)))
+
   const groups = createMemo(() => {
     if (!grouped()) return []
+
     const result = new Map<
       string,
-      { key: string; name: string; directory?: string; server?: string; connection: ServerConnection.Key; tabs: Tab[] }
+      {
+        key: string
+        name: string
+        directory?: string
+        server?: string
+        connection: ServerConnection.Key
+        project?: LocalProject
+        tabs: Tab[]
+      }
     >()
+
     const totals = new Map<string, string[]>()
     sidebar?.sources().forEach((source) =>
       source.inventory.forEach((session) => {
         const root = source.ctx.projects.forSession(session)?.worktree ?? session.location.directory
         const key = JSON.stringify([ServerConnection.key(source.conn), pathKey(root)])
         const sessions = totals.get(key)
+
         if (sessions) {
           sessions.push(session.id)
+
           return
         }
+
         totals.set(key, [session.id])
       }),
     )
@@ -572,6 +617,7 @@ export function SidebarSessions(props: {
           key,
           name: displayName(project),
           directory: project.worktree,
+          project,
           connection: server,
           server: servers.visible.length > 1 ? serverName(source.conn) : undefined,
           tabs: [],
@@ -580,42 +626,52 @@ export function SidebarSessions(props: {
     })
     displayedTabs().forEach((tab) => {
       const ctx = global.serverCtx(tab.server)
+
       const session =
         tab.type === "session"
           ? (ctx?.data.session.get(tab.sessionId) ?? indexed().get(tabKey(tab))?.session)
           : undefined
+
       const directory =
         tab.type === "draft"
           ? tab.directory
           : (session?.location.directory ??
             tabs.pendingSession(tab.server, tab.sessionId)?.draft.directory ??
             tabs.info[tabKey(tab)]?.directory)
+
       const project = session
         ? ctx?.projects.forSession(session)
         : directory
           ? ctx?.projects.forDirectory(directory)
           : undefined
+
       const root = project?.worktree ?? directory
       const key = JSON.stringify([tab.server, root ? pathKey(root) : null])
       const existing = result.get(key)
+
       if (existing) {
         existing.tabs.push(tab)
+
         return
       }
+
       const conn = servers.visible.find((item) => ServerConnection.key(item) === tab.server)
       result.set(key, {
         key,
         name: root ? displayName(project ?? { worktree: root }) : language.t("sidebar.grouping.other"),
         directory: root,
+        project,
         connection: tab.server,
         server: servers.visible.length > 1 && conn ? serverName(conn) : undefined,
         tabs: [tab],
       })
     })
     const pins = new Set(pinned?.[0])
+
     return [...result.values()]
       .map((group) => {
         const sessions = group.tabs.filter((tab) => tab.type === "session")
+
         return {
           ...group,
           recent: sessions.length,
@@ -631,26 +687,32 @@ export function SidebarSessions(props: {
           a.key.localeCompare(b.key),
       )
   })
+
   const groupsByKey = createMemo(() => new Map(groups().map((group) => [group.key, group])))
+
   const pinnedGroups = createMemo(() =>
     groups()
       .filter((group) => pinned?.[0].includes(group.key))
       .map((group) => group.key),
   )
+
   const projectTabs = createMemo(
     () =>
       new Map(
         groups().map((group) => {
-          if (collapsed?.[0].includes(group.key)) return [group.key, [] as Tab[]] as const
+          if (collapsed?.[0].includes(group.key)) return [group.key, Array<Tab>()] as const
+
           if (expanded[group.key]) return [group.key, group.tabs] as const
           const current = props.currentTab
           const active = current && group.tabs.find((tab) => tabKey(tab) === tabKey(current))
           const first = group.tabs.slice(0, PROJECT_SESSION_LIMIT)
+
           // Keep the selected session in view without letting a large project expand the sidebar automatically.
           return [group.key, active && !first.includes(active) ? [...first.slice(0, -1), active] : first] as const
         }),
       ),
   )
+
   const tabGroups = createMemo(
     () => new Map(groups().flatMap((group) => group.tabs.map((tab) => [tabKey(tab), group] as const))),
   )
@@ -742,6 +804,7 @@ export function SidebarSessions(props: {
   function navigate(tab: Tab, element?: HTMLDivElement) {
     if (!sidebar || tab.type === "draft") return props.onNavigate(tab, element)
     const entry = indexed().get(tabKey(tab))
+
     if (entry) entry.ctx.data.session.remember(entry.session)
     props.onNavigate(tabs.addSessionTab({ server: tab.server, sessionId: tab.sessionId }), element)
   }
@@ -823,6 +886,19 @@ export function SidebarSessions(props: {
         {(group) => (
           <div
             class="sidebar-project-header mt-3 mb-1 min-w-0 rounded-md bg-v2-background-bg-layer-02 px-1.5 py-1"
+            data-menu-open={projectMenu.open === key ? "" : undefined}
+            onContextMenu={(event) => {
+              if (!group().project) return
+              event.preventDefault()
+              projectMenuFocus = event.currentTarget.querySelector<HTMLButtonElement>("h3 button") ?? undefined
+              setProjectMenu("open", key)
+            }}
+            onKeyDown={(event) => {
+              if (!group().project || !((event.shiftKey && event.key === "F10") || event.key === "ContextMenu")) return
+              event.preventDefault()
+              projectMenuFocus = event.currentTarget.querySelector<HTMLButtonElement>("h3 button") ?? undefined
+              setProjectMenu("open", key)
+            }}
             title={[
               group().name,
               group().directory,
@@ -888,6 +964,66 @@ export function SidebarSessions(props: {
                         void tabs.newDraft({ server: group().connection, directory: directory() })
                       }}
                     />
+                  )}
+                </Show>
+                <Show when={group().project}>
+                  {(project) => (
+                    <Show when={servers.visible.find((conn) => ServerConnection.key(conn) === group().connection)}>
+                      {(conn) => (
+                        <Menu
+                          gutter={6}
+                          modal={false}
+                          placement="bottom-end"
+                          open={projectMenu.open === key}
+                          onOpenChange={(open) => setProjectMenu("open", open ? key : undefined)}
+                        >
+                          <Menu.Trigger
+                            as={IconButton}
+                            size="small"
+                            variant="ghost-muted"
+                            class="sidebar-project-action"
+                            icon={<Icon name="outline-dots" />}
+                            aria-label={language.t("sidebar.project.moreOptions", { project: group().name })}
+                          />
+                          <Menu.Portal>
+                            <Menu.Content
+                              onInteractOutside={() => {
+                                projectMenuFocus = undefined
+                              }}
+                              onCloseAutoFocus={(event) => {
+                                const focus = projectMenuFocus
+                                projectMenuFocus = undefined
+
+                                if (!focus?.isConnected) return
+                                event.preventDefault()
+                                requestAnimationFrame(() => focus.focus())
+                              }}
+                            >
+                              <ProjectMenuItems
+                                language={language}
+                                server={conn()}
+                                project={project()}
+                                unread={projectActions.hasUnread(conn(), project())}
+                                canImportSession={projectActions.canImportSession}
+                                canRevealProject={projectActions.canReveal}
+                                onOpenProjectNewSession={(conn, directory) => {
+                                  collapsed?.[1]((keys) => keys.filter((item) => item !== key))
+                                  projectActions.openNewSession(conn, directory)
+                                }}
+                                onImportSession={projectActions.importSession}
+                                onEditProject={projectActions.edit}
+                                onRevealProject={projectActions.reveal}
+                                onClearNotifications={projectActions.clearNotifications}
+                                onHideProject={(conn, project) => {
+                                  setProjectMenu("open", undefined)
+                                  projectActions.hide(conn, project)
+                                }}
+                              />
+                            </Menu.Content>
+                          </Menu.Portal>
+                        </Menu>
+                      )}
+                    </Show>
                   )}
                 </Show>
                 <IconButton
@@ -963,12 +1099,14 @@ export function SidebarSessions(props: {
         {(tab) => {
           if (tab.type !== "session") return
           const id = tabKey(tab)
+
           const state = useSessionTabAvatarState(
             () => tab.server,
             () => tab.sessionId,
             () => true,
             () => indexed().get(id)?.session,
           )
+
           createEffect(() =>
             setStatus(id, {
               unread: state.unread() && !state.loading(),
@@ -977,6 +1115,7 @@ export function SidebarSessions(props: {
             }),
           )
           onCleanup(() => setStatus(id, undefined))
+
           return null
         }}
       </For>
@@ -1027,8 +1166,10 @@ export function SidebarSessions(props: {
 
           if (from !== -1 && to !== -1 && from !== to) {
             const keys = mergeVisibleTabOrder(displayedTabs().map(tabKey), current, arrayMove(current, from, to))
+
             if (!sidebarOrder) return props.onReorder(keys)
             const save = () => sidebarOrder[1](() => keys)
+
             if (sidebarOrder[3]()) return save()
             void sidebarOrder[3].promise?.then(save)
           }

@@ -1,19 +1,18 @@
 import { useGlobal, useServerCtx } from "@/runtime/server/runtime"
 import { type HomeProjectSelection, useLayout } from "@/shell/state/layout"
 import { ServerConnection, useServers } from "@/runtime/server/registry"
-import { useTabs } from "@/shell/tabs/tabs"
 import { toggleHomeProjectSelection } from "@/shell/layout/helpers"
-import { createEffect, createMemo, startTransition } from "solid-js"
-import type { SessionInfo } from "@opencode/client/promise"
+import { createEffect, createMemo } from "solid-js"
 import { pathKey } from "@/workspaces/path-key"
 import { addProjects } from "./projects/add"
+import { createProjectActions } from "./projects/actions"
 import { useSettings } from "@/settings/model"
 
 export function createHomeController() {
   const layout = useLayout()
   const global = useGlobal()
   const servers = useServers()
-  const tabs = useTabs()
+  const actions = createProjectActions()
   const settings = useSettings()
   const selection = layout.home.selection
 
@@ -23,15 +22,20 @@ export function createHomeController() {
 
   const focusedServerCtx = useServerCtx(focusedServer)
   const focusedSync = () => focusedServerCtx()?.sync
+
   // Only the local Side bar mode broadens Home to the server's project inventory.
   function projectsFor(conn: ServerConnection.Any) {
     const ctx = global.ensureServerCtx(conn)
+
     return settings.appearance.tabLayout() === "sidebar" ? ctx.projects.visible() : ctx.projects.used()
   }
+
   const projects = createMemo(() => {
     const conn = focusedServer()
+
     return conn ? projectsFor(conn) : []
   })
+
   const selectedProject = createMemo(() => projects().find((project) => project.worktree === selection().directory))
 
   const newSessionProject = createMemo(() => selectedProject() ?? focusedServerCtx()?.projects.last() ?? projects()[0])
@@ -75,22 +79,6 @@ export function createHomeController() {
     layout.home.setSelection(next)
   }
 
-  function openProjectNewSession(conn: ServerConnection.Any, directory: string) {
-    global.ensureServerCtx(conn).projects.touch(directory)
-    void tabs.newDraft({ server: ServerConnection.key(conn), directory })
-  }
-
-  function openProjectSession(conn: ServerConnection.Any, directory: string, session: SessionInfo) {
-    const ctx = global.ensureServerCtx(conn)
-    void ctx.data.session.message.sync(session.id).catch(() => undefined)
-    void startTransition(() => {
-      const tab = tabs.addSessionTab({ server: ServerConnection.key(conn), sessionId: session.id })
-      tabs.select(tab)
-      ctx.data.session.remember(session)
-      ctx.projects.touch(directory)
-    })
-  }
-
   return {
     selection: {
       value: selection,
@@ -130,10 +118,10 @@ export function createHomeController() {
         const project = newSessionProject()
 
         if (!conn || !project) return
-        openProjectNewSession(conn, project.worktree)
+        actions.openNewSession(conn, project.worktree)
       },
-      openProjectNewSession,
-      openProjectSession,
+      openProjectNewSession: actions.openNewSession,
+      openProjectSession: actions.openSession,
     },
   }
 }

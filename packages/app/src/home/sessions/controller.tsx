@@ -15,7 +15,7 @@ import { errorMessage } from "@/shell/layout/helpers"
 import { useSessionTabAvatarState } from "@/shell/layout/project-avatar-state"
 import { sessionTreeIDs } from "@/session/requests/session-request-tree"
 import { pathKey } from "@/workspaces/path-key"
-import { fetchSessionExport, saveSessionExport, sessionExportFilename } from "@/session/commands/export"
+import { useSessionExport } from "@/session/commands/export-controller"
 import { usePlatform } from "@/runtime/platform/platform"
 import { sessionLabel, sessionTitle } from "@/session/title"
 import { showToast } from "@/shell/notifications/toast"
@@ -41,6 +41,7 @@ export function createHomeSessionsController(home: HomeController) {
   const language = useLanguage()
   const platform = usePlatform()
   const queryClient = useQueryClient()
+  const saveExport = useSessionExport()
 
   const projectDirectories = createMemo(() => {
     const selected = home.selection.value().directory
@@ -189,24 +190,7 @@ export function createHomeSessionsController(home: HomeController) {
 
     if (!ctx) return
 
-    try {
-      const data = await fetchSessionExport({ sessionID: session.id, api: ctx.sdk.api })
-      const filename = sessionExportFilename(data.info)
-
-      if (!(await saveSessionExport(filename, data, platform))) return
-      showToast({
-        variant: "success",
-        icon: "circle-check",
-        title: language.t("toast.session.export.success.title"),
-        description: language.t("toast.session.export.success.description", { filename }),
-      })
-    } catch (cause) {
-      showToast({
-        variant: "error",
-        title: language.t("toast.session.export.failed.title"),
-        description: cause instanceof Error ? cause.message : language.t("toast.session.export.failed.description"),
-      })
-    }
+    await saveExport({ sessionID: session.id, api: ctx.sdk.api })
   }
 
   const remove = async (server: ServerConnection.Key, session: SessionInfo) => {
@@ -389,6 +373,7 @@ function animateHomeRowsUp(tops: Map<string | undefined, number>) {
   document.querySelectorAll<HTMLElement>(HOME_ROW_SELECTOR).forEach((row) => {
     const before = tops.get(row.dataset.sessionId)
     const delta = before === undefined ? 0 : before - row.getBoundingClientRect().top
+
     if (delta === 0) return
     row.animate([{ transform: `translateY(${delta}px)` }, { transform: "translateY(0)" }], {
       duration: 180,
@@ -410,8 +395,10 @@ function groupSessions(records: HomeSessionRecord[], language: ReturnType<typeof
   const now = new Date()
   const today = localDay(now)
   const yesterday = localDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+
   const day = (record: HomeSessionRecord) =>
     localDay(new Date(record.session.time.updated ?? record.session.time.created))
+
   const todaySessions = records.filter((record) => day(record) === today)
   const yesterdaySessions = records.filter((record) => day(record) === yesterday)
   const olderSessions = records.filter((record) => day(record) !== today && day(record) !== yesterday)

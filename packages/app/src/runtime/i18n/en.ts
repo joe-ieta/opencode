@@ -818,6 +818,7 @@ export const dict = {
   "sidebar.inbox.time.now": "now",
   "sidebar.project.recentSessions": "Recent sessions",
   "sidebar.project.clearNotifications": "Clear notifications",
+  "sidebar.project.moreOptions": "More options for project {{project}}",
 
   "settings.section.server": "Server",
   "settings.backToApp": "Back to app",
