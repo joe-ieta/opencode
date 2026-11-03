@@ -1,12 +1,17 @@
-## Repository Relationship
+## Repository Constraints (highest priority within this repository)
 
-- Remote (`origin`, GitHub fork): https://github.com/joe-ieta/opencode
-- Upstream (`upstream`, official GitHub): https://github.com/anomalyco/opencode
-- The maintained fork branch is `dev-my`; use `origin` for fork branches, tags, and releases, and `upstream` for authorized synchronization and contributions.
-- Confirm the actual fetch and push URLs before publishing. Never push fork release branches or tags to the official `upstream` repository.
-- Since 2026-11-03, Gitee is no longer a remote or release destination for this project. Do not configure, synchronize, or publish to Gitee; existing historical links are references only.
-- Release assets for all built platforms belong to GitHub Releases on `joe-ieta/opencode`.
-- Existing PR #60867 uses the frozen `origin/sidebar-mode` reference. Do not update that PR before the user confirms manual testing of the new Windows installer.
+- Repository: https://github.com/joe-ieta/opencode. `origin` fetch and push must use this GitHub repository only. The current transport is HTTPS; SSH to the same repository is also valid when configured.
+- Official upstream: https://github.com/anomalyco/opencode. `upstream` must use the official GitHub repository; it is the source for official synchronization and upstream contributions.
+- These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes. Gitee configuration and workflows are retired: do not configure a Gitee remote, mirror or push URL, publish assets there, or restore the former GitHub-fork-as-upstream mapping.
+- Publish source, tags, and release assets to `origin` (GitHub) only. All platforms use https://github.com/joe-ieta/opencode/releases; the official `upstream` is not a fork release destination.
+- Maintain exactly three long-lived branches: `dev-my` (V2 desktop), `oc-headless` (V2 headless), and `qt-headless` (V1 headless). Track the same-named `origin` branches. Keep their code, builds, and release histories separate.
+- The default branch is `dev-my`. The `dev` branch is an upstream tracking mirror only: keep `origin/dev` identical to `upstream/dev`, with no fork-specific commits or sync merge commits. It is not a fourth maintenance line. Preserve any existing fork commits in a maintained branch or archive before realigning it.
+- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`, and `qt-headless` from `upstream/v1`, preserving local patches with merges.
+- For a scoped official contribution, base a temporary branch on the corresponding official upstream branch and target that branch in the official repository. Do not mix fork branding, release tooling, or unrelated patches into the contribution.
+- Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. Do not delete official upstream branches. A default-branch change also needs explicit confirmation.
+- Historical Gitee release records are provenance only and never current configuration or publishing instructions. Do not delete remote repositories or existing release assets as part of retiring the configuration.
+
+- Existing PR #60867 uses the frozen origin/sidebar-mode reference. Do not update that PR before the user confirms manual testing of the new Windows installer.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.

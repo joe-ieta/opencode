@@ -1,37 +1,19 @@
 # dev-my 发行与源码同步记录
 
-二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整资产为准。upstream GitHub 保存全部平台；Gitee Release 只保存 Windows 分卷安装包和 Windows 清单（单卷小于 100 MB），Linux/macOS 不向 Gitee 上传，统一链接 upstream。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
+二进制发行以 [GitHub Releases](https://github.com/joe-ieta/opencode/releases) 的完整资产为准。自 2026-11-02 起，所有平台仅使用本仓库 GitHub 的完整安装包与更新清单；旧镜像和分卷流程已停用。源码标签只证明提交已标记，不代表为该版本构建或上传了安装包。环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 
 ## 当前下载
 
-| 通道         | 版本              | 平台                            | 下载                                                                                              |
-| ------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
-| 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)                        |
-| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64                     | [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) / [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
-| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64              | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)                        |
+| 通道         | 版本              | 平台               | 下载                                                                             |
+| ------------ | ----------------- | ------------------ | -------------------------------------------------------------------------------- |
+| 稳定 Latest  | `v2.2.3-dev-my.3` | Windows x64        | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3) |
+| 稳定 Latest  | `v2.2.3-dev-my.3` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)      |
+| Windows 测试 | `v2.2.5-dev-my.2` | Windows x64        | [GitHub 完整](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2) |
+| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)      |
 
-Windows 分卷包含 `part1`、`part2`、`part3`、`SHA256SUMS`、独立 SHA256 文件和 `WINDOWS-README.txt`；Linux/macOS 只在上游下载。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](../KB/self-hosted-release-storage.md)。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
+全部平台使用上表的 GitHub 完整安装包。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史版本即使源码标签仍在，被清理的 Release 资产也不再可下载。
 
-## Windows 分卷下载与合并
-
-Gitee Release 仅托管 Windows 分卷。合并（Windows 命令提示符，在下载目录执行）：
-
-```bat
-copy /b opencode-desktop-win-x64.exe.part1+opencode-desktop-win-x64.exe.part2+opencode-desktop-win-x64.exe.part3 opencode-desktop-win-x64.exe
-```
-
-合并后校验：
-
-```powershell
-Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
-```
-
-| 版本              | Gitee Release                                                              | 完整安装包 SHA256                                                |
-| ----------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `v2.2.5-dev-my.2` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2) | `e664ea654fa54e781595626318c45bdfed60d299d80100a39f3ddf3c8734e304` |
-| `v2.2.3-dev-my.3` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3) | `44a32f97461eea5e76f01199fc5022a4628b5557837bc8daeab413c6eb5c9f84` |
-| `v2.2.3-dev-my.6` | [Windows 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.6) | `ae83752b76955f50406c225f178aefe98427ca784d89a6fbeb4ef3fec258ce26` |
+> 以下为历史发行事实。出现的旧 Gitee、分卷及远端名称只用于来源追溯，不是当前配置或发布步骤；以顶层 [AGENTS.md](../../../AGENTS.md) 为准。
 
 ## v2.2.5-dev-my.2 Windows / Linux 测试预发行
 
@@ -47,13 +29,13 @@ Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
 - 用户确认本次二进制只包含冻结时已提交的内容。并行任务随后提交的 Session activity / goal state 工作保留于维护线 `dev-my`，并通过 `453084892e` 合回本次源码同步；它不属于 `v2.2.5-dev-my.2` 标签或安装包。合回后客户端重新生成无差异，完整检查 35/35、客户端回归 40 项、核心活动回归 2 项通过；维护线与记录分别推送 GitHub/Gitee，源码标签保持固定。
 - [PR #60867](https://github.com/anomalyco/opencode/pull/60867) 已按用户本次明确要求更新到 `b88b94a75d3d517c3bbd417274392e326b7cb1e7`，基线 `ff90ed9160`，仅 35 个应用层文件。项目收起、后代活动、RTL 标题与原有分组/排序回归已同步；未混入 fork 发行、品牌或 Session activity 协议改动。本地 `sidebar-mode` 分支已删除，远端仅冻结保留 PR 来源引用，不再并行开发；旧 `sidebar-projects` 在 GitHub/Gitee 均已删除。本地旧项目工作区原以 `dev` 指向 `966e97bf71`，现已转为 detached 历史检出并删除该旧本地分支；文件及 `refs/archive/sidebar-projects` 归档引用保留。未发送测试邀请。
 
-| 安装包 | 字节 | SHA256 |
-| --- | ---: | --- |
-| `opencode-desktop-win-x64.exe` | 279,861,844 | `e664ea654fa54e781595626318c45bdfed60d299d80100a39f3ddf3c8734e304` |
+| 安装包                                   |        字节 | SHA256                                                             |
+| ---------------------------------------- | ----------: | ------------------------------------------------------------------ |
+| `opencode-desktop-win-x64.exe`           | 279,861,844 | `e664ea654fa54e781595626318c45bdfed60d299d80100a39f3ddf3c8734e304` |
 | `opencode-desktop-linux-x86_64.AppImage` | 326,174,875 | `fe36733779c9ef098c4b2a5718d9fd9838af7b0abeae5b8ed868d46ad37ae436` |
-| `opencode-desktop-linux-amd64.deb` | 272,189,848 | `5209067a4d95d8005e9661648ba20608b728208073b6ea0c30357685a6d281de` |
-| `opencode-desktop-linux-arm64.AppImage` | 326,049,295 | `97a145f3534fb02349e92ad5335ae4c8a18d85527fe02bb2fa25e76f7d3f9212` |
-| `opencode-desktop-linux-arm64.deb` | 261,869,328 | `b81c0547499adb7430a1c2aae44a114342feedebdae965fa4b1f79bf84c325ac` |
+| `opencode-desktop-linux-amd64.deb`       | 272,189,848 | `5209067a4d95d8005e9661648ba20608b728208073b6ea0c30357685a6d281de` |
+| `opencode-desktop-linux-arm64.AppImage`  | 326,049,295 | `97a145f3534fb02349e92ad5335ae4c8a18d85527fe02bb2fa25e76f7d3f9212` |
+| `opencode-desktop-linux-arm64.deb`       | 261,869,328 | `b81c0547499adb7430a1c2aae44a114342feedebdae965fa4b1f79bf84c325ac` |
 
 ## v2.2.5 源码同步（2026-11-01）
 
@@ -102,12 +84,12 @@ Get-FileHash .\opencode-desktop-win-x64.exe -Algorithm SHA256
 - 8 个 GitHub 资产的服务端大小与 SHA256 均匹配本地；公开下载的两份更新清单与本地完全一致，两个 AppImage 的公开下载入口及 ELF 文件头已核对。安装包未签名，本轮未执行 Linux GUI 人工验收，arm64 GUI 未在原生机器运行。
 - 交叉环境的 ARM 系统根缺少 AppImage 自解包所需 `libz.so`，arm64 AppImage 内容使用原生 `unsquashfs` 核验；该 AppImage 的运行时/GUI 启动不作为本轮通过项。两架构 Electron/CLI 的 ELF 头均正确，AppImage 与 deb 内置 CLI 哈希一致。
 
-| 安装包 | 字节 | SHA256 |
-| --- | ---: | --- |
+| 安装包                                   |        字节 | SHA256                                                             |
+| ---------------------------------------- | ----------: | ------------------------------------------------------------------ |
 | `opencode-desktop-linux-x86_64.AppImage` | 324,071,050 | `4ea250b92bcf22b11dc6a1b609184c3875d1f27960c511986d617d85d7719244` |
-| `opencode-desktop-linux-amd64.deb` | 270,318,772 | `21a6a8d997a422713f0dadcff07a1135e3ab642a906cba0a1e880a34c79cca16` |
-| `opencode-desktop-linux-arm64.AppImage` | 324,087,839 | `7ecac70310165527e48d5f56e3a068e01eb4f2808e95ef7775b1f671c4591474` |
-| `opencode-desktop-linux-arm64.deb` | 260,156,184 | `57c014465d45863c27a0d809603718e266bf500db52e388c4e53bc6eb5798e3a` |
+| `opencode-desktop-linux-amd64.deb`       | 270,318,772 | `21a6a8d997a422713f0dadcff07a1135e3ab642a906cba0a1e880a34c79cca16` |
+| `opencode-desktop-linux-arm64.AppImage`  | 324,087,839 | `7ecac70310165527e48d5f56e3a068e01eb4f2808e95ef7775b1f671c4591474` |
+| `opencode-desktop-linux-arm64.deb`       | 260,156,184 | `57c014465d45863c27a0d809603718e266bf500db52e388c4e53bc6eb5798e3a` |
 
 本轮不修改、新建 PR；未发送测试邀请，后续也不再发送。维护约束见 [维护方法](../maintenance.md)。
 

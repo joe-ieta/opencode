@@ -2,13 +2,13 @@
 
 ## 定位与当前进度
 
-跟随上游 fork 的 `dev-my` 维护线，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
+跟随官方 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
 - 源码基线已同步至 `dev@ff90ed9160`，内核基于 V2 2.2.5；保留共享项目历史、独立 Side bar、升级迁移及独立桌面发行补丁。`dev-my` 是唯一维护主线，远端 `sidebar-mode` 仅冻结保留 PR 引用，旧 `sidebar-projects` 两端分支已删除。二进制与源码同步记录见 [releases.md](releases.md)。
-- 本轮从 `3777b783c5` 构建并公开 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)：Windows x64 完整安装包、Linux x64/arm64 AppImage/deb，以及 Windows [Gitee 分卷](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.5-dev-my.2)。GitHub 十个资产的服务端摘要、Gitee 八个附件的公开下载内容与全部公开清单/安装包入口均已核对。此前 Windows 2.2.5 测试包已由用户手工测试通过；本次新包 GUI 尚未人工验收，详见 [发行记录](releases.md)。
+- 本轮从 `3777b783c5` 构建并公开 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)：Windows x64 完整安装包、Linux x64/arm64 AppImage/deb。GitHub 十个资产的服务端摘要与全部公开清单/安装包入口均已核对。此前 Windows 2.2.5 测试包已由用户手工测试通过；本次新包 GUI 尚未人工验收，详见 [发行记录](releases.md)。
 - Side bar 的项目收起、分组排序、后代活动与 RTL 修复已同步既有 PR，已有 31 个中文词条保留。维护线中后续提交的 Session activity / goal state 工作不在本次二进制标签内。
-- 当前稳定 Latest：[v2.2.3-dev-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)，构建源码 `393c371b65`；含 Windows x64 与 Ubuntu amd64/arm64。Windows 分卷在 [Gitee Release](https://gitee.com/ieta/opencode-my/releases/tag/v2.2.3-dev-my.3)，Linux 资产走上游。被替代的历史 GitHub Release 与安装包按策略清理，源码标签保留，详情见 [发行记录](releases.md#历史发行清理2026-10-31)。
-- 最新 Linux amd64/arm64 测试版：[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，Ubuntu 24.04 基线，源码 `3777b783c5`；提供 AppImage/deb。Gitee 不保存 Linux 资产，请使用 GitHub Release。两架构 CLI/目录/迁移冒烟、实际安装包与远端摘要校验通过；Linux GUI 与原生 ARM64 GUI 尚未人工验收。
+- 当前稳定 Latest：[v2.2.3-dev-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.3-dev-my.3)，构建源码 `393c371b65`；含 Windows x64 与 Ubuntu amd64/arm64。Windows 与 Linux 完整安装包统一从本仓库 GitHub Release 下载。被替代的历史 GitHub Release 与安装包按策略清理，源码标签保留，详情见 [发行记录](releases.md#历史发行清理2026-10-31)。
+- 最新 Linux amd64/arm64 测试版：[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，Ubuntu 24.04 基线，源码 `3777b783c5`；提供 AppImage/deb。全部平台统一使用本仓库 GitHub Release。两架构 CLI/目录/迁移冒烟、实际安装包与远端摘要校验通过；Linux GUI 与原生 ARM64 GUI 尚未人工验收。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 支持 Windows x64 与 Linux x64/arm64。Linux arm64 可在 Ubuntu 24.04 x64 上通过 `qemu-user-static`、`libc6-dev-arm64-cross` 和 binfmt 交叉构建及 CLI 冒烟，正式 ARM64 GUI 验收仍需原生 arm64。完整环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
 - 最近正式版验证（`v2.2.3-dev-my.3`）：Windows 与 WSL Ubuntu 根检查均 35/35；Windows NSIS、ASAR/CLI 版本、7-Zip 完整性、`latest.yml` SHA512 通过；Linux x64/arm64 模型目录冒烟各 7,646 个模型，desktop CLI 冒烟均通过；两架构 ASAR/CLI、AppImage/deb 架构、deb 元数据、更新清单与 10 个资产的服务端 SHA256 均已核对。完整应用单元测试、browser 条件测试和 GUI 回归未在本轮重复运行；ARM64 GUI 尚未原生验收。详细结果见 [releases.md](releases.md)。
 
@@ -60,7 +60,7 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 | 后台运行渠道        | **`dev`**，不能改成 `dev-my`                                                                      |
 | 服务和历史          | 使用官方 dev 约定的 `service.json`、`opencode.db`；GUI 本地状态属于独立 appId                     |
 | 更新来源            | 本 fork 对应 release tag 的 feed，不使用官方桌面更新源                                            |
-| 下载与发布页        | Windows：Gitee Release 分卷（单卷小于 100 MB）与 Windows 清单；Linux/macOS：upstream GitHub Release  |
+| 下载与发布页        | 全部平台统一使用本仓库 GitHub Releases 的完整安装包与更新清单                                     |
 | 自动更新限制        | 当前 feed 固定在当前 tag；后续 fork 版本需手动下载安装                                            |
 | 构建产物            | `dist/releases/v<version>/`；Windows NSIS，Linux AppImage/deb，附更新清单、SHA256SUMS、build.json |
 

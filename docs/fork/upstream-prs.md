@@ -2,18 +2,18 @@
 
 总体历史快照：2026-10-31（Asia/Shanghai）；#60867 单独更新于 2026-11-02，其他条目未在本轮重新查询。历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
 
-> 当前仓库的远端/上游关系以顶层约束为准：`origin` 为 Gitee 镜像，`upstream` 为 GitHub fork。本文的官方条目仅作历史记录，不再作为同步、比较或 PR 目标。
+> 当前仓库关系以顶层 [AGENTS.md](../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
 ## 当前 PR
 
-| PR / 分支                                                                         | 核对状态                                                                                            | 本地与后续策略                                                                                                                                   |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [#60496](https://github.com/anomalyco/opencode/pull/60496) · `model-release-date` | **MERGED**，2026-10-30；最终 head `88d92af959`；合并提交 `986221af346f8f71d0133f2c08130cedc17ab097` | fork Windows `v2.2.1-dev-my.2` 已有本地修复。已在 `v2.2.2-dev-my.1` 源码同步中吸收最终上游实现与测试；本地旧提交留在发行历史，不重复移植同一补丁 |
-| [#56929](https://github.com/anomalyco/opencode/pull/56929) · `upstream-migration` | **OPEN**，非 Draft；核对时可合并；期间曾关闭，当前已重新打开                                        | V1 迁移清理分批提交的可靠性修复；`dev-my`、`oc-headless` 按实际需求保留，继续跟进审核                                                            |
-| [#60084](https://github.com/anomalyco/opencode/pull/60084) · `v2-upgrade-notice`  | **CLOSED / Draft**，未合并，2026-10-30                                                              | 单向 V1→V2 升级确认在本地发行保留；关闭不表示已上游化                                                                                            |
-| [#60867](https://github.com/anomalyco/opencode/pull/60867) · `sidebar-mode`       | **OPEN / Draft**；2026-11-02 head `b88b94a75d`，基线 `ff90ed9160`（2.2.5） | 按用户本次明确要求同步项目收起、后代活动与 RTL 修复，完整检查 35/35、单元 948、browser 303、生产 Home/标签 67/67。本地分支已删除，远端仅冻结保留 PR 引用；开发统一在 dev-my |
-| [#60570](https://github.com/anomalyco/opencode/pull/60570) · `home-project-list`  | **OPEN**，非 Draft                                                                                  | 独立的 Home 全局项目清单提案；#60867 仅在 Side bar 模式扩展清单，比较范围和取舍，不声称两者都已被批准                                            |
-| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **CLOSED**，未合并，2026-10-31                                                                      | 已由作者关闭并链接 #60867；保留原设计、截图和分支供历史参考，不再作为当前贡献稿                                                                  |
+| PR / 分支                                                                         | 核对状态                                                                                            | 本地与后续策略                                                                                                                                                              |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#60496](https://github.com/anomalyco/opencode/pull/60496) · `model-release-date` | **MERGED**，2026-10-30；最终 head `88d92af959`；合并提交 `986221af346f8f71d0133f2c08130cedc17ab097` | fork Windows `v2.2.1-dev-my.2` 已有本地修复。已在 `v2.2.2-dev-my.1` 源码同步中吸收最终上游实现与测试；本地旧提交留在发行历史，不重复移植同一补丁                            |
+| [#56929](https://github.com/anomalyco/opencode/pull/56929) · `upstream-migration` | **OPEN**，非 Draft；核对时可合并；期间曾关闭，当前已重新打开                                        | V1 迁移清理分批提交的可靠性修复；`dev-my`、`oc-headless` 按实际需求保留，继续跟进审核                                                                                       |
+| [#60084](https://github.com/anomalyco/opencode/pull/60084) · `v2-upgrade-notice`  | **CLOSED / Draft**，未合并，2026-10-30                                                              | 单向 V1→V2 升级确认在本地发行保留；关闭不表示已上游化                                                                                                                       |
+| [#60867](https://github.com/anomalyco/opencode/pull/60867) · `sidebar-mode`       | **OPEN / Draft**；2026-11-02 head `b88b94a75d`，基线 `ff90ed9160`（2.2.5）                          | 按用户本次明确要求同步项目收起、后代活动与 RTL 修复，完整检查 35/35、单元 948、browser 303、生产 Home/标签 67/67。本地分支已删除，远端仅冻结保留 PR 引用；开发统一在 dev-my |
+| [#60570](https://github.com/anomalyco/opencode/pull/60570) · `home-project-list`  | **OPEN**，非 Draft                                                                                  | 独立的 Home 全局项目清单提案；#60867 仅在 Side bar 模式扩展清单，比较范围和取舍，不声称两者都已被批准                                                                       |
+| [#60446](https://github.com/anomalyco/opencode/pull/60446) · `sidetab-overview`   | **CLOSED**，未合并，2026-10-31                                                                      | 已由作者关闭并链接 #60867；保留原设计、截图和分支供历史参考，不再作为当前贡献稿                                                                                             |
 
 `mergeable` 只是查询时的合并能力，不代表通过审核、CI 或已经获准合并。上游维护者修改过 #60496 的提交，最终 head 与本地初始 `8eb64b9416` 不同；本地发行修复是 `d28cf55b08`，不能仅凭提交哈希不同认定上游缺失。
 
