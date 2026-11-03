@@ -331,7 +331,12 @@ const Group = HttpApiGroup.make("mock")
   )
   .add(HttpApiEndpoint.post("sessionCreate", "/api/session", { payload: JsonPayload, success: Json }))
   .add(HttpApiEndpoint.get("sessionActive", "/api/session/active", { success: Json }))
-  .add(HttpApiEndpoint.get("sessionActivity", "/api/experimental/session/activity", { success: Json }))
+  .add(
+    HttpApiEndpoint.get("sessionActivity", "/api/experimental/session/activity", {
+      success: Json,
+      error: MockNotFound.pipe(HttpApiSchema.status(404)),
+    }),
+  )
   .add(
     HttpApiEndpoint.post("rpcCall", "/api/rpc/:rpcID/:method", {
       params: { rpcID: Schema.String, method: Schema.String },

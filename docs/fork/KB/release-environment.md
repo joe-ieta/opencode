@@ -8,15 +8,15 @@
 
 ### 1.1 发布目标
 
-| 目标     | 约定                                                                                     |
-| -------- | ---------------------------------------------------------------------------------------- |
-| Windows  | x64 NSIS 安装包，`opencode-desktop-win-x64.exe`                                          |
-| Ubuntu   | 24.04 LTS 为验证基线，amd64/arm64 的 AppImage 与 deb                                     |
-| 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml` |
-| 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                |
-| 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                           |
+| 目标     | 约定                                                                                                |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| Windows  | x64 NSIS 安装包，`opencode-desktop-win-x64.exe`                                                     |
+| Ubuntu   | 24.04 LTS 为验证基线，amd64/arm64 的 AppImage 与 deb                                                |
+| 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml`            |
+| 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                           |
+| 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                                      |
 | 发布形态 | upstream GitHub Release 含全部平台；Gitee Release 仅含 Windows 分卷和 Windows 清单，单卷小于 100 MB |
-| 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                        |
+| 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                                   |
 
 ### 1.2 功能需求
 
@@ -87,13 +87,13 @@ flowchart TD
 
 ```bash
 # 当前主机架构
-bun run release:desktop:my --version=<version>-dev-my.<N>
+bun run release:desktop:my --version=<version>-my.<N>
 
 # 只构建 arm64
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=arm64
+bun run release:desktop:my --version=<version>-my.<N> --arch=arm64
 
 # 同一标签同时构建 x64 与 arm64（推荐 Linux 发行）
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=all
+bun run release:desktop:my --version=<version>-my.<N> --arch=all
 ```
 
 - `--arch` 省略时使用 `process.arch`。
@@ -272,7 +272,7 @@ bun run check
 ```powershell
 bun install --frozen-lockfile
 bun run check
-bun run release:desktop:my --version=<version>-dev-my.<N>
+bun run release:desktop:my --version=<version>-my.<N>
 ```
 
 产物：`dist/releases/v<version>/`，包含 NSIS 安装包、`latest.yml`、单架构 `SHA256SUMS` 和 `build.json`。
@@ -286,7 +286,7 @@ export HTTPS_PROXY="http://<wsl-gateway>:<port>"
 export HTTP_PROXY="$HTTPS_PROXY"
 
 cd ~/opencode-my
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=all
+bun run release:desktop:my --version=<version>-my.<N> --arch=all
 ```
 
 产物：

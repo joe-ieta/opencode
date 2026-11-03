@@ -1,6 +1,6 @@
 import { batch, onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
-import type { SessionActivityInfo, SessionInfo } from "../promise"
+import { ClientError, type SessionActivityInfo, type SessionInfo } from "../promise"
 
 type Work = Omit<SessionActivityInfo, "kind"> & { kind: SessionActivityInfo["kind"] | "model" }
 
@@ -8,6 +8,7 @@ type Work = Omit<SessionActivityInfo, "kind"> & { kind: SessionActivityInfo["kin
 export function createSessionActivity(input: {
   load: () => Promise<SessionActivityInfo[]>
   executing: () => string[]
+  observed?: () => Omit<SessionActivityInfo, "ancestors">[]
   execution: () => "loading" | "ready" | "unavailable"
   session: (id: string) => SessionInfo | undefined
   hydrate: (id: string) => Promise<unknown>
@@ -45,7 +46,16 @@ export function createSessionActivity(input: {
       const version = revision
       const result = await input.load().then(
         (work) => ({ work }),
-        () => undefined,
+        // Background observation is optional on older servers; their execution index remains authoritative.
+        (error: unknown) =>
+          error instanceof ClientError &&
+          error.reason === "UnexpectedStatus" &&
+          typeof error.cause === "object" &&
+          error.cause !== null &&
+          "status" in error.cause &&
+          error.cause.status === 404
+            ? { work: [] }
+            : undefined,
       )
       if (disposed || !connected || version !== revision) continue
       if (!result) {
@@ -63,25 +73,28 @@ export function createSessionActivity(input: {
 
   const work = () => {
     const items = new Map<string, Work>(state.work.map((item) => [item.id, item]))
-    input.executing().forEach((id) => {
-      if (items.has(`session:${id}`)) return
+    const executing: Omit<Work, "ancestors">[] = input.executing().map((id) => {
       const session = input.session(id)
+      return {
+        id: `session:${id}`,
+        sessionID: id,
+        kind: session?.parentID ? "subagent" : "model",
+        title: session?.title,
+        startedAt: session?.time.busy ?? 0,
+      }
+    })
+    // Location events and lists still expose known shells when the global endpoint is unavailable.
+    ;[...(input.observed?.() ?? []), ...executing].forEach((item) => {
+      if (items.has(item.id)) return
       const ancestors: string[] = []
-      const seen = new Set([id])
-      let parent = session?.parentID
+      const seen = new Set([item.sessionID])
+      let parent = input.session(item.sessionID)?.parentID
       while (parent && !seen.has(parent)) {
         seen.add(parent)
         ancestors.push(parent)
         parent = input.session(parent)?.parentID
       }
-      items.set(`session:${id}`, {
-        id: `session:${id}`,
-        sessionID: id,
-        ancestors,
-        kind: session?.parentID ? "subagent" : "model",
-        title: session?.title,
-        startedAt: session?.time.busy ?? 0,
-      })
+      items.set(item.id, { ...item, ancestors })
     })
     return [...items.values()]
   }

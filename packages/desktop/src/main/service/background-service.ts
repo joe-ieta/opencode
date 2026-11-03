@@ -34,6 +34,13 @@ export const layer = Layer.effect(
 )
 
 const connect = Effect.fn("BackgroundService.connect")(function* (mode: "initial" | "reconnect") {
+  if (!app.isPackaged && process.env.OPENCODE_DESKTOP_LIVE_SERVER === "1") {
+    const { LiveService } = yield* Effect.promise(() => import("./live-service"))
+    const ready = yield* Effect.tryPromise(LiveService.connect)
+    yield* Effect.logInfo("using existing background service for live desktop development", { url: ready.url })
+    SidecarCredentials.set(ready)
+    return ready
+  }
   yield* Effect.logInfo("starting v2 background service")
   const fs = yield* FileSystem.FileSystem
   const path = yield* Path.Path

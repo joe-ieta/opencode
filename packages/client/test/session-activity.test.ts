@@ -81,7 +81,7 @@ test.each(["invalidate", "reconnect"] as const)("discards an older snapshot afte
   }
 })
 
-test("keeps execution visible when background observation is unsupported", async () => {
+test("keeps execution visible and reports failed background observation", async () => {
   const sessions = new Map<string, SessionInfo>()
   const setup = createRoot((dispose) => ({
     dispose,

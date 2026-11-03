@@ -855,17 +855,15 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                             </Show>
                             <div class="flex w-full shrink-0 flex-col gap-1">
                               <Show when={!homeInSidebarHeader()}>{homeButton(true)}</Show>
-                              {searchButton(true)}
+                              <Show when={settings.appearance.tabLayout() !== "sidebar"}>{searchButton(true)}</Show>
                               <RecentlyClosedTabsMenu
                                 vertical
                                 onNewTab={openNewTab}
                                 keybind={command.keybind("tab.new")}
                               />
+                              <Show when={settings.appearance.tabLayout() === "sidebar"}>{searchButton(true)}</Show>
                             </div>
                             <div class="h-4 w-full shrink-0" aria-hidden="true" />
-                            <Show when={settings.appearance.tabLayout() === "sidebar"}>
-                              <ActiveSessions />
-                            </Show>
                             <div class="flex min-h-0 flex-1 flex-col gap-1">
                               <Show
                                 when={settings.appearance.tabLayout() === "sidebar"}
@@ -915,6 +913,9 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                               <div data-slot="vertical-tabs-footer" class="mt-2 flex w-full shrink-0 flex-col">
                                 <TitlebarItems items={titlebarItems} vertical />
                               </div>
+                            </Show>
+                            <Show when={settings.appearance.tabLayout() === "sidebar"}>
+                              <ActiveSessions />
                             </Show>
                           </Portal>
                         )}

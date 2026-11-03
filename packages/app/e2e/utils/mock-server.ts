@@ -60,7 +60,7 @@ export interface MockServerConfig {
   shells?: unknown[]
   // Background shell commands (`GET /api/shell`).
   shellCommands?: Resolvable<unknown[]>
-  sessionActivity?: Resolvable<SessionActivityInfo[]>
+  sessionActivity?: Resolvable<SessionActivityInfo[]> | false
   // All output a shell command has captured so far in `directory`, or undefined for an unknown command (404
   // ShellNotFoundError). The mock pages it like the server: from the request's byte `cursor`, at most `limit` bytes
   // (default 65,536).
@@ -1141,7 +1141,10 @@ function mockHandlers(
                   message: `The mock server has no ${ctx.params.rpcID}.${ctx.params.method} RPC`,
                 }),
               ),
-        sessionActivity: () => Effect.succeed({ data: resolve(config.sessionActivity ?? []) }),
+        sessionActivity: () =>
+          config.sessionActivity === false
+            ? Effect.fail(new MockNotFound({ message: "Activity endpoint is not available" }))
+            : Effect.succeed({ data: resolve(config.sessionActivity ?? []) }),
         sessionActive: () => {
           const status = resolve(config.sessionStatus ?? {})
 

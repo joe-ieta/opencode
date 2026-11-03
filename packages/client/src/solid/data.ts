@@ -330,6 +330,21 @@ export function createData(config: CreateDataInput) {
     load: () => api().experimental.session.activity(),
     execution: executionAvailability,
     executing: () => Object.entries(store.session.active).flatMap(([id, status]) => (status === "running" ? [id] : [])),
+    observed: () =>
+      Object.values(store.location).flatMap((location) =>
+        Object.values(location.shell ?? {}).flatMap((shell) => {
+          if (shell.status !== "running" || typeof shell.metadata.sessionID !== "string") return []
+          return [
+            {
+              id: `shell:${shell.id}`,
+              sessionID: shell.metadata.sessionID,
+              kind: "shell" as const,
+              title: shell.command,
+              startedAt: shell.time.started,
+            },
+          ]
+        }),
+      ),
     session: (id) => store.session.info[id],
     hydrate: (id) => result.session.sync(id),
   })

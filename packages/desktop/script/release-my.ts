@@ -29,8 +29,8 @@ if (platform === "linux" && foreign) {
 if (process.versions.bun !== rootPackage.packageManager.slice("bun@".length))
   throw new Error(`Use the pinned ${rootPackage.packageManager} runtime for release builds`)
 const version = process.argv.find((argument) => argument.startsWith("--version="))?.slice("--version=".length)
-if (!version || !semver.valid(version) || !/^\d+\.\d+\.\d+-dev-my\.\d+$/.test(version))
-  throw new Error("Pass --version=<major>.<minor>.<patch>-dev-my.<release>")
+if (!version || !semver.valid(version) || !/^\d+\.\d+\.\d+-my\.\d+$/.test(version))
+  throw new Error("Pass --version=<major>.<minor>.<patch>-my.<release>")
 
 const root = path.resolve(import.meta.dir, "../../..")
 const tag = `v${version}`
