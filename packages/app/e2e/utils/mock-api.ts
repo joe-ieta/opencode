@@ -206,6 +206,13 @@ const Group = HttpApiGroup.make("mock")
     }),
   )
   .add(
+    HttpApiEndpoint.post("customProviderTest", "/api/experimental/config/providers/test", {
+      payload: CustomProvider.TextTestRequest,
+      success: Json,
+      error: Unsupported,
+    }),
+  )
+  .add(
     HttpApiEndpoint.post("customProviderDiscover", "/api/experimental/config/providers/discover", {
       payload: CustomProvider.DiscoveryRequest,
       success: Json,

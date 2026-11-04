@@ -3,6 +3,7 @@ import { ModelsDev } from "@opencode/core/models-dev"
 import { Credential } from "@opencode/core/credential"
 import { ConfigCustomProvider } from "@opencode/core/config/custom-provider"
 import { ConfigProviderDiscovery } from "@opencode/core/config/provider-discovery"
+import { ConfigProviderTest } from "@opencode/core/config/provider-test"
 import { FileSystem } from "@opencode/core/filesystem"
 import { Integration } from "@opencode/core/integration"
 import { Location } from "@opencode/core/location"
@@ -25,6 +26,25 @@ export const ConfigHandler = HttpApiBuilder.group(Api, "server.config", (handler
     const global = yield* Global.Service
     const locations = yield* LocationServiceMap.Service
     return handlers
+      .handle(
+        "config.providers.test",
+        Effect.fn(function* (ctx) {
+          if (ctx.payload.target.mode === "saved") {
+            yield* requireConnectable(Integration.ID.make(ctx.payload.target.providerID)).pipe(
+              Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(global.config) }))),
+              Effect.catchIf((error) => error instanceof FileSystem.DirectoryNotFoundError, Effect.die),
+            )
+          }
+          return yield* ConfigProviderTest.run(ctx.payload).pipe(
+            Effect.provide(dependencies),
+            Effect.mapError((error) =>
+              error instanceof ConfigCustomProvider.Error
+                ? new ConflictError({ message: error.message, resource: "custom-provider" })
+                : new UnknownError({ message: "Unable to test provider text response" }),
+            ),
+          )
+        }),
+      )
       .handle(
         "config.providers.discover",
         Effect.fn(function* (ctx) {

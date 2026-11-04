@@ -4,6 +4,7 @@ import { lookup } from "node:dns/promises"
 import { BlockList, isIP } from "node:net"
 import { Effect, Schema } from "effect"
 import { CustomProvider } from "@opencode/schema/custom-provider"
+import { ConfigCustomProvider } from "./custom-provider.js"
 const blocked = new BlockList()
 blocked.addSubnet("169.254.0.0", 16, "ipv4")
 blocked.addSubnet("fe80::", 10, "ipv6")
@@ -15,6 +16,33 @@ export class Error extends Schema.TaggedError<Error>()("ProviderDiscoveryFailure
   kind: CustomProvider.DiscoveryKind,
   httpStatus: Schema.optional(Schema.Int),
 }) {}
+
+export const target = Effect.fn("ProviderDiscoveryHTTP.target")(function* (input: CustomProvider.DiscoveryInput) {
+  const saved = input.mode === "saved" ? yield* ConfigCustomProvider.discoveryTarget(input) : undefined
+  if (saved?.credential && saved.credential.type !== "key") return yield* new Error({ kind: "unsupported-auth" })
+  if (saved?.modelAuth || saved?.settings?.auth !== undefined) return yield* new Error({ kind: "unsupported-auth" })
+  const baseURL = ConfigCustomProvider.safeURL(input.mode === "draft" ? input.baseURL : saved?.baseURL)
+  if (!baseURL) return yield* new Error({ kind: "invalid-url" })
+  const url = new URL(baseURL)
+  yield* validate(url)
+  const key =
+    input.mode === "draft"
+      ? input.key
+      : saved?.credential?.type === "key"
+        ? saved.credential.key
+        : saved?.settings?.apiKey
+  const headers = yield* Effect.try({
+    try: () => {
+      const headers = new Headers({ accept: "application/json" })
+      if (typeof key === "string" && key) headers.set("authorization", `Bearer ${key}`)
+      Object.entries(saved?.headers ?? {}).forEach(([key, value]) => headers.set(key, value))
+      return headers
+    },
+    // Header validation errors can contain the secret value.
+    catch: () => new Error({ kind: "unsupported-auth" }),
+  })
+  return { url, headers }
+})
 
 export const validate = Effect.fn("ProviderDiscoveryHTTP.validate")(function* (url: URL) {
   const hostname = url.hostname.replace(/^\[|\]$/g, "")
@@ -35,7 +63,7 @@ export const request = Effect.fn("ProviderDiscoveryHTTP.request")(function* (
   url: URL,
   headers: Headers,
   budget: { bytes: number },
-  body?: { model: string },
+  body?: Readonly<Record<string, unknown>>,
 ) {
   return yield* Effect.tryPromise({
     try: async (signal) => {

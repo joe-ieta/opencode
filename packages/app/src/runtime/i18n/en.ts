@@ -1,6 +1,27 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "customProvider.testText": "Test text response",
+  "customProvider.cancelTest": "Cancel text test",
+  "customProvider.testHelp":
+    "Save the address, key and model ID before testing. Sends one minimal text request to the saved endpoint, with up to 32 output tokens and a 30-second timeout. May load the model or incur charges. Custom generation options, tools, images and token limits are not tested.",
+  "customProvider.testSuccess":
+    "Text received. This does not verify tools, images, token limits or custom generation options.",
+  "customProvider.test.model-not-found": "The model is no longer available. Refresh the provider and try again.",
+  "customProvider.test.invalid-url": "The saved base URL is not a supported HTTP(S) address.",
+  "customProvider.test.blocked-address": "Link-local and metadata service addresses cannot be tested.",
+  "customProvider.test.authentication": "The endpoint rejected authentication. Check and save the key before retrying.",
+  "customProvider.test.unsupported": "The endpoint or model does not support this text test.",
+  "customProvider.test.redirect": "The endpoint redirected the test. Save the final base URL explicitly.",
+  "customProvider.test.http": "The endpoint rejected the text request. Check its model ID and server configuration.",
+  "customProvider.test.network": "Could not reach the model endpoint. Check its address and connectivity.",
+  "customProvider.test.timeout": "The text test timed out. A model may still be loading; retry when it is ready.",
+  "customProvider.test.too-large": "The text response exceeds the 2 MB response limit.",
+  "customProvider.test.invalid-response": "The endpoint returned an invalid chat response.",
+  "customProvider.test.empty": "The endpoint returned no text.",
+  "customProvider.test.unsupported-auth": "This authentication method cannot be used for the minimal text test.",
+  "customProvider.test.no-text":
+    "No visible text was returned. A reasoning model may need a larger output budget; verify it in a session.",
   "customProvider.discoveryAPI": "Discovery API",
   "customProvider.api.openai": "OpenAI Compatible",
   "customProvider.api.ollama": "Ollama native",

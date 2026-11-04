@@ -1577,6 +1577,93 @@ test("custom provider discovery confines saved keys, cancels requests and leaves
   await expect(dialog.getByRole("button", { name: "Save provider", exact: true })).toBeEnabled()
 })
 
+test("custom provider text tests are explicit, cancellable and invalidated when saved connection fields change", async ({
+  page,
+}) => {
+  const fixture = customProviderFixture()
+  const calls: CustomProvider.TextTestRequest[] = []
+  const state = { success: false }
+  await openSession(page, {
+    name: "CustomProviderTextTest",
+    ...fixture.config,
+    customProviders: { revision: "text-revision", target: "C:/fixture/opencode.jsonc", providers: [fixture.entry] },
+    onCustomProviderTest: (input): CustomProvider.TextTest => {
+      calls.push(input)
+
+      return state.success ? { status: "success" } : { status: "error", kind: "timeout" }
+    },
+  })
+  const trigger = page.locator('[data-action="composer-model"]')
+  await expect(trigger).toHaveText("Existing Model")
+  await trigger.click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Edit provider", exact: true }).click()
+  const model = dialog.getByRole("group", { name: "Model 1", exact: true })
+  const run = model.getByRole("button", { name: "Test text response", exact: true })
+  await expect(run).toBeEnabled()
+  await expect(dialog.getByText(/May load the model or incur charges/)).toBeVisible()
+  expect(calls).toEqual([])
+  const held = await holdRoute(page, /\/api\/experimental\/config\/providers\/test(?:\?|$)/, { method: "POST" })
+  await run.click()
+  const pending = await held.arrived
+  expect(pending.postDataJSON()).toEqual({
+    target: { mode: "saved", providerID: "private-gateway", revision: "text-revision" },
+    modelID: "remote-model",
+  })
+  await expect(run).toBeDisabled()
+  await model.getByRole("button", { name: "Cancel text test", exact: true }).click()
+  await expect(run).toBeEnabled()
+  held.release()
+  await run.click()
+  await expect(model.getByRole("alert")).toHaveText(
+    "The text test timed out. A model may still be loading; retry when it is ready.",
+  )
+  await expect(model.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
+  state.success = true
+  await run.click()
+  await expect(model.getByRole("status")).toHaveText(
+    "Text received. This does not verify tools, images, token limits or custom generation options.",
+  )
+  expect(calls.at(-1)).toEqual({
+    target: { mode: "saved", providerID: "private-gateway", revision: "text-revision" },
+    modelID: "remote-model",
+  })
+  await expect(model.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("inherit")
+  await model
+    .getByRole("textbox", { name: "Request model ID (defaults to model key)", exact: true })
+    .fill("draft-model")
+  await expect(model.getByRole("status")).toHaveCount(0)
+  await expect(run).toBeDisabled()
+  await model
+    .getByRole("textbox", { name: "Request model ID (defaults to model key)", exact: true })
+    .fill("remote-model")
+  await dialog.getByLabel("API key", { exact: true }).fill("unsaved-key")
+  await expect(run).toBeDisabled()
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:9999/v1")
+  await expect(dialog.getByLabel("API key", { exact: true })).toHaveValue("")
+  await expect(run).toBeDisabled()
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill(fixture.entry.baseURL!)
+  await expect(run).toBeEnabled()
+  const changed = await holdRoute(page, /\/api\/experimental\/config\/providers\/test(?:\?|$)/, { method: "POST" })
+  await run.click()
+  await changed.arrived
+  await model
+    .getByRole("textbox", { name: "Request model ID (defaults to model key)", exact: true })
+    .fill("edited-during-test")
+  await expect(run).toBeDisabled()
+  await expect(model.getByRole("button", { name: "Cancel text test", exact: true })).toHaveCount(0)
+  changed.release()
+  await expect(model.getByRole("status")).toHaveCount(0)
+  expect(fixture.requests).toEqual([])
+  await dialog.getByRole("button", { name: "Close", exact: true }).click()
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toHaveText("Existing Model")
+})
+
 test("Ollama native metadata is selected, cancellable and imported without replacing manual values", async ({
   page,
 }) => {

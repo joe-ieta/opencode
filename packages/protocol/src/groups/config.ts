@@ -99,4 +99,22 @@ export const ConfigGroup = HttpApiGroup.make("server.config")
         }),
       ),
   )
+  .add(
+    HttpApiEndpoint.post("config.providers.test", "/api/experimental/config/providers/test", {
+      query: LocationQuery,
+      payload: CustomProvider.TextTestRequest,
+      success: CustomProvider.TextTest,
+      error: [ConflictError, InvalidRequestError, UnknownError],
+    })
+      .annotate(HttpApi.PayloadParseOptions, { onExcessProperty: "error" })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "experimental.config.providers.test",
+          summary: "Test a custom provider text response",
+          description:
+            "Experimental: may change without compatibility guarantees. Explicitly send one minimal text request to a saved provider, limited to 32 output tokens and 30 seconds. May load a model or incur charges. Does not save configuration, create a Session or verify custom options, tools, images or token limits.",
+        }),
+      ),
+  )
   .annotateMerge(OpenApi.annotations({ title: "config", description: "Location-scoped configuration routes." }))

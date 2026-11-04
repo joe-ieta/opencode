@@ -327,6 +327,8 @@ import type {
   ExperimentalConfigProvidersUpdateOutput,
   ExperimentalConfigProvidersDiscoverInput,
   ExperimentalConfigProvidersDiscoverOutput,
+  ExperimentalConfigProvidersTestInput,
+  ExperimentalConfigProvidersTestOutput,
 } from "./types.js"
 import { ClientError } from "./client-error.js"
 
@@ -1799,6 +1801,19 @@ export function make(options: ClientOptions) {
               },
               requestOptions,
             ),
+          test: (input: ExperimentalConfigProvidersTestInput, requestOptions?: RequestOptions) =>
+            request<ExperimentalConfigProvidersTestOutput>(
+              {
+                method: "POST",
+                path: `/api/experimental/config/providers/test`,
+                query: { location: input["location"] },
+                body: { target: input["target"], modelID: input["modelID"] },
+                successStatus: 200,
+                declaredStatuses: [400, 401, 404, 409, 500],
+                empty: false,
+              },
+              requestOptions,
+            ),
         },
       },
     },
@@ -2852,6 +2867,8 @@ export function make(options: ClientOptions) {
         update: client.experimental.config.providers.update,
         /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
         discover: client.experimental.config.providers.discover,
+        /** @deprecated Use `client.experimental.config.providers.test`. Removed in the next minor. */
+        test: client.experimental.config.providers.test,
       },
     },
   }

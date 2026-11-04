@@ -410,6 +410,28 @@ export type CustomProviderCandidate = {
   warnings: Array<string>
 }
 
+export type CustomProviderTextTest =
+  | { status: "success" }
+  | {
+      status: "error"
+      kind:
+        | "model-not-found"
+        | "invalid-url"
+        | "blocked-address"
+        | "authentication"
+        | "unsupported"
+        | "redirect"
+        | "http"
+        | "network"
+        | "timeout"
+        | "too-large"
+        | "invalid-response"
+        | "empty"
+        | "unsupported-auth"
+        | "no-text"
+      httpStatus?: number
+    }
+
 export type LocationPublicRef = { directory: AbsolutePath }
 
 export type FileSystemWrite = { path: AbsolutePath }
@@ -4938,6 +4960,14 @@ export type ExperimentalConfigProvidersDiscoverInput = {
 
 export type ExperimentalConfigProvidersDiscoverOutput = CustomProviderDiscovery
 
+export type ExperimentalConfigProvidersTestInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target: { readonly mode: "saved"; readonly providerID: string; readonly revision: string }
+  readonly modelID: string
+}
+
+export type ExperimentalConfigProvidersTestOutput = CustomProviderTextTest
+
 /** @deprecated Use `ExperimentalSessionStatsInput`. Removed in the next minor. */
 export type SessionStatsInput = ExperimentalSessionStatsInput
 
@@ -5114,3 +5144,9 @@ export type ConfigProvidersDiscoverInput = ExperimentalConfigProvidersDiscoverIn
 
 /** @deprecated Use `ExperimentalConfigProvidersDiscoverOutput`. Removed in the next minor. */
 export type ConfigProvidersDiscoverOutput = ExperimentalConfigProvidersDiscoverOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestInput`. Removed in the next minor. */
+export type ConfigProvidersTestInput = ExperimentalConfigProvidersTestInput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestOutput`. Removed in the next minor. */
+export type ConfigProvidersTestOutput = ExperimentalConfigProvidersTestOutput

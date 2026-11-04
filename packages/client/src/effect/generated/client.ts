@@ -325,6 +325,8 @@ import type {
   ExperimentalConfigProvidersUpdateOutput,
   ExperimentalConfigProvidersDiscoverInput,
   ExperimentalConfigProvidersDiscoverOutput,
+  ExperimentalConfigProvidersTestInput,
+  ExperimentalConfigProvidersTestOutput,
 } from "../api/api.js"
 import { ClientError } from "./client-error.js"
 
@@ -1995,12 +1997,22 @@ const EndpointExperimentalConfigProvidersDiscover =
       }).pipe(Effect.mapError(mapClientError)),
     )
 
+const EndpointExperimentalConfigProvidersTest =
+  (raw: RawClient["server.config"]) => (input: ExperimentalConfigProvidersTestInput) =>
+    preserveEffect<ExperimentalConfigProvidersTestOutput>()(
+      raw["config.providers.test"]({
+        query: { location: input["location"] },
+        payload: { target: input["target"], modelID: input["modelID"] },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
 const adaptGroupExperimentalConfig = (raw: RawClient["server.config"]) => ({
   update: EndpointExperimentalConfigUpdate(raw),
   providers: {
     list: EndpointExperimentalConfigProvidersList(raw),
     update: EndpointExperimentalConfigProvidersUpdate(raw),
     discover: EndpointExperimentalConfigProvidersDiscover(raw),
+    test: EndpointExperimentalConfigProvidersTest(raw),
   },
 })
 
@@ -2151,6 +2163,8 @@ const adaptClient = (raw: RawClient) => {
         update: client.experimental.config.providers.update,
         /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
         discover: client.experimental.config.providers.discover,
+        /** @deprecated Use `client.experimental.config.providers.test`. Removed in the next minor. */
+        test: client.experimental.config.providers.test,
       },
     },
   }

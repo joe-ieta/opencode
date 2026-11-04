@@ -96,6 +96,12 @@ it.live("integration policy filters /connect and blocks denied integrations and 
     })
     expect(discovery.status).toBe(400)
     expect(discovery.body).toMatchObject({ kind: "integration_policy" })
+    const textTest = yield* request("POST", "/api/experimental/config/providers/test", {
+      target: { mode: "saved", providerID: "custom", revision: "policy-denied" },
+      modelID: "chat",
+    })
+    expect(textTest.status).toBe(400)
+    expect(textTest.body).toMatchObject({ kind: "integration_policy" })
     const wellknown = yield* request("POST", "/api/experimental/integration/wellknown", { url: "https://ai.acme.com" })
     expect(wellknown.body).toMatchObject({ kind: "integration_policy" })
 

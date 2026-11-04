@@ -16122,6 +16122,112 @@
           "required": true
         }
       }
+    },
+    "/api/experimental/config/providers/test": {
+      "post": {
+        "tags": ["config"],
+        "operationId": "experimental.config.providers.test",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "directory": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "CustomProvider.TextTest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProvider.TextTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ConflictError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Explicitly send one minimal text request to a saved provider, limited to 32 output tokens and 30 seconds. May load a model or incur charges. Does not save configuration, create a Session or verify custom options, tools, images or token limits.",
+        "summary": "Test a custom provider text response",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProvider.TextTestRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
     }
   },
   "components": {
@@ -18274,6 +18380,86 @@
           }
         },
         "required": ["revision", "config", "credential", "catalog"],
+        "additionalProperties": false
+      },
+      "CustomProvider.TextTest": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["success"]
+              }
+            },
+            "required": ["status"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["error"]
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "model-not-found",
+                  "invalid-url",
+                  "blocked-address",
+                  "authentication",
+                  "unsupported",
+                  "redirect",
+                  "http",
+                  "network",
+                  "timeout",
+                  "too-large",
+                  "invalid-response",
+                  "empty",
+                  "unsupported-auth",
+                  "no-text"
+                ]
+              },
+              "httpStatus": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["status", "kind"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CustomProvider.TextTestRequest": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["saved"]
+              },
+              "providerID": {
+                "$ref": "#/components/schemas/Provider.ID"
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": ["mode", "providerID", "revision"],
+            "additionalProperties": false
+          },
+          "modelID": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "required": ["target", "modelID"],
         "additionalProperties": false
       },
       "CustomProvider.Update": {

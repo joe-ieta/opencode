@@ -1,6 +1,6 @@
 # dev-my 自定义 Provider（本地模型）设计 v0.2
 
-> 状态：P0 手动管理、P1 主动发现和 P2 Ollama/LM Studio 原生元数据已在独立工作树实现并通过自动化验证；P2 高级字段、显式推理测试及真实引擎兼容矩阵仍待后续推进。
+> 状态：P0 手动管理、P1 主动发现、P2 原生元数据与显式最小文本测试已在独立工作树实现；高级字段、完整推理能力和真实引擎兼容矩阵仍待后续推进。验证记录见第 10–13 节。
 > 日期：2026-11-05（Asia/Shanghai）
 > 原稿：`origin/dev-my-models@168ee33882`；维护基线：`origin/dev-my@ce6f5362fd`。
 > 评审工作树：`.cache/models-design-review`，临时分支 `models-design-review`。
@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | P0 | 手动新增、编辑单一全局 V2 自定义 provider，模型增删改，Key 设置/替换，安全写入和刷新 | 不编辑文件即可保存、选用、重开后编辑；真实本地服务可完成 prompt |
 | P1 | 用户主动调用通用 `/models`，预览后勾选导入 | 无发现接口、离线或鉴权失败仍可手动保存 |
-| P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据已实现并通过隔离测试；高级字段、显式推理和真实引擎验收待后续推进 |
+| P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据和最小文本测试已实现；高级字段、工具/图像推理和真实引擎验收待后续推进 |
 
 P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Studio/vLLM 已有官方发现插件；不再为它们建立后台轮询系统。原稿将六种引擎适配、凭据历史管理与 UI 一次交付的 10–13 日估算缺少验证依据，取消硬性工期。
 
@@ -177,13 +177,14 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 
 ## 7. API 与分层
 
-新接口继续 experimental，建议三个端点（原稿误写“两个”）：
+新接口继续 experimental，已实施以下四个端点：
 
 | Method / Path | OpenAPI identifier | 作用 |
 | --- | --- | --- |
 | GET `/api/experimental/config/providers` | `experimental.config.providers.list` | 来源、只读理由、编辑快照、Key 元数据 |
 | PATCH `/api/experimental/config/providers/:providerID` | `experimental.config.providers.update` | typed patch + revision + 可选 Key 操作；新建/编辑明确区分 |
 | POST `/api/experimental/config/providers/discover` | `experimental.config.providers.discover` | saved/draft 互斥发现 |
+| POST `/api/experimental/config/providers/test` | `experimental.config.providers.test` | 用户显式发起的已保存连接最小文本测试 |
 
 复用 `LocationQuery` 和 `locationQueryOpenApi`，不发明 `?location=/path` 参数；具体编码由生成 SDK 处理。新端点说明包含 `Experimental: may change without compatibility guarantees.`。SDK 应生成 `client.experimental.config.providers.*`，通过生成结果核验，不能只凭前缀测试认定命名完整正确。
 
@@ -298,4 +299,27 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 - `bun run check` 的 35 个任务全部通过；本次实现与测试的 focused lint 为 0 warning / 0 error。客户端和 OpenAPI 已按脚本生成，experimental 标识符与生成一致性检查通过。
 - 全量 `typecheck:e2e` 仍有 13 项已有诊断，新增用例与夹具未新增诊断；没有扩展到已有 performance、timeline、review、settings 等场景修复。
 
-以上协议和交互验证使用隔离本地 HTTP 端点、临时配置及测试数据库，未连接实际安装的 Ollama/LM Studio，未调用加载或推理 API，也未修改用户运行中的服务、配置或凭据。真实引擎版本兼容矩阵和推理验收仍需后续完成。
+该原生元数据阶段使用隔离本地 HTTP 端点、临时配置及测试数据库，未连接实际安装的 Ollama/LM Studio，未调用加载或推理 API，也未修改用户运行中的服务、配置或凭据。真实引擎版本兼容矩阵和推理验收仍需后续完成。
+
+## 13. P2 显式最小文本测试实施记录
+
+原有 P0/P1 和原生元数据改动已按用户指示提交为 `0cde0f3c49`（`feat(app): manage custom providers and import native model metadata`），仅在独立工作树的 `models-design-review` 分支，不推送、不改动 `dev-my`。本节记录此后的增量实现。
+
+每个已保存模型提供“Test text response”。新增、修改地址、Key 或请求模型 ID 后需先保存，避免测试结果与待保存连接混淆。测试从当前连接的服务端发起，复用已保存 provider 的 revision、来源、连接策略、有效 Key 与显式 headers；不允许为该请求替换 URL，也不接受 draft target、用户自定义 prompt 或任意生成参数。
+
+- 请求体为 `{ target: { mode: "saved", providerID, revision }, modelID }`。追加 `/chat/completions` 时保留 baseURL 前缀，发送固定短提示词，`max_tokens: 32`、`stream: false`。没有自动重试，也不会因发现、导入、保存或打开编辑器而自动发出请求。
+- 界面明确告知可能加载模型或产生费用。整体期限为 30 秒，响应上限 2 MiB；沿用地址限制、不跟随重定向及远端错误正文脱敏。取消会中断客户端请求及等待；不承诺远端已经开始的加载或生成立即停止。
+- 只有收到首个 choice 的非空文本才返回成功；空列表、空白文本和仅有 reasoning 内容均不算成功。响应仅包含结果类别和可用的 HTTP 状态码，不回传模型生成文本、reasoning、远端原始错误或其他响应字段。
+- 成功表示该地址、凭据和模型 ID 能完成本次最小文本请求，不验证 tools、image、context/input/output 限额、custom body/settings、compatibility 或 variants。固定预算下未返回可见文本的 reasoning 模型需在正常 Session 中继续验证，不自动加大预算或改写配置。
+- 修改表单、切换 provider、保存、删除凭据或关闭界面会清除旧结果并取消在途测试。取消和失败保留草稿；成功不创建 Session、不改变当前选模，也不持久化“已验证”能力标记。
+
+请求兼容性参考 [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility) 与 [LM Studio Chat Completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions)。此功能采用最小兼容请求，不替代实际任务或完整配置的推理验收。
+
+验证覆盖真实隔离 HTTP/配置/凭据存储、无 Session 副作用、路径与请求模型 ID、策略拒绝、过期 revision、严格 payload、401/404/429、重定向、响应超限、非法/无文本响应及错误脱敏。整体 30 秒超时使用 TestClock 验证，避免每轮实际等待；界面覆盖显式发起、取消、超时重试、修改后失效及原选模保留。
+
+- 后端 P0/P1/P2、配置和策略联合回归 14 项通过；本轮 3 项文本测试用例重复 10 轮，30 次全部通过。
+- 构建模式桌面/移动关联回归 9 项通过；新增文本交互用例开启 fully parallel、5 个 worker、关闭 retries，重复 10 次全部通过。
+- `bun run check` 的 35 个任务全部通过；本轮服务端、协议、Schema、实现和共享夹具的 focused lint 为 0 warning / 0 error。客户端/OpenAPI 已按脚本生成，experimental 标识符及 OpenAPI 生成一致性检查通过。
+- 全量 `typecheck:e2e` 与此前逐项对照仍为同一组 13 项已有诊断，新增用例和夹具未新增诊断。
+
+本轮只访问隔离测试端点，没有连接实际安装的 Ollama/LM Studio 或调用用户服务的推理 API。真实引擎版本兼容矩阵、高级字段编辑与工具/图像推理验收仍是后续范围。

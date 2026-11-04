@@ -3,7 +3,6 @@ export * as ConfigProviderDiscovery from "./provider-discovery.js"
 import { Effect, Option, Schema } from "effect"
 import { CustomProvider } from "@opencode/schema/custom-provider"
 import { PositiveInt } from "@opencode/schema/schema"
-import { ConfigCustomProvider } from "./custom-provider.js"
 import { ProviderDiscoveryHTTP } from "./provider-discovery-http.js"
 import { ProviderDiscoveryNative } from "./provider-discovery-native.js"
 const Inventory = Schema.Struct({
@@ -25,38 +24,15 @@ export const discover = Effect.fn("ConfigProviderDiscovery.discover")(function* 
   options: Pick<CustomProvider.DiscoveryRequest, "api" | "metadata"> = {},
 ) {
   return yield* Effect.gen(function* () {
-    const target = input.mode === "saved" ? yield* ConfigCustomProvider.discoveryTarget(input) : undefined
-    if (target?.credential && target.credential.type !== "key")
-      return yield* new ProviderDiscoveryHTTP.Error({ kind: "unsupported-auth" })
-    if (target?.modelAuth || target?.settings?.auth !== undefined)
-      return yield* new ProviderDiscoveryHTTP.Error({ kind: "unsupported-auth" })
-    const baseURL = ConfigCustomProvider.safeURL(input.mode === "draft" ? input.baseURL : target?.baseURL)
-    if (!baseURL) return yield* new ProviderDiscoveryHTTP.Error({ kind: "invalid-url" })
-    const root = new URL(baseURL)
-    yield* ProviderDiscoveryHTTP.validate(root)
-    const key =
-      input.mode === "draft"
-        ? input.key
-        : target?.credential?.type === "key"
-          ? target.credential.key
-          : target?.settings?.apiKey
-    const headers = yield* Effect.try({
-      try: () => {
-        const headers = new Headers({ accept: "application/json" })
-        if (typeof key === "string" && key) headers.set("authorization", `Bearer ${key}`)
-        Object.entries(target?.headers ?? {}).forEach(([key, value]) => headers.set(key, value))
-        return headers
-      },
-      // Header validation errors can contain the secret value.
-      catch: () => new ProviderDiscoveryHTTP.Error({ kind: "unsupported-auth" }),
-    })
+    const target = yield* ProviderDiscoveryHTTP.target(input)
+    const root = target.url
     const api = options.api ?? "openai"
     if (api !== "openai") root.pathname = root.pathname.replace(/\/+$/, "").replace(/\/v1$/, "")
     const budget = { bytes: 0 }
     const request = (suffix: string, model?: string) => {
       const url = new URL(root)
       url.pathname = `${root.pathname.replace(/\/+$/, "")}${suffix}`
-      const requestHeaders = new Headers(headers)
+      const requestHeaders = new Headers(target.headers)
       if (model !== undefined) requestHeaders.set("content-type", "application/json")
       return ProviderDiscoveryHTTP.request(url, requestHeaders, budget, model === undefined ? undefined : { model })
     }

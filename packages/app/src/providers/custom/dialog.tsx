@@ -60,6 +60,10 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     discovering: boolean
     discoveryError: string
     api: NonNullable<ExperimentalConfigProvidersDiscoverInput["api"]>
+    testing: boolean
+    testToken: string
+    testResult: string
+    testError: string
   }>({
     view: "list",
     id: "",
@@ -78,9 +82,80 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     discovering: false,
     discoveryError: "",
     api: "openai",
+    testing: false,
+    testToken: "",
+    testResult: "",
+    testError: "",
   })
 
   let discovery: AbortController | undefined
+  let test: AbortController | undefined
+
+  const clearTest = () => {
+    test?.abort()
+    test = undefined
+    setStore({ testing: false, testToken: "", testResult: "", testError: "" })
+  }
+
+  const target = () =>
+    store.original && store.baseURL === store.original.baseURL && !store.key
+      ? { mode: "saved" as const, providerID: store.id, revision: store.listing!.revision }
+      : { mode: "draft" as const, baseURL: store.baseURL.trim(), key: store.key || undefined }
+
+  const canTest = (item: ReturnType<typeof row>) => {
+    const original = store.original?.models[item.id]
+
+    return (
+      !!original &&
+      store.original?.baseURL === store.baseURL &&
+      !store.key &&
+      (original.modelID || item.id) === (item.modelID.trim() || item.id.trim())
+    )
+  }
+
+  const testModel = async (item: ReturnType<typeof row>) => {
+    if (!canTest(item) || !store.listing) return
+    clearTest()
+    const controller = new AbortController()
+    test = controller
+    setStore({ testing: true, testToken: item.token })
+    await sdk.api.experimental.config.providers
+      .test(
+        {
+          target: { mode: "saved", providerID: store.id, revision: store.listing.revision },
+          modelID: item.modelID.trim() || item.id.trim(),
+          location: location(),
+        },
+        { signal: controller.signal },
+      )
+      .then((result) => {
+        if (test !== controller || controller.signal.aborted) return
+
+        if (result.status === "success") {
+          setStore("testResult", language.t("customProvider.testSuccess"))
+
+          return
+        }
+
+        const message = language.t(`customProvider.test.${result.kind}`)
+        setStore(
+          "testError",
+          result.httpStatus
+            ? `${message} ${language.t("customProvider.discoveryStatus", { status: result.httpStatus })}`
+            : message,
+        )
+      })
+      .catch((error) => {
+        if (test === controller && !controller.signal.aborted)
+          setStore("testError", formatServerError(error, language.t))
+      })
+      .finally(() => {
+        if (test === controller) {
+          test = undefined
+          setStore("testing", false)
+        }
+      })
+  }
 
   const cancelDiscovery = () => {
     discovery?.abort()
@@ -103,6 +178,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     })
 
   const select = (entry?: CustomProviderEntry) => {
+    clearTest()
     clearDiscovery()
     setStore({
       original: entry,
@@ -130,6 +206,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       .catch((error) => setStore("error", formatServerError(error, language.t)))
   })
   onCleanup(() => {
+    clearTest()
     cancelDiscovery()
     setStore("key", "")
   })
@@ -147,15 +224,10 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     discovery = controller
     setStore("discovering", true)
 
-    const input =
-      store.original && store.baseURL === store.original.baseURL && !store.key
-        ? { mode: "saved" as const, providerID: store.id, revision: store.listing!.revision }
-        : { mode: "draft" as const, baseURL: store.baseURL.trim(), key: store.key || undefined }
-
     await sdk.api.experimental.config.providers
       .discover(
         {
-          target: input,
+          target: target(),
           location: location(),
           api: store.api === "openai" ? undefined : store.api,
           metadata: metadata ? selected : undefined,
@@ -207,6 +279,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
   }
 
   const importModels = () => {
+    clearTest()
     const rows = store.rows.map((item) => ({ ...item }))
     store.candidates
       .filter((item) => store.selected.includes(item.id))
@@ -267,6 +340,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     event.preventDefault()
 
     if (store.busy || !store.listing) return
+    clearTest()
     cancelDiscovery()
     const keys = store.rows.map((item) => item.id.trim())
 
@@ -361,6 +435,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
 
   const removeCredential = async (id: string) => {
     if (store.busy) return
+    clearTest()
     setStore("busy", true)
     await sdk.api.credential
       .remove({ credentialID: id })
@@ -396,7 +471,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
           <Show
             when={store.view === "list"}
             fallback={
-              <form onSubmit={save} class="flex flex-col gap-4">
+              <form onSubmit={save} onInput={clearTest} onChange={clearTest} class="flex flex-col gap-4">
                 <fieldset disabled={store.busy || !!store.original?.reason} class="flex flex-col gap-4">
                   <Show when={store.original?.reason}>
                     <p>{language.t("customProvider.readonly", { reason: store.original?.reason ?? "" })}</p>
@@ -585,6 +660,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                     </Show>
                   </div>
                   <p>{language.t("customProvider.defaults")}</p>
+                  <p>{language.t("customProvider.testHelp")}</p>
                   <For each={store.rows}>
                     {(item, index) => (
                       <fieldset class="flex flex-col gap-3 rounded-md border border-v2-border-border-base p-3">
@@ -639,20 +715,49 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                         </Show>
                         <Button
                           type="button"
+                          variant="outline"
+                          disabled={store.testing || !canTest(item)}
+                          onClick={() => void testModel(item)}
+                        >
+                          {language.t("customProvider.testText")}
+                        </Button>
+                        <Show when={store.testToken === item.token}>
+                          <Show when={store.testing}>
+                            <Button type="button" variant="ghost" onClick={clearTest}>
+                              {language.t("customProvider.cancelTest")}
+                            </Button>
+                          </Show>
+                          <Show when={store.testResult}>
+                            <p role="status">{store.testResult}</p>
+                          </Show>
+                          <Show when={store.testError}>
+                            <p role="alert">{store.testError}</p>
+                          </Show>
+                        </Show>
+                        <Button
+                          type="button"
                           variant="ghost"
-                          onClick={() =>
+                          onClick={() => {
+                            clearTest()
                             setStore(
                               "rows",
                               store.rows.filter((entry) => entry.token !== item.token),
                             )
-                          }
+                          }}
                         >
                           {language.t("customProvider.removeModel")}
                         </Button>
                       </fieldset>
                     )}
                   </For>
-                  <Button type="button" variant="outline" onClick={() => setStore("rows", [...store.rows, row()])}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      clearTest()
+                      setStore("rows", [...store.rows, row()])
+                    }}
+                  >
                     {language.t("customProvider.addModel")}
                   </Button>
                   <p>
@@ -710,6 +815,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                   variant="ghost"
                   disabled={store.busy}
                   onClick={() => {
+                    clearTest()
                     setStore({ view: "list", key: "", result: "", error: "" })
                     void load()
                   }}

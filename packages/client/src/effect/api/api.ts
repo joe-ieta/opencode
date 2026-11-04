@@ -2806,6 +2806,9 @@ export interface ConfigApi<E = never> {
 
     /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
     readonly discover: ExperimentalConfigProvidersDiscoverOperation<E>
+
+    /** @deprecated Use `client.experimental.config.providers.test`. Removed in the next minor. */
+    readonly test: ExperimentalConfigProvidersTestOperation<E>
   }
 }
 
@@ -2847,12 +2850,23 @@ export type ExperimentalConfigProvidersDiscoverOperation<E = never> = (
   input: ExperimentalConfigProvidersDiscoverInput,
 ) => Effect.Effect<ExperimentalConfigProvidersDiscoverOutput, E>
 
+export type ExperimentalConfigProvidersTestInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target: { readonly mode: "saved"; readonly providerID: Provider.ID; readonly revision: string }
+  readonly modelID: string
+}
+export type ExperimentalConfigProvidersTestOutput = CustomProvider.TextTest
+export type ExperimentalConfigProvidersTestOperation<E = never> = (
+  input: ExperimentalConfigProvidersTestInput,
+) => Effect.Effect<ExperimentalConfigProvidersTestOutput, E>
+
 export interface ExperimentalConfigApi<E = never> {
   readonly update: ExperimentalConfigUpdateOperation<E>
   readonly providers: {
     readonly list: ExperimentalConfigProvidersListOperation<E>
     readonly update: ExperimentalConfigProvidersUpdateOperation<E>
     readonly discover: ExperimentalConfigProvidersDiscoverOperation<E>
+    readonly test: ExperimentalConfigProvidersTestOperation<E>
   }
 }
 
@@ -3116,6 +3130,15 @@ export type ConfigProvidersDiscoverOutput = ExperimentalConfigProvidersDiscoverO
 
 /** @deprecated Use `ExperimentalConfigProvidersDiscoverOperation`. Removed in the next minor. */
 export type ConfigProvidersDiscoverOperation<E = never> = ExperimentalConfigProvidersDiscoverOperation<E>
+
+/** @deprecated Use `ExperimentalConfigProvidersTestInput`. Removed in the next minor. */
+export type ConfigProvidersTestInput = ExperimentalConfigProvidersTestInput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestOutput`. Removed in the next minor. */
+export type ConfigProvidersTestOutput = ExperimentalConfigProvidersTestOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestOperation`. Removed in the next minor. */
+export type ConfigProvidersTestOperation<E = never> = ExperimentalConfigProvidersTestOperation<E>
 
 /** @deprecated Use `ExperimentalGenerateApi`. Removed in the next minor. */
 export type GenerateApi<E = never> = ExperimentalGenerateApi<E>

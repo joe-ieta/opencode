@@ -76,8 +76,10 @@ export const Saved = Schema.Struct({
 }).annotate({ identifier: "CustomProvider.Saved" })
 export interface Saved extends Schema.Schema.Type<typeof Saved> {}
 
+const SavedTarget = Schema.Struct({ mode: Schema.Literal("saved"), providerID: Provider.ID, revision: Text })
+
 export const DiscoveryInput = Schema.Union([
-  Schema.Struct({ mode: Schema.Literal("saved"), providerID: Provider.ID, revision: Text }),
+  SavedTarget,
   Schema.Struct({ mode: Schema.Literal("draft"), baseURL: Text, key: Text.pipe(optional) }),
 ]).annotate({ identifier: "CustomProvider.DiscoveryInput" })
 export type DiscoveryInput = typeof DiscoveryInput.Type
@@ -134,3 +136,19 @@ export const Discovery = Schema.Union([
   Schema.Struct({ status: Schema.Literal("error"), kind: DiscoveryKind, httpStatus: Schema.Int.pipe(optional) }),
 ]).annotate({ identifier: "CustomProvider.Discovery" })
 export type Discovery = typeof Discovery.Type
+
+export const TextTestRequest = Schema.Struct({
+  target: SavedTarget,
+  modelID: Text.check(Schema.isMaxLength(1024)),
+}).annotate({ identifier: "CustomProvider.TextTestRequest" })
+export interface TextTestRequest extends Schema.Schema.Type<typeof TextTestRequest> {}
+
+export const TextTest = Schema.Union([
+  Schema.Struct({ status: Schema.Literal("success") }),
+  Schema.Struct({
+    status: Schema.Literal("error"),
+    kind: Schema.Union([DiscoveryKind, Schema.Literal("no-text")]),
+    httpStatus: Schema.Int.pipe(optional),
+  }),
+]).annotate({ identifier: "CustomProvider.TextTest" })
+export type TextTest = typeof TextTest.Type

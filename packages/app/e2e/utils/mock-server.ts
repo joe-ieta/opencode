@@ -60,6 +60,7 @@ export interface MockServerConfig {
   // Terminal shells the settings offer (`/api/config/shell`).
   shells?: unknown[]
   customProviders?: Resolvable<CustomProvider.Listing>
+  onCustomProviderTest?: (input: CustomProvider.TextTestRequest) => CustomProvider.TextTest
   onCustomProviderDiscover?: (
     target: CustomProvider.DiscoveryInput,
     options?: Pick<CustomProvider.DiscoveryRequest, "api" | "metadata">,
@@ -883,6 +884,10 @@ function mockHandlers(
           config.onCustomProviderUpdate
             ? Effect.sync(() => config.onCustomProviderUpdate!(ctx.params.providerID, ctx.payload))
             : unsupported("save custom providers", "onCustomProviderUpdate"),
+        customProviderTest: (ctx) =>
+          config.onCustomProviderTest
+            ? Effect.sync(() => config.onCustomProviderTest!(ctx.payload))
+            : unsupported("test provider text response", "onCustomProviderTest"),
         customProviderDiscover: (ctx) =>
           config.onCustomProviderDiscover
             ? Effect.sync(() =>
