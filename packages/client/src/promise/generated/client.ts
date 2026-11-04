@@ -321,6 +321,12 @@ import type {
   ConfigShellsOutput,
   ExperimentalConfigUpdateInput,
   ExperimentalConfigUpdateOutput,
+  ExperimentalConfigProvidersListInput,
+  ExperimentalConfigProvidersListOutput,
+  ExperimentalConfigProvidersUpdateInput,
+  ExperimentalConfigProvidersUpdateOutput,
+  ExperimentalConfigProvidersDiscoverInput,
+  ExperimentalConfigProvidersDiscoverOutput,
 } from "./types.js"
 import { ClientError } from "./client-error.js"
 
@@ -1749,6 +1755,51 @@ export function make(options: ClientOptions) {
             },
             requestOptions,
           ),
+        providers: {
+          list: (input?: ExperimentalConfigProvidersListInput, requestOptions?: RequestOptions) =>
+            request<ExperimentalConfigProvidersListOutput>(
+              {
+                method: "GET",
+                path: `/api/experimental/config/providers`,
+                query: { location: input?.["location"] },
+                successStatus: 200,
+                declaredStatuses: [400, 401, 404, 500],
+                empty: false,
+              },
+              requestOptions,
+            ),
+          update: (input: ExperimentalConfigProvidersUpdateInput, requestOptions?: RequestOptions) =>
+            request<ExperimentalConfigProvidersUpdateOutput>(
+              {
+                method: "PATCH",
+                path: `/api/experimental/config/providers/${encodeURIComponent(input.providerID)}`,
+                query: { location: input["location"] },
+                body: {
+                  mode: input["mode"],
+                  revision: input["revision"],
+                  patch: input["patch"],
+                  credential: input["credential"],
+                },
+                successStatus: 200,
+                declaredStatuses: [400, 401, 404, 409, 500],
+                empty: false,
+              },
+              requestOptions,
+            ),
+          discover: (input: ExperimentalConfigProvidersDiscoverInput, requestOptions?: RequestOptions) =>
+            request<ExperimentalConfigProvidersDiscoverOutput>(
+              {
+                method: "POST",
+                path: `/api/experimental/config/providers/discover`,
+                query: { location: input["location"] },
+                body: { target: input["target"], api: input["api"], metadata: input["metadata"] },
+                successStatus: 200,
+                declaredStatuses: [400, 401, 404, 409, 500],
+                empty: false,
+              },
+              requestOptions,
+            ),
+        },
       },
     },
     message: {
@@ -2793,6 +2844,15 @@ export function make(options: ClientOptions) {
       ...client.config,
       /** @deprecated Use `client.experimental.config.update`. Removed in the next minor. */
       update: client.experimental.config.update,
+      /** @deprecated Use `client.experimental.config.providers`. Removed in the next minor. */
+      providers: {
+        /** @deprecated Use `client.experimental.config.providers.list`. Removed in the next minor. */
+        list: client.experimental.config.providers.list,
+        /** @deprecated Use `client.experimental.config.providers.update`. Removed in the next minor. */
+        update: client.experimental.config.providers.update,
+        /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
+        discover: client.experimental.config.providers.discover,
+      },
     },
   }
 }

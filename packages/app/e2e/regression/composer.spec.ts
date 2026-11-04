@@ -1,3 +1,5 @@
+import type { CustomProvider } from "@opencode/schema/custom-provider"
+import { customProviderFixture } from "../utils/custom-provider"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 import { NO_PROVIDER, SERVER, T0, expectPath, holdRoute, provider, sessionHref } from "../utils/app"
 import { mockWorkspace, openDraft, openSession } from "../utils/workspace"
@@ -855,7 +857,9 @@ test("keeps a line added at the end of a scrolling prompt clear of the bottom fa
         const viewport = element.closest('[data-component="composer-scroll"]')!
         const range = document.createRange()
         range.selectNodeContents(element)
-        const line = Array.from(range.getClientRects()).reduce((last, rect) => (rect.bottom > last.bottom ? rect : last))
+        const line = Array.from(range.getClientRects()).reduce((last, rect) =>
+          rect.bottom > last.bottom ? rect : last,
+        )
         const fade = parseFloat(getComputedStyle(viewport).getPropertyValue("--composer-fade-bottom"))
 
         return Math.max(0, Math.round(line.bottom - (viewport.getBoundingClientRect().bottom - fade)))
@@ -1376,4 +1380,396 @@ test("pastes into the composer from the session view but not into other inputs",
   await expect(page.locator("#elsewhere")).toHaveValue("pasted from the timeline")
   await expect(page.locator("#elsewhere")).toBeFocused()
   await expect.poll(() => editor.innerText()).toBe("pasted from the timeline")
+})
+
+for (const paid of [true, false]) {
+  test(`custom providers save configuration and retry a failed credential from the ${paid ? "paid" : "free"} picker`, async ({
+    page,
+  }) => {
+    const fixture = customProviderFixture(paid)
+    await openSession(page, { name: `CustomProviders${paid ? "Paid" : "Free"}`, ...fixture.config })
+    const trigger = page.locator('[data-action="composer-model"]')
+    await expect(trigger).toHaveText("Existing Model")
+    await trigger.click()
+    const picker = page.getByRole("dialog", { name: "Select model", exact: true })
+    await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
+    const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+    await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+    await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+    await dialog.getByRole("textbox", { name: "Provider display name", exact: true }).fill("Private gateway")
+    await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:8080/v1")
+    await dialog.getByLabel("API key", { exact: true }).fill("fixture-key")
+    await dialog.getByRole("textbox", { name: "Model key", exact: true }).fill("alias")
+    await dialog
+      .getByRole("textbox", { name: "Request model ID (defaults to model key)", exact: true })
+      .fill("remote-model")
+    await dialog.getByRole("textbox", { name: "Context limit", exact: true }).fill("16000")
+    await dialog.getByRole("textbox", { name: "Input limit", exact: true }).fill("12000")
+    await dialog.getByRole("textbox", { name: "Output limit", exact: true }).fill("4000")
+    await dialog.getByRole("combobox", { name: "Tool support", exact: true }).selectOption("true")
+    await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+    await expect(dialog.getByRole("status")).toHaveText(
+      "Configuration saved, but the key was not saved. Retry to save the credential.",
+    )
+    await expect(dialog.getByLabel("API key", { exact: true })).toHaveValue("fixture-key")
+    await expect(dialog.getByRole("textbox", { name: "Provider ID", exact: true })).toHaveAttribute("readonly")
+    expect(fixture.requests[0]).toMatchObject({
+      id: "private-gateway",
+      body: {
+        mode: "create",
+        revision: "revision-0",
+        patch: {
+          baseURL: "http://localhost:8080/v1",
+          models: { alias: { modelID: "remote-model", context: 16000, input: 12000, output: 4000, tools: true } },
+        },
+        credential: { key: "fixture-key" },
+      },
+    })
+    await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+    await expect(dialog.getByRole("status")).toHaveText("Provider saved and models loaded.")
+    await expect(dialog.getByLabel("API key", { exact: true })).toHaveValue("")
+    expect(fixture.requests[1]).toMatchObject({
+      body: {
+        mode: "edit",
+        revision: "revision-1",
+        credential: { id: fixture.requests[0]!.body.credential!.id, key: "fixture-key" },
+      },
+    })
+    await dialog.getByRole("button", { name: "Close", exact: true }).click()
+    await expect(trigger).toHaveText("Existing Model")
+    await trigger.click()
+    await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
+    await dialog.getByRole("button", { name: "Edit provider", exact: true }).click()
+    await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
+    await dialog.getByRole("textbox", { name: "Context limit", exact: true }).fill("32000")
+    await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+    await expect(dialog.getByRole("status")).toHaveText("Provider saved and models loaded.")
+    expect(fixture.requests[2]?.body.patch).toEqual({ models: { alias: { context: 32000 } } })
+    expect(fixture.requests[2]?.body.credential).toBeUndefined()
+    await dialog.getByRole("button", { name: "Use first model", exact: true }).click()
+    await expect(dialog).toBeHidden()
+    await expect(trigger).toHaveText("Private gateway / Alias")
+  })
+}
+
+test("custom provider discovery imports only selected models and preserves hand-written fields", async ({ page }) => {
+  const fixture = customProviderFixture()
+  const discoveries: Parameters<NonNullable<MockServerConfig["onCustomProviderDiscover"]>>[0][] = []
+  await openSession(page, {
+    name: "CustomProviderImport",
+    ...fixture.config,
+    onCustomProviderDiscover: (target): ReturnType<NonNullable<MockServerConfig["onCustomProviderDiscover"]>> => {
+      discoveries.push(target)
+      return {
+        status: "success",
+        warnings: [],
+        models: [
+          {
+            id: "org/model.v1",
+            name: "Server name",
+            context: 32000,
+            input: 8000,
+            output: 2000,
+            sources: { context: "/models.max_model_len" },
+            warnings: ["unverified"],
+          },
+          { id: "not-selected", sources: {}, warnings: ["unverified"] },
+        ],
+      }
+    },
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:8080/v1")
+  await dialog.getByLabel("API key", { exact: true }).fill("draft-key")
+  await dialog.getByRole("textbox", { name: "Model display name", exact: true }).fill("Hand label")
+  await dialog.getByRole("textbox", { name: "Context limit", exact: true }).fill("16000")
+  await dialog.getByRole("combobox", { name: "Tool support", exact: true }).selectOption("false")
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  const candidate = dialog.getByRole("checkbox", { name: "org/model.v1", exact: true })
+  await expect(candidate).not.toBeChecked()
+  await expect(dialog.getByRole("checkbox", { name: "not-selected", exact: true })).not.toBeChecked()
+  await expect(dialog.getByRole("button", { name: "Import selected models", exact: true })).toBeDisabled()
+  expect(discoveries).toEqual([{ mode: "draft", baseURL: "http://localhost:8080/v1", key: "draft-key" }])
+  await candidate.check()
+  await dialog.getByRole("button", { name: "Import selected models", exact: true }).click()
+  await expect(dialog.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("org/model.v1")
+  await expect(dialog.getByRole("textbox", { name: "Model display name", exact: true })).toHaveValue("Hand label")
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
+  await expect(dialog.getByRole("textbox", { name: "Input limit", exact: true })).toHaveValue("8000")
+  await expect(dialog.getByRole("textbox", { name: "Output limit", exact: true })).toHaveValue("2000")
+  await expect(dialog.getByRole("combobox", { name: "Tool support", exact: true })).toHaveValue("false")
+  await expect(dialog.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("inherit")
+  expect(fixture.requests).toHaveLength(0)
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toHaveText(
+    "Configuration saved, but the key was not saved. Retry to save the credential.",
+  )
+  expect(fixture.requests[0]?.body.patch.models).toEqual({
+    "org/model.v1": { name: "Hand label", context: 16000, input: 8000, output: 2000, tools: false },
+  })
+})
+
+test("custom provider discovery confines saved keys, cancels requests and leaves manual editing available", async ({
+  page,
+}) => {
+  const fixture = customProviderFixture()
+  const discoveries: Parameters<NonNullable<MockServerConfig["onCustomProviderDiscover"]>>[0][] = []
+  await openSession(page, {
+    name: "CustomProviderDiscoveryAuth",
+    ...fixture.config,
+    customProviders: { revision: "saved-revision", target: "C:/fixture/opencode.jsonc", providers: [fixture.entry] },
+    onCustomProviderDiscover: (target): ReturnType<NonNullable<MockServerConfig["onCustomProviderDiscover"]>> => {
+      discoveries.push(target)
+      if (target.mode === "draft") return { status: "error", kind: "unsupported" }
+      return {
+        status: "success",
+        warnings: [],
+        models: [
+          {
+            id: "remote-model",
+            context: 64000,
+            sources: { context: "/models.max_model_len" },
+            warnings: ["unverified"],
+          },
+        ],
+      }
+    },
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Edit provider", exact: true }).click()
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  await expect(dialog.getByRole("checkbox", { name: "remote-model", exact: true })).not.toBeChecked()
+  expect(discoveries).toEqual([{ mode: "saved", providerID: "private-gateway", revision: "saved-revision" }])
+  const held = await holdRoute(page, (url) => url.pathname === "/api/experimental/config/providers/discover", {
+    method: "POST",
+  })
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  await held.arrived
+  await dialog.getByRole("button", { name: "Cancel model discovery", exact: true }).click()
+  await expect(dialog.getByRole("button", { name: "Fetch models", exact: true })).toBeEnabled()
+  held.release()
+  await dialog.getByLabel("API key", { exact: true }).fill("old-draft-key")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:9090/other/v1")
+  await expect(dialog.getByLabel("API key", { exact: true })).toHaveValue("")
+  await expect(dialog.getByRole("checkbox", { name: "remote-model", exact: true })).toHaveCount(0)
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "This server does not offer model discovery. Enter the models manually.",
+  )
+  expect(discoveries.find((target) => target.mode === "draft")).toEqual({
+    mode: "draft",
+    baseURL: "http://localhost:9090/other/v1",
+  })
+  await expect(dialog.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("alias")
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
+  await expect(dialog.getByRole("button", { name: "Save provider", exact: true })).toBeEnabled()
+})
+
+test("Ollama native metadata is selected, cancellable and imported without replacing manual values", async ({
+  page,
+}) => {
+  const fixture = customProviderFixture()
+  const calls: CustomProvider.DiscoveryRequest[] = []
+  const metadataState = { ready: false }
+  await openSession(page, {
+    name: "OllamaNativeMetadata",
+    ...fixture.config,
+    onCustomProviderDiscover: (target, options): CustomProvider.Discovery => {
+      calls.push({ target, ...options })
+      if (options?.metadata && !metadataState.ready) return { status: "error", kind: "timeout" }
+      if (options?.metadata)
+        return {
+          status: "success",
+          warnings: [],
+          models: [
+            {
+              id: "native:latest",
+              name: "Server label",
+              context: 4096,
+              maxContext: 131072,
+              loaded: true,
+              tools: true,
+              image: true,
+              metadataPending: false,
+              sources: { context: "/api/ps.models.context_length" },
+              warnings: ["unverified", "capabilities-declared"],
+            },
+          ],
+        }
+      return {
+        status: "success",
+        warnings: [],
+        models: [
+          {
+            id: "native:latest",
+            metadataPending: true,
+            sources: { id: "/api/tags.models.model" },
+            warnings: ["unverified"],
+          },
+          {
+            id: "not-inspected",
+            metadataPending: true,
+            sources: { id: "/api/tags.models.model" },
+            warnings: ["unverified"],
+          },
+        ],
+      }
+    },
+    onCustomProviderUpdate: (id, body) => ({
+      ...fixture.config.onCustomProviderUpdate(id, body),
+      credential: "unchanged",
+      catalog: "pending",
+    }),
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:11434/v1")
+  await dialog.getByRole("combobox", { name: "Discovery API", exact: true }).selectOption("ollama")
+  await dialog.getByRole("textbox", { name: "Model display name", exact: true }).fill("Hand label")
+  await dialog.getByRole("textbox", { name: "Context limit", exact: true }).fill("2048")
+  await dialog.getByRole("combobox", { name: "Tool support", exact: true }).selectOption("false")
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  const candidate = dialog.getByRole("checkbox", { name: "native:latest", exact: true })
+  await expect(candidate).not.toBeChecked()
+  const read = dialog.getByRole("button", { name: "Read selected metadata", exact: true })
+  await expect(read).toBeDisabled()
+  expect(calls[0]).toMatchObject({ target: { mode: "draft", baseURL: "http://localhost:11434/v1" }, api: "ollama" })
+  expect(calls[0]?.metadata).toBeUndefined()
+  await candidate.check()
+  const held = await holdRoute(page, (url) => url.pathname === "/api/experimental/config/providers/discover", {
+    method: "POST",
+  })
+  await read.click()
+  await held.arrived
+  await dialog.getByRole("button", { name: "Cancel model discovery", exact: true }).click()
+  await expect(candidate).toBeChecked()
+  await expect(read).toBeEnabled()
+  held.release()
+  await read.click()
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Model discovery timed out. You can still enter the models manually.",
+  )
+  await expect(candidate).toBeChecked()
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("2048")
+  metadataState.ready = true
+  await read.click()
+  await expect(
+    dialog.getByText(
+      "Model maximum: 131072 tokens. This is not the current loaded context and is not imported as a context limit.",
+      { exact: true },
+    ),
+  ).toBeVisible()
+  expect(calls.at(-1)?.metadata).toEqual(["native:latest"])
+  await expect(dialog.getByRole("checkbox", { name: "not-inspected", exact: true })).not.toBeChecked()
+  await dialog.getByRole("button", { name: "Import selected models", exact: true }).click()
+  await expect(dialog.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("native:latest")
+  await expect(dialog.getByRole("textbox", { name: "Model display name", exact: true })).toHaveValue("Hand label")
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("2048")
+  await expect(dialog.getByRole("combobox", { name: "Tool support", exact: true })).toHaveValue("false")
+  await expect(dialog.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("true")
+  await expect(dialog.getByRole("textbox", { name: "Input limit", exact: true })).toHaveValue("")
+  await expect(dialog.getByRole("textbox", { name: "Output limit", exact: true })).toHaveValue("")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toHaveText(
+    "Provider saved. Model refresh is still pending; reopen the model picker to check availability.",
+  )
+  expect(fixture.requests[0]?.body.patch.models).toEqual({
+    "native:latest": { name: "Hand label", context: 2048, tools: false, image: true },
+  })
+  expect(fixture.requests[0]?.body.patch).not.toHaveProperty("api")
+  expect(fixture.requests[0]?.body.patch.models?.["native:latest"]).not.toHaveProperty("maxContext")
+  await dialog.getByRole("button", { name: "Back to providers", exact: true }).click()
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await expect(dialog.getByRole("combobox", { name: "Discovery API", exact: true })).toHaveValue("openai")
+})
+
+test("LM Studio native import uses instance context and never pins an unloaded model maximum", async ({ page }) => {
+  const fixture = customProviderFixture()
+  await openSession(page, {
+    name: "LMStudioNativeMetadata",
+    ...fixture.config,
+    onCustomProviderDiscover: (_target, options): CustomProvider.Discovery => {
+      expect(options?.api).toBe("lmstudio")
+      expect(options?.metadata).toBeUndefined()
+      return {
+        status: "success",
+        warnings: [],
+        models: [
+          {
+            id: "loaded-alias",
+            name: "Loaded model",
+            context: 4096,
+            maxContext: 32768,
+            loaded: true,
+            tools: true,
+            image: false,
+            sources: { id: "/api/v1/models.loaded_instances.id" },
+            warnings: ["unverified", "capabilities-declared"],
+          },
+          {
+            id: "org/unloaded",
+            maxContext: 131072,
+            loaded: false,
+            sources: { id: "/api/v1/models.key" },
+            warnings: ["unverified", "unloaded"],
+          },
+        ],
+      }
+    },
+    onCustomProviderUpdate: (id, body) => ({
+      ...fixture.config.onCustomProviderUpdate(id, body),
+      credential: "unchanged",
+      catalog: "pending",
+    }),
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:1234/v1")
+  await dialog.getByRole("combobox", { name: "Discovery API", exact: true }).selectOption("lmstudio")
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  await dialog.getByRole("checkbox", { name: "loaded-alias", exact: true }).check()
+  await dialog.getByRole("checkbox", { name: "org/unloaded", exact: true }).check()
+  await expect(dialog.getByRole("button", { name: "Read selected metadata", exact: true })).toHaveCount(0)
+  await dialog.getByRole("button", { name: "Import selected models", exact: true }).click()
+  const loaded = dialog.getByRole("group", { name: "Model 1", exact: true })
+  const unloaded = dialog.getByRole("group", { name: "Model 2", exact: true })
+  await expect(loaded.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("loaded-alias")
+  await expect(loaded.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("4096")
+  await expect(loaded.getByRole("combobox", { name: "Tool support", exact: true })).toHaveValue("true")
+  await expect(loaded.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("false")
+  await expect(unloaded.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("")
+  await expect(unloaded.getByRole("combobox", { name: "Tool support", exact: true })).toHaveValue("inherit")
+  await expect(unloaded.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("inherit")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toHaveText(
+    "Provider saved. Model refresh is still pending; reopen the model picker to check availability.",
+  )
+  expect(fixture.requests[0]?.body.patch.models).toEqual({
+    "loaded-alias": { name: "Loaded model", context: 4096, tools: true, image: false },
+    "org/unloaded": {},
+  })
 })

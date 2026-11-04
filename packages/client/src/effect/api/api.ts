@@ -45,6 +45,7 @@ import type { Vcs } from "@opencode/schema/vcs"
 import type { WebSearch } from "@opencode/schema/websearch"
 import type { UsageLimits } from "@opencode/schema/usage-limits"
 import type { Config } from "@opencode/schema/config"
+import type { CustomProvider } from "@opencode/schema/custom-provider"
 
 export type ServerInfoOutput = {
   readonly version: string
@@ -2794,6 +2795,18 @@ export interface ConfigApi<E = never> {
 
   /** @deprecated Use `client.experimental.config.update`. Removed in the next minor. */
   readonly update: ExperimentalConfigUpdateOperation<E>
+
+  /** @deprecated Use `client.experimental.config.providers`. Removed in the next minor. */
+  readonly providers: {
+    /** @deprecated Use `client.experimental.config.providers.list`. Removed in the next minor. */
+    readonly list: ExperimentalConfigProvidersListOperation<E>
+
+    /** @deprecated Use `client.experimental.config.providers.update`. Removed in the next minor. */
+    readonly update: ExperimentalConfigProvidersUpdateOperation<E>
+
+    /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
+    readonly discover: ExperimentalConfigProvidersDiscoverOperation<E>
+  }
 }
 
 export type ExperimentalConfigUpdateInput = { readonly shell: string | null }
@@ -2802,8 +2815,45 @@ export type ExperimentalConfigUpdateOperation<E = never> = (
   input: ExperimentalConfigUpdateInput,
 ) => Effect.Effect<ExperimentalConfigUpdateOutput, E>
 
+export type ExperimentalConfigProvidersListInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+export type ExperimentalConfigProvidersListOutput = CustomProvider.Listing
+export type ExperimentalConfigProvidersListOperation<E = never> = (
+  input?: ExperimentalConfigProvidersListInput,
+) => Effect.Effect<ExperimentalConfigProvidersListOutput, E>
+
+export type ExperimentalConfigProvidersUpdateInput = {
+  readonly providerID: Provider.ID
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly mode: "create" | "edit"
+  readonly revision: string
+  readonly patch: CustomProvider.Patch
+  readonly credential?: { readonly id: Credential.ID; readonly key: string } | undefined
+}
+export type ExperimentalConfigProvidersUpdateOutput = CustomProvider.Saved
+export type ExperimentalConfigProvidersUpdateOperation<E = never> = (
+  input: ExperimentalConfigProvidersUpdateInput,
+) => Effect.Effect<ExperimentalConfigProvidersUpdateOutput, E>
+
+export type ExperimentalConfigProvidersDiscoverInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target: CustomProvider.DiscoveryInput
+  readonly api?: "openai" | "ollama" | "lmstudio" | undefined
+  readonly metadata?: ReadonlyArray<string> | undefined
+}
+export type ExperimentalConfigProvidersDiscoverOutput = CustomProvider.Discovery
+export type ExperimentalConfigProvidersDiscoverOperation<E = never> = (
+  input: ExperimentalConfigProvidersDiscoverInput,
+) => Effect.Effect<ExperimentalConfigProvidersDiscoverOutput, E>
+
 export interface ExperimentalConfigApi<E = never> {
   readonly update: ExperimentalConfigUpdateOperation<E>
+  readonly providers: {
+    readonly list: ExperimentalConfigProvidersListOperation<E>
+    readonly update: ExperimentalConfigProvidersUpdateOperation<E>
+    readonly discover: ExperimentalConfigProvidersDiscoverOperation<E>
+  }
 }
 
 /** @deprecated Use `ExperimentalSessionStatsInput`. Removed in the next minor. */
@@ -3039,6 +3089,33 @@ export type ConfigUpdateOutput = ExperimentalConfigUpdateOutput
 
 /** @deprecated Use `ExperimentalConfigUpdateOperation`. Removed in the next minor. */
 export type ConfigUpdateOperation<E = never> = ExperimentalConfigUpdateOperation<E>
+
+/** @deprecated Use `ExperimentalConfigProvidersListInput`. Removed in the next minor. */
+export type ConfigProvidersListInput = ExperimentalConfigProvidersListInput
+
+/** @deprecated Use `ExperimentalConfigProvidersListOutput`. Removed in the next minor. */
+export type ConfigProvidersListOutput = ExperimentalConfigProvidersListOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersListOperation`. Removed in the next minor. */
+export type ConfigProvidersListOperation<E = never> = ExperimentalConfigProvidersListOperation<E>
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateInput`. Removed in the next minor. */
+export type ConfigProvidersUpdateInput = ExperimentalConfigProvidersUpdateInput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateOutput`. Removed in the next minor. */
+export type ConfigProvidersUpdateOutput = ExperimentalConfigProvidersUpdateOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateOperation`. Removed in the next minor. */
+export type ConfigProvidersUpdateOperation<E = never> = ExperimentalConfigProvidersUpdateOperation<E>
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverInput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverInput = ExperimentalConfigProvidersDiscoverInput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverOutput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverOutput = ExperimentalConfigProvidersDiscoverOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverOperation`. Removed in the next minor. */
+export type ConfigProvidersDiscoverOperation<E = never> = ExperimentalConfigProvidersDiscoverOperation<E>
 
 /** @deprecated Use `ExperimentalGenerateApi`. Removed in the next minor. */
 export type GenerateApi<E = never> = ExperimentalGenerateApi<E>

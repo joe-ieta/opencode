@@ -40,7 +40,7 @@ it.live("integration policy filters /connect and blocks denied integrations and 
     const handler = Context.get(context, HttpRouter.HttpRouter)
       .asHttpEffect()
       .pipe(HttpEffect.toWebHandlerWith(context))
-    const request = (method: "GET" | "POST", route: string, body?: unknown) =>
+    const request = (method: "GET" | "POST" | "PATCH", route: string, body?: unknown) =>
       Effect.promise(async (signal) => {
         const url = new URL(route, "http://opencode.local")
         url.searchParams.set("location[directory]", tmp.path)
@@ -82,6 +82,20 @@ it.live("integration policy filters /connect and blocks denied integrations and 
     expect(credential.status).toBe(400)
     expect(credential.body).toMatchObject({ _tag: "InvalidRequestError", kind: "integration_policy" })
     expect((yield* request("GET", "/api/credential")).body.data).toEqual([])
+    const custom = yield* request("PATCH", "/api/experimental/config/providers/denied-provider", {
+      mode: "create",
+      revision: "not-written",
+      patch: { baseURL: "http://localhost:8080/v1", models: { chat: {} } },
+      credential: { id: "cred_denied_custom", key: "never-stored" },
+    })
+    expect(custom.status).toBe(400)
+    expect(custom.body).toMatchObject({ kind: "integration_policy" })
+    expect((yield* request("GET", "/api/credential")).body.data).toEqual([])
+    const discovery = yield* request("POST", "/api/experimental/config/providers/discover", {
+      target: { mode: "saved", providerID: "custom", revision: "policy-denied" },
+    })
+    expect(discovery.status).toBe(400)
+    expect(discovery.body).toMatchObject({ kind: "integration_policy" })
     const wellknown = yield* request("POST", "/api/experimental/integration/wellknown", { url: "https://ai.acme.com" })
     expect(wellknown.body).toMatchObject({ kind: "integration_policy" })
 

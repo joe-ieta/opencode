@@ -378,6 +378,38 @@ export type ConfigModelReasoning =
 
 export type ConfigShellOption = { path: string; name: string; acceptable: boolean }
 
+export type CustomProviderDefinition = {
+  name?: string
+  modelID?: string
+  context?: number
+  input?: number
+  output?: number
+  tools?: boolean | null
+  image?: boolean | null
+}
+
+export type CustomProviderSaved = {
+  revision: string
+  config: "saved"
+  credential: "unchanged" | "saved" | "failed"
+  catalog: "ready" | "pending"
+}
+
+export type CustomProviderCandidate = {
+  id: string
+  name?: string
+  context?: number
+  input?: number
+  output?: number
+  maxContext?: number
+  loaded?: boolean
+  tools?: boolean
+  image?: boolean
+  metadataPending?: boolean
+  sources: { [x: string]: string }
+  warnings: Array<string>
+}
+
 export type LocationPublicRef = { directory: AbsolutePath }
 
 export type FileSystemWrite = { path: AbsolutePath }
@@ -958,6 +990,39 @@ export type ConfigModelCapabilities = {
   temperature?: boolean
   reasoning?: ConfigModelReasoning
 }
+
+export type CustomProviderEntry = {
+  id: ProviderID
+  name: string
+  sources: Array<string>
+  reason?: string
+  baseURL?: string
+  keyReadonly: boolean
+  keySources: Array<string>
+  credentials: Array<{ id: CredentialID; label: string; active: boolean }>
+  models: { [x: string]: CustomProviderDefinition }
+}
+
+export type CustomProviderDiscovery =
+  | { status: "success"; models: Array<CustomProviderCandidate>; warnings: Array<string> }
+  | {
+      status: "error"
+      kind:
+        | "model-not-found"
+        | "invalid-url"
+        | "blocked-address"
+        | "authentication"
+        | "unsupported"
+        | "redirect"
+        | "http"
+        | "network"
+        | "timeout"
+        | "too-large"
+        | "invalid-response"
+        | "empty"
+        | "unsupported-auth"
+      httpStatus?: number
+    }
 
 export type SessionMessageLocationSwitched = {
   id: SessionMessageID
@@ -2210,6 +2275,13 @@ export type FormReplied = {
 export type ScheduleWhen = ScheduleWhenIn | ScheduleWhenAt | ScheduleWhenEvery | ScheduleWhenCron
 
 export type ArtifactContent = { info: ArtifactInfo; files: { [x: string]: string } }
+
+export type CustomProviderListing = {
+  revision: string
+  target: string
+  reason?: string
+  providers: Array<CustomProviderEntry>
+}
 
 export type SessionInboxMove = {
   id: SessionMessageID
@@ -4824,6 +4896,48 @@ export type ExperimentalConfigUpdateInput = { readonly shell: string | null }
 
 export type ExperimentalConfigUpdateOutput = void
 
+export type ExperimentalConfigProvidersListInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+
+export type ExperimentalConfigProvidersListOutput = CustomProviderListing
+
+export type ExperimentalConfigProvidersUpdateInput = {
+  readonly providerID: string
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly mode: "create" | "edit"
+  readonly revision: string
+  readonly patch: {
+    readonly name?: string | null
+    readonly baseURL?: string
+    readonly models?: {
+      readonly [x: string]: {
+        readonly name?: string | null
+        readonly modelID?: string | null
+        readonly context?: number | null
+        readonly input?: number | null
+        readonly output?: number | null
+        readonly tools?: boolean | null
+        readonly image?: boolean | null
+      } | null
+    }
+  }
+  readonly credential?: { readonly id: string; readonly key: string } | undefined
+}
+
+export type ExperimentalConfigProvidersUpdateOutput = CustomProviderSaved
+
+export type ExperimentalConfigProvidersDiscoverInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target:
+    | { readonly mode: "saved"; readonly providerID: string; readonly revision: string }
+    | { readonly mode: "draft"; readonly baseURL: string; readonly key?: string }
+  readonly api?: "openai" | "ollama" | "lmstudio" | undefined
+  readonly metadata?: ReadonlyArray<string> | undefined
+}
+
+export type ExperimentalConfigProvidersDiscoverOutput = CustomProviderDiscovery
+
 /** @deprecated Use `ExperimentalSessionStatsInput`. Removed in the next minor. */
 export type SessionStatsInput = ExperimentalSessionStatsInput
 
@@ -4982,3 +5096,21 @@ export type ConfigUpdateInput = ExperimentalConfigUpdateInput
 
 /** @deprecated Use `ExperimentalConfigUpdateOutput`. Removed in the next minor. */
 export type ConfigUpdateOutput = ExperimentalConfigUpdateOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersListInput`. Removed in the next minor. */
+export type ConfigProvidersListInput = ExperimentalConfigProvidersListInput
+
+/** @deprecated Use `ExperimentalConfigProvidersListOutput`. Removed in the next minor. */
+export type ConfigProvidersListOutput = ExperimentalConfigProvidersListOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateInput`. Removed in the next minor. */
+export type ConfigProvidersUpdateInput = ExperimentalConfigProvidersUpdateInput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateOutput`. Removed in the next minor. */
+export type ConfigProvidersUpdateOutput = ExperimentalConfigProvidersUpdateOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverInput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverInput = ExperimentalConfigProvidersDiscoverInput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverOutput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverOutput = ExperimentalConfigProvidersDiscoverOutput

@@ -57,6 +57,7 @@ import type { ServerOptions } from "./options"
 
 const applicationServiceNodes = [
   Global.node,
+  ModelsDev.node,
   FSUtil.node,
   Database.node,
   KV.node,

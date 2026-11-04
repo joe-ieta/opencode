@@ -1,3 +1,4 @@
+import { CustomProvider } from "@opencode/schema/custom-provider"
 import { NodeFileSystem } from "@effect/platform-node"
 import { compile, emitEffectImported, emitEffectShape, emitPromise, write } from "@opencode/httpapi-codegen"
 import {
@@ -68,6 +69,7 @@ const effectTypeReferences = [
   ...namespaceTypes("Agent", "@opencode/schema/agent", Agent),
   ...namespaceTypes("Artifact", "@opencode/schema/artifact", Artifact),
   ...namespaceTypes("Command", "@opencode/schema/command", Command),
+  ...namespaceTypes("CustomProvider", "@opencode/schema/custom-provider", CustomProvider),
   ...namespaceTypes("Config", "@opencode/schema/config", Config),
   ...namespaceTypes("Credential", "@opencode/schema/credential", Credential),
   ...namespaceTypes("Event", "@opencode/schema/event", Event),
