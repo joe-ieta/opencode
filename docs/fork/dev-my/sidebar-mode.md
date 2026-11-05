@@ -69,9 +69,9 @@ Live 连接组件已实连安装包原进程并读到相同的 17 个工程、56
 
 ## 当前状态
 
-- 当前 Windows x64 测试版为 [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4)，源码 `0eb91d7ea1`。四个发布文件已通过本地、服务端及公开下载核验。安装后人工验收待完成。详见[发行记录](releases.md)。
+- 当前 Windows x64 测试版为 [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5)，源码 `02457d62e2`。四个发布文件已通过本地、服务端及公开下载核验。安装后人工验收待完成。详见[发行记录](releases.md)。
 
-- 本版验证底部 Running 刷新、活动会话结束后的顺序保存及 Inbox 首屏同步。上游贡献稿 [#60867](https://github.com/anomalyco/opencode/pull/60867) 当前 head 为 `ad6923e0c3`，保持 Draft。
+- 本版验证 Inbox 状态机在活动快照延迟时等待，并复测底部 Running、后台 Shell 和折叠提示。贡献稿 [#60867](https://github.com/anomalyco/opencode/pull/60867) 当前 head 为 `2de04af2cd`，保持 Draft。
 
 - Linux 两架构的 AppImage/deb 使用同一源码 `3777b783c5`、Ubuntu 24.04 基线构建，均通过 CLI、目录、迁移和实际安装包核验；Linux 与原生 ARM64 GUI 尚未人工验收。
 

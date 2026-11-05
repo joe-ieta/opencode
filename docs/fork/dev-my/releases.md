@@ -6,10 +6,19 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| Windows 测试 | `v2.2.5-my.4`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) |
+| Windows 测试 | `v2.2.5-my.5`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) |
 | Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
 
 本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。本次使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.2.5-my.5 Windows x64 测试预发行
+
+- 2026-11-06 01:27:28（Asia/Shanghai）公开为 Windows x64 测试预发行，设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5)
+- 构建源码 `02457d62e2dc12674041aaf5dc6dedcea04e1291` 合入官方 `dev@1009033569e3a31bcfc1dab857c2a66db82dbdeb` 和 PR `2de04af2cd0ca555b8393ecb1411e46663d694bb`。应用标识为 `ai.opencode.desktop.dev-my`，更新源固定在本发行标签。
+- Inbox 首屏通过上游状态机等待活动快照和工作会话的权限及表单查询。超时后展示已有内容，之后的活动更新继续刷新现有界面。
+- PR 根检查 35 项、应用相关单测 22 项、客户端会话数据测试 35 项、生产 Chromium 回归 19 项通过。修复前的两次隔离对照均复现 Inbox 提前展示。发行源码根检查 35 项和生产 Chromium 回归 21 项通过。
+- Bun 1.4.4 构建，比较 7,658 个模型，通过服务发现、V1 升级确认和历史迁移冒烟。NSIS、内置 ASAR 与 CLI、固定标签更新源及 `latest.yml` 校验通过。安装器 `opencode-desktop-win-x64.exe` 为 281,105,297 字节，SHA256 为 `b9db3afbf5498c28430635ff5ed82d81e2bb27edbff0461da63d22c6ec709b5c`。四个 GitHub 资产的服务端摘要及公开下载均与本地一致。
+- 安装包未签名，Windows 安装后人工验收待完成。
 
 ## v2.2.5-my.4 Windows x64 测试预发行
 

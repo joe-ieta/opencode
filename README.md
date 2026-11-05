@@ -18,9 +18,9 @@ A desktop AI coding workspace for everyday development. Built on OpenCode, it re
 
 自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。
 
-最新 Windows x64 测试预发行 [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) 修复了底部 Running 刷新、活动会话结束后的排序和 Inbox 首屏提示。安装包未签名，自动检查和公开下载校验已通过，安装后人工验收待完成。Linux amd64/arm64 的 AppImage 和 deb 测试版仍为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。详见[发行记录](docs/fork/dev-my/releases.md)。
+最新 Windows x64 测试预发行 [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) 将活动快照等待接入上游 Inbox 首屏状态机，快照延迟时保持加载，超时后展示已有内容。安装包未签名，自动检查和公开下载校验已通过，安装后人工验收待完成。Linux amd64/arm64 的 AppImage 和 deb 测试版见 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。详见[发行记录](docs/fork/dev-my/releases.md)。
 
-`dev-my` 已吸收上游 V2 2.2.5 `dev@6bd47192ac`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
+`dev-my` 已吸收上游 V2 2.2.5 `dev@1009033569`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
 
 ### 项目定位
 
@@ -57,9 +57,9 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 
 Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md).
 
-The Windows x64 test prerelease [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) updates the bottom Running shelf, preserves session order after activity ends, and synchronizes Inbox activity before its first display. The installer is unsigned. Automated checks and public download verification passed. Post-install manual acceptance is pending. The Linux amd64/arm64 AppImage and deb test release remains [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). See the [release records](docs/fork/dev-my/releases.md).
+The Windows x64 test prerelease [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) integrates activity snapshot readiness into the upstream Inbox first-load state machine. The installer is unsigned. Automated checks and public download verification passed. Post-install manual acceptance is pending. The Linux amd64/arm64 AppImage and deb test release is available at [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). See the [release records](docs/fork/dev-my/releases.md).
 
-`dev-my` includes upstream V2 2.2.5 at `dev@6bd47192ac`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
+`dev-my` includes upstream V2 2.2.5 at `dev@1009033569`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
 
 ### Project focus
 

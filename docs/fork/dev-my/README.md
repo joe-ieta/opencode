@@ -4,9 +4,9 @@
 
 跟随官方 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码基线已同步至 V2 2.2.5 的 `dev@6bd47192ac`，保留共享项目历史、独立 Side bar、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
-- 最新 Windows x64 测试预发行 [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4)，构建源码 `0eb91d7ea1`。本地、GitHub 服务端和公开下载的四个文件均已核对，安装后人工验收待完成。详见[发行记录](releases.md)。
-- 本版包含底部 Running 刷新、活动会话结束后的顺序保存和 Inbox 首屏提示修复。贡献稿 [#60867](https://github.com/anomalyco/opencode/pull/60867) 保持 Draft，head 为 `ad6923e0c3`。
+- 源码基线已同步至 V2 2.2.5 的 `dev@1009033569`，保留共享项目历史、独立 Side bar、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
+- 最新 Windows x64 测试预发行 [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5)，构建源码 `02457d62e2`。本地、GitHub 服务端和公开下载的四个文件均已核对，安装后人工验收待完成。详见[发行记录](releases.md)。
+- 本版将活动快照等待接入上游 Inbox 首屏状态机。贡献稿 [#60867](https://github.com/anomalyco/opencode/pull/60867) 保持 Draft，head 为 `2de04af2cd`，冲突已解决。
 - 本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。不将历史已清理的发行入口列为当前下载，历史验收记录保留于 [发行记录](releases.md)。
 - 最新 Linux amd64/arm64 测试版：[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，Ubuntu 24.04 基线，源码 `3777b783c5`；提供 AppImage/deb。全部平台统一使用本仓库 GitHub Release。两架构 CLI/目录/迁移冒烟、实际安装包与远端摘要校验通过；Linux GUI 与原生 ARM64 GUI 尚未人工验收。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 支持 Windows x64 与 Linux x64/arm64。Linux arm64 可在 Ubuntu 24.04 x64 上通过 `qemu-user-static`、`libc6-dev-arm64-cross` 和 binfmt 交叉构建及 CLI 冒烟，正式 ARM64 GUI 验收仍需原生 arm64。完整环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
