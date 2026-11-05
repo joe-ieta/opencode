@@ -47,7 +47,10 @@ function Invoke-WebTestCli {
     $previous = @{}
     foreach ($name in $TestEnvironment.Keys) {
         $previous[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
-        [Environment]::SetEnvironmentVariable($name, $TestEnvironment[$name], 'Process')
+        if ($null -eq $TestEnvironment[$name]) {
+            Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+        }
+        else { [Environment]::SetEnvironmentVariable($name, $TestEnvironment[$name], 'Process') }
     }
     Push-Location -LiteralPath $TestHome
     try {
@@ -57,7 +60,10 @@ function Invoke-WebTestCli {
     }
     finally {
         Pop-Location
-        foreach ($name in $previous.Keys) { [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process') }
+        foreach ($name in $previous.Keys) {
+            if ($null -eq $previous[$name]) { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue }
+            else { [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process') }
+        }
     }
 }
 
