@@ -18,9 +18,9 @@ A desktop AI coding workspace for everyday development. Built on OpenCode, it re
 
 自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。
 
-最新 Windows 测试版 [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) 提供 x64 完整安装包，包含项目名称排序、独立固定区域、折叠未读提示和后台 Shell 活动汇总修复。自动检查及发布文件校验通过，Windows 安装后人工验收已通过；对应更新已同步 [PR #60867](https://github.com/anomalyco/opencode/pull/60867)，继续等待上游设计评审。Linux amd64/arm64 的 AppImage/deb 测试版仍为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。安装文件未签名，详情见 [发行记录](docs/fork/dev-my/releases.md)。
+最新 Windows x64 测试预发行 [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) 修复了底部 Running 刷新、活动会话结束后的排序和 Inbox 首屏提示。安装包未签名，自动检查和公开下载校验已通过，安装后人工验收待完成。Linux amd64/arm64 的 AppImage 和 deb 测试版仍为 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。详见[发行记录](docs/fork/dev-my/releases.md)。
 
-`dev-my` 已吸收上游 V2 2.2.5 `dev@ff90ed9160`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
+`dev-my` 已吸收上游 V2 2.2.5 `dev@6bd47192ac`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
 
 ### 项目定位
 
@@ -57,9 +57,9 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 
 Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md).
 
-The latest Windows test release, [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3), provides a complete x64 installer with alphabetical project sorting, a separate pinned area, collapsed unread indicators, and background Shell activity tracking. Automated checks and release asset verification passed; Windows post-install manual acceptance passed, and the corresponding updates are in [PR #60867](https://github.com/anomalyco/opencode/pull/60867), which remains a draft for design review. Linux amd64/arm64 AppImage and deb test packages remain at [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). Installers are unsigned. See the [release records](docs/fork/dev-my/releases.md).
+The Windows x64 test prerelease [v2.2.5-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) updates the bottom Running shelf, preserves session order after activity ends, and synchronizes Inbox activity before its first display. The installer is unsigned. Automated checks and public download verification passed. Post-install manual acceptance is pending. The Linux amd64/arm64 AppImage and deb test release remains [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). See the [release records](docs/fork/dev-my/releases.md).
 
-`dev-my` includes upstream V2 2.2.5 at `dev@ff90ed9160`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
+`dev-my` includes upstream V2 2.2.5 at `dev@6bd47192ac`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
 
 ### Project focus
 

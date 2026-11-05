@@ -6,10 +6,19 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| Windows 测试 | `v2.2.5-my.3`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) |
+| Windows 测试 | `v2.2.5-my.4`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4) |
 | Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
 
 本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。本次使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.2.5-my.4 Windows x64 测试预发行
+
+- 2026-11-05 23:54:42（Asia/Shanghai）公开，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。提供 Windows x64 完整安装包。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4)
+- 构建源码 `0eb91d7ea1b2d40326673d231c1bfb673d6713df` 合入官方 `dev@6bd47192ac97527e9fdc5e64c36fd4730aec2acd` 及 Side bar 贡献稿 `ad6923e0c30de156d951a240b511646d865d8ea2`。应用标识为 `ai.opencode.desktop.dev-my`，更新源固定在本发行标签。
+- 底部 Running 随模型执行和后台 Shell 活动刷新。活动会话在项目内置顶，结束后将重新计算的顺序保存到已有手动排序的列表。Inbox 首屏等待活动状态同步后显示提示。
+- 自动验证通过根检查 35 项、应用单元测试 2,406 项和生产 Chromium 回归 180 项。Bun 1.4.4 构建，比较 7,658 个内置模型，通过服务发现、V1 升级确认和历史迁移冒烟。独立 E2E 类型检查仍有 12 条上游基线已有的 fixture 诊断。
+- 已核对 NSIS 完整性、内置 ASAR 与 CLI 版本、更新源及 `latest.yml` 的 SHA512 和大小。安装器 `opencode-desktop-win-x64.exe` 为 281,014,299 字节，SHA256 为 `c460b738fe7d26a0aa5789e8873f7559b84051509af200446bc30028e30e9d58`。四个 GitHub 资产的服务端摘要及公开下载均与本地一致。
+- 安装包未签名，Windows 安装后人工验收待完成。
 
 ## v2.2.5-my.3 Windows x64 测试预发行
 
