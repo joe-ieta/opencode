@@ -5,6 +5,7 @@ import { OpenCode } from "@opencode/client"
 import { Database } from "@opencode/core/database/database"
 import { Job } from "@opencode/core/job"
 import { Session } from "@opencode/core/session"
+import { SessionActivitySource } from "@opencode/core/session/activity-source"
 import { makeGlobalNode } from "@opencode/util/effect/app-node"
 import { Deferred, Effect, Layer } from "effect"
 import { tmpdirScoped } from "../../core/test/fixture/tmpdir"
@@ -33,7 +34,7 @@ it.live("lists background jobs by session, kind, and descendants until completio
         Job.Service,
         Job.make.pipe(Effect.tap((service) => Deferred.succeed(captured, service))),
       ),
-      deps: [Database.node],
+      deps: [Database.node, SessionActivitySource.node],
     })
     const handler = yield* ServerFetch.make(
       {

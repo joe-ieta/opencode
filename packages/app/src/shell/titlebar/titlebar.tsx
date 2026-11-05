@@ -336,7 +336,7 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                   data-titlebar-tab-action
                   data-action="vertical-tabs-home"
                   data-state={layout.route().type === "home" ? "pressed" : undefined}
-                  class="group flex h-7 w-full shrink-0 items-center gap-1.5 rounded-[6px] ps-1.5 pe-2 text-[13px] leading-4 text-v2-text-text-faint hover:text-v2-text-text-base data-[state=pressed]:text-v2-text-text-base"
+                  class="group flex h-7 w-full shrink-0 items-center gap-1.5 rounded-[6px] px-2 text-[13px] leading-4 text-v2-text-text-faint hover:text-v2-text-text-base data-[state=pressed]:text-v2-text-text-base"
                   onClick={toggleHome}
                   aria-label={language.t("home.title")}
                   aria-pressed={layout.route().type === "home"}
@@ -383,7 +383,7 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                   type="button"
                   data-titlebar-tab-action
                   data-action="vertical-tabs-search"
-                  class="group flex h-7 w-full shrink-0 items-center gap-1.5 rounded-[6px] ps-1.5 pe-2 text-[13px] leading-4 text-v2-text-text-faint hover:text-v2-text-text-base"
+                  class="group flex h-7 w-full shrink-0 items-center gap-1.5 rounded-[6px] px-2 text-[13px] leading-4 text-v2-text-text-faint hover:text-v2-text-text-base"
                   onClick={() => command.trigger("sessions.search")}
                 >
                   <Icon name="magnifying-glass" class="shrink-0" />
@@ -542,8 +542,9 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                   "pb-[max(0px,calc(8px-var(--shell-safe-area-bottom,var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))))]":
                     bottom(),
                   "pl-4": macTrafficLights(),
-                  // Center the 20px app icon over the sidebar's 16px icon column.
-                  "ps-3.5": windows(),
+                  // The menu glyph is 2px further into its slot than the sidebar icons are into theirs.
+                  "ps-[calc(var(--sidebar-inset-start)-2px)]": windows() && !!props.verticalTabs,
+                  "ps-3.5": windows() && !props.verticalTabs,
                 }}
               >
                 <Show when={windows() || linux()}>
@@ -762,7 +763,7 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                                 </div>
                               </div>
                             </Show>
-                            <div class="flex w-full shrink-0 flex-col gap-1">
+                            <div class="flex w-full shrink-0 flex-col gap-[3px]">
                               <Show when={!homeInSidebarHeader()}>{homeButton(true)}</Show>
                               <Show when={settings.appearance.tabLayout() !== "sidebar"}>{searchButton(true)}</Show>
                               <RecentlyClosedTabsMenu

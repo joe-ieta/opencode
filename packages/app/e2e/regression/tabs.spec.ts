@@ -2008,9 +2008,9 @@ test("vertical tabs resize, scroll, show shortcut hints, and navigate", async ({
   await page.locator("html").evaluate((element) => element.setAttribute("dir", "rtl"))
   const home = sidebar.locator('[data-action="vertical-tabs-home"]')
 
-  const hint = home.locator('div[aria-hidden="true"]')
-  await expect(hint.locator('[data-slot="keybind-v2-label"]')).toHaveText(["Ctrl", "Alt", "H"])
-  await expect(hint.locator('[data-component="keybind-v2"]')).toHaveCSS("direction", "ltr")
+  const hint = home.locator('span[aria-hidden="true"] bdi')
+  await expect(hint).toHaveText("Ctrl+Alt+H")
+  await expect(hint).toHaveCSS("direction", "ltr")
   await expect(hint).toBeHidden()
   await home.focus()
   await expect(hint).toBeVisible()
@@ -2839,7 +2839,7 @@ test("the Windows menu shares the vertical sidebar's icon lane", async ({ page }
 
 for (const row of [
   { name: "left tabs", width: 1280, settings: { appearance: { tabLayout: "vertical" } }, position: { x: 20, y: 25 } },
-  { name: "top tabs", width: 1280, settings: { appearance: { tabLayout: "horizontal" } }, position: { x: 14, y: 15 } },
+  { name: "top tabs", width: 1280, settings: { appearance: { tabLayout: "horizontal" } }, position: { x: 14, y: 14 } },
   {
     name: "a bottom titlebar",
     width: 700,
@@ -2847,7 +2847,7 @@ for (const row of [
     position: { x: 14, y: 14 },
   },
 ]) {
-  test(`macOS traffic lights center on the header line with ${row.name}`, async ({ page }) => {
+  test(`macOS positions the native traffic lights with ${row.name}`, async ({ page }) => {
     await page.setViewportSize({ width: row.width, height: 720 })
     await mockWorkspace(page, { name: "TrafficLights", sessions: [], seed: { settings: row.settings } })
     await page.goto(`/e2e/utils/windows-menu.html?${new URLSearchParams({ server: SERVER, os: "macos" })}`)
