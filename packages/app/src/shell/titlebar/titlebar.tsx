@@ -734,7 +734,7 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                                 data-home={homeInSidebarHeader() ? "" : undefined}
                                 class="flex w-full shrink-0 gap-2"
                                 classList={{
-                                  "items-start pt-2.5 pb-1": homeInSidebarHeader(),
+                                  "items-start pt-2.5 pb-[3px]": homeInSidebarHeader(),
                                   "mb-2 h-12 items-center": !homeInSidebarHeader(),
                                 }}
                                 style={{
