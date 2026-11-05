@@ -413,6 +413,72 @@ test("mobile custom providers replace the picker drawer and expose the manual fo
   await expect(trigger).toHaveText("Existing Model")
 })
 
+test("mobile custom provider advanced options create explicit zero prices and validate variant identities", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const fixture = customProviderFixture()
+  await openSession(page, {
+    name: "MobileAdvancedProvider",
+    ...fixture.config,
+    onCustomProviderUpdate: (id, body) => ({
+      ...fixture.config.onCustomProviderUpdate(id, body),
+      credential: "unchanged",
+      catalog: "pending",
+    }),
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:8080/v1")
+  await dialog.getByRole("textbox", { name: "Model key", exact: true }).fill("alias")
+  const provider = dialog
+    .locator("details")
+    .filter({ has: page.getByText("Provider advanced options", { exact: true }) })
+  await provider.getByText("Provider advanced options", { exact: true }).click()
+  await provider.getByRole("textbox", { name: "Response header timeout (ms)", exact: true }).fill("false")
+  const model = dialog.getByRole("group", { name: "Model 1", exact: true })
+  await model.getByText("Model advanced options", { exact: true }).click()
+  await model
+    .getByRole("group", { name: "Model request options", exact: true })
+    .getByRole("combobox", { name: "Parallel tool calls", exact: true })
+    .selectOption("false")
+  await model.getByRole("button", { name: "Add price tier", exact: true }).click()
+  const price = model.getByRole("group", { name: "Price tier 1", exact: true })
+  await price.getByRole("textbox", { name: "Input price", exact: true }).fill("0")
+  await price.getByRole("textbox", { name: "Output price", exact: true }).fill("0")
+  await model.getByRole("button", { name: "Add variant", exact: true }).click()
+  await model
+    .getByRole("group", { name: "Variant 1", exact: true })
+    .getByRole("textbox", { name: "Variant ID", exact: true })
+    .fill("same")
+  await model.getByRole("button", { name: "Add variant", exact: true }).click()
+  const variant = model.getByRole("group", { name: "Variant 2", exact: true })
+  await variant.getByRole("textbox", { name: "Variant ID", exact: true }).fill("same")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("alert")).toContainText("Check advanced options")
+  expect(fixture.requests).toEqual([])
+  await variant.getByRole("textbox", { name: "Variant ID", exact: true }).fill("high")
+  await variant.getByRole("textbox", { name: "Reasoning effort", exact: true }).fill("high")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toContainText("Provider saved")
+  expect(fixture.requests[0]?.body.patch).toMatchObject({
+    settings: { headerTimeout: false },
+    models: {
+      alias: {
+        settings: { parallelToolCalls: false },
+        cost: { "0": { input: 0, output: 0 } },
+        variants: { same: {}, high: { settings: { reasoningEffort: "high" } } },
+      },
+    },
+  })
+})
+
 test("mobile LM Studio native preview imports the loaded instance limit", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   const fixture = customProviderFixture()

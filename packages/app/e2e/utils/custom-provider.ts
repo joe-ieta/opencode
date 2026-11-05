@@ -76,3 +76,81 @@ export function customProviderFixture(paid = true) {
 
   return { config, requests, entry }
 }
+
+export function advancedProviderFixture() {
+  const fixture = customProviderFixture()
+  const requests: { id: string; body: CustomProvider.Update }[] = []
+
+  const initial: CustomProvider.Entry = {
+    ...fixture.entry,
+    settings: { timeout: 30000, headerTimeout: false, encoding: "none" },
+    compatibility: { streamUsage: true },
+    models: {
+      alias: {
+        ...fixture.entry.models.alias,
+        settings: { reasoningEffort: "medium" },
+        compatibility: { requireFinishReason: true },
+        cost: [
+          { input: 1, output: 2, cacheRead: 0.1 },
+          { input: 3, output: 4, tierSize: 1000 },
+        ],
+        variants: [{ id: "existing", settings: { reasoningEffort: "low" } }, { id: "remove" }],
+      },
+    },
+  }
+
+  const saved: CustomProvider.Entry = {
+    ...initial,
+    settings: { headerTimeout: false, chunkTimeout: 60000, encoding: "none" },
+    compatibility: { streamUsage: false },
+    models: {
+      alias: {
+        ...initial.models.alias,
+        settings: { reasoningEffort: "high" },
+        compatibility: { requireFinishReason: true, maxTokensField: "max_completion_tokens" },
+        cost: [
+          { input: 3, output: 8, tierSize: 1000 },
+          { input: 2, output: 4, tierSize: 2000 },
+        ],
+        variants: [
+          { id: "existing", settings: { reasoningEffort: "high" } },
+          { id: "new/variant", settings: { reasoningEffort: "medium" } },
+        ],
+      },
+    },
+  }
+
+  const states: CustomProvider.Entry[] = [
+    initial,
+    saved,
+    {
+      ...saved,
+      models: {
+        alias: {
+          ...saved.models.alias,
+          cost: [
+            { input: 3, output: 8, cacheWrite: 0, tierSize: 1000 },
+            { input: 2, output: 4, tierSize: 2000 },
+          ],
+        },
+      },
+    },
+  ]
+
+  return {
+    requests,
+    config: {
+      ...fixture.config,
+      customProviders: (): CustomProvider.Listing => ({
+        revision: `advanced-${requests.length}`,
+        target: "C:/fixture/opencode.jsonc",
+        providers: [states[Math.min(requests.length, 2)]!],
+      }),
+      onCustomProviderUpdate: (id: string, body: CustomProvider.Update): CustomProvider.Saved => {
+        requests.push({ id, body })
+
+        return { revision: `advanced-${requests.length}`, config: "saved", credential: "unchanged", catalog: "pending" }
+      },
+    } satisfies Partial<MockServerConfig>,
+  }
+}

@@ -1,6 +1,6 @@
 # dev-my 自定义 Provider（本地模型）设计 v0.2
 
-> 状态：P0 手动管理、P1 主动发现、P2 原生元数据与显式最小文本测试已在独立工作树实现；高级字段、完整推理能力和真实引擎兼容矩阵仍待后续推进。验证记录见第 10–13 节。
+> 状态：P0 手动管理、P1 主动发现、P2 原生元数据、显式最小文本测试与类型化高级字段编辑已在独立工作树实现；headers/body 任意值编辑保持源文件方式，完整推理能力和真实引擎兼容矩阵仍待后续推进。验证记录见第 10–14 节。
 > 日期：2026-11-05（Asia/Shanghai）
 > 原稿：`origin/dev-my-models@168ee33882`；维护基线：`origin/dev-my@ce6f5362fd`。
 > 评审工作树：`.cache/models-design-review`，临时分支 `models-design-review`。
@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | P0 | 手动新增、编辑单一全局 V2 自定义 provider，模型增删改，Key 设置/替换，安全写入和刷新 | 不编辑文件即可保存、选用、重开后编辑；真实本地服务可完成 prompt |
 | P1 | 用户主动调用通用 `/models`，预览后勾选导入 | 无发现接口、离线或鉴权失败仍可手动保存 |
-| P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据和最小文本测试已实现；高级字段、工具/图像推理和真实引擎验收待后续推进 |
+| P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据、最小文本测试和类型化高级字段已实现；工具/图像推理与真实引擎验收待后续推进 |
 
 P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Studio/vLLM 已有官方发现插件；不再为它们建立后台轮询系统。原稿将六种引擎适配、凭据历史管理与 UI 一次交付的 10–13 日估算缺少验证依据，取消硬性工期。
 
@@ -78,7 +78,7 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 | Context / Input limit / Output limit | 三个独立可选正整数。留空表示未设置覆盖；显示运行时 fallback，不能称其为检测结果 |
 | Tools | 三态：继承/未验证、支持、不支持。新建默认不写覆盖；不把未发现误写为 false |
 | 输入模态 | 新建建议显式 text；启用 image 需用户确认或有来源的发现元数据。编辑保留未展示模态 |
-| 其他高级字段 | compatibility、settings、headers、body、cost、variants 原样保留；一期不提供任意 JSON 编辑器 |
+| 类型化高级字段 | P2 增加 compatibility 白名单、超时/编码、推理选项、cost 和 variants 编辑，见第 14 节；未展示字段原样保留，不提供任意 JSON 编辑器 |
 
 当前 schema 对全新未知模型的 fallback 是 tools=true、text/image 输入、text 输出和 200k/32k 限额，见 `packages/schema/src/model.ts`。UI 必须标注这些是运行时假设。若用户选“不支持工具”，说明其无法完成依赖工具的代码任务；不据此改变官方模型过滤规则。
 
@@ -322,4 +322,36 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 - `bun run check` 的 35 个任务全部通过；本轮服务端、协议、Schema、实现和共享夹具的 focused lint 为 0 warning / 0 error。客户端/OpenAPI 已按脚本生成，experimental 标识符及 OpenAPI 生成一致性检查通过。
 - 全量 `typecheck:e2e` 与此前逐项对照仍为同一组 13 项已有诊断，新增用例和夹具未新增诊断。
 
-本轮只访问隔离测试端点，没有连接实际安装的 Ollama/LM Studio 或调用用户服务的推理 API。真实引擎版本兼容矩阵、高级字段编辑与工具/图像推理验收仍是后续范围。
+该最小文本测试阶段只访问隔离测试端点，没有连接实际安装的 Ollama/LM Studio 或调用用户服务的推理 API。后续类型化高级字段实施见第 14 节；真实引擎版本兼容矩阵与工具/图像推理验收仍是后续范围。
+
+## 14. P2 类型化高级字段实施记录
+
+2026-11-05，按用户确认的范围，先完成可类型校验的兼容选项、超时/编码、模型计价与变体编辑；headers/body 中可能含密钥的任意值继续保留，通过源文件修改。仍位于 `.cache/models-design-review` 的 `models-design-review` 分支，不改动主工作区和 `dev-my`。
+
+依据官方 [Providers](https://opencode.ai/v2/docs/providers/) 和 [Models](https://opencode.ai/v2/docs/models/) 文档核对，字段事实以本分支 `ConfigProvider.Info`、`ModelResolver`、`Provider.modelSettings` 及 OpenAI Compatible lowering 为准。编辑器只覆盖当前 OpenAI Compatible package 的以下字段，不把采样参数误写成无效的 provider options：
+
+| 层级 | 可编辑字段 |
+| --- | --- |
+| Provider | settings 的 timeout、headerTimeout、chunkTimeout、encoding、reasoningEffort、textVerbosity、parallelToolCalls；下列兼容字段 |
+| Model | encoding、reasoningEffort、textVerbosity、parallelToolCalls；下列兼容字段；cost；variants |
+| Variant | encoding、reasoningEffort、textVerbosity、parallelToolCalls；ID 创建后只读，支持删除该全局条目 |
+| Compatibility | reasoningField、maxTokensField、requireReasoning、requireFinishReason、requireAssistantAfterTool、supportsPromptCacheKey、streamUsage、cacheFormat |
+
+超时只在 Provider 层提供，单位为毫秒，支持正整数、false（关闭）和清除覆盖。模型与变体层只提供实际会被继承/应用的选项。布尔值与枚举允许恢复继承；清除单个字段发送 null，不重写整个 settings/compatibility。reasoningField 拒绝协议已保留的 role/content/refusal/tool_calls 字段。启用压缩前需确认服务端支持。
+
+计价以 USD / 百万 token 显示，支持普通价格及按 context size 分层的 input/output/cache read/cache write，明确区分零价与未设置。input/output 必须同时为非负有限数字；层级阈值是互异的正整数，最多一个无阈值的默认价。删除所有行移除该模型的 cost 覆盖。读取时将对象/数组统一成展示行；写入使用原快照的行索引 patch，更新/追加后倒序删除，避免同一请求中索引漂移。将旧单价对象转为数组时保留其未展示属性；清除单个 cache 字段保留其余字段。结构转换可能调整节点内部排版，仍不承诺所有非目标字节恒等。
+
+变体只管理该全局定义中的条目，生成或继承的变体可能继续存在。以 ID 作为 patch 身份，只修改指定 settings 叶子，保留未展示 settings、headers、body；显式删除变体会删除其整个全局条目。新 ID 不得为空、重复、使用保留的 default 或含 #。既有空/重复/保留 ID 只限制变体编辑并提示修改源文件，不阻止基础字段编辑。
+
+新只读快照仍是字段白名单投影，未知 settings、headers、body 及其中 secret 不返回浏览器。写接口拒绝 apiKey/baseURL 等绕过原有入口的高级 patch、任意 JSON、稀疏价格索引、非法价格和不支持的模型级超时。最后仍校验合并后的 `ConfigProvider.Info`，来源、revision、写入锁、凭据存储与目录刷新沿用 P0 边界。
+
+界面中的 Provider/Model 高级区默认折叠，桌面和移动端复用控件。保存后以服务端新快照重建价格/变体行身份，保留外层表单和展开状态，确保第二次编辑使用新索引。原生发现只补齐原有基础字段，不覆盖这些高级设置；最小文本测试继续明确不验证高级生成选项。
+
+已完成验证：
+
+- 后端 P0/P1/P2、配置和策略联合回归 16 项通过。新增高级字段 API 用例重复 10 轮，20 次全部通过，覆盖叶子保留、单价到分层转换、同次更新/追加/删除、清除继承、特殊模型/变体 ID、严格字段校验、过期 revision 和无 secret 快照；保存后的选项经实际隔离生成请求验证进入模型/变体请求。
+- 构建模式桌面/移动关联回归 11 项通过。两项新增高级交互用例开启 fully parallel、5 个 worker、关闭 retries 重复 10 轮，20 次全部通过，覆盖非法输入不提交、零价、空设置变体、重名校验、保存后索引更新及第二次无改动保存。
+- `bun run check` 的 35 个任务全部通过；本轮实现、Schema、服务端测试与共享夹具的 focused lint 为 0 warning / 0 error；客户端/OpenAPI 已由脚本更新，experimental 标识符与 OpenAPI 一致性检查通过。
+- 全量 `typecheck:e2e` 仍为此前同一组 13 项已有诊断，新增用例与夹具未新增诊断。
+
+额外诊断发现，含 `settings.constructor` 的端到端样本会触发现有配置链失败，本轮未扩展其兼容范围；白名单函数自身已独立确认只投影声明字段，不读取原型属性。该额外样本不计入上述端到端验收。真实 Ollama/LM Studio 引擎、工具/图像推理及跨版本兼容矩阵仍不在本次自动化验收范围。

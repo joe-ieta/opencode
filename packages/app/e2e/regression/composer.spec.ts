@@ -1,5 +1,5 @@
 import type { CustomProvider } from "@opencode/schema/custom-provider"
-import { customProviderFixture } from "../utils/custom-provider"
+import { customProviderFixture, advancedProviderFixture } from "../utils/custom-provider"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 import { NO_PROVIDER, SERVER, T0, expectPath, holdRoute, provider, sessionHref } from "../utils/app"
 import { mockWorkspace, openDraft, openSession } from "../utils/workspace"
@@ -1575,6 +1575,104 @@ test("custom provider discovery confines saved keys, cancels requests and leaves
   await expect(dialog.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("alias")
   await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
   await expect(dialog.getByRole("button", { name: "Save provider", exact: true })).toBeEnabled()
+})
+
+test("custom provider advanced options save typed leaves and rebase price rows after deletion", async ({ page }) => {
+  const fixture = advancedProviderFixture()
+  await openSession(page, { name: "CustomProviderAdvanced", ...fixture.config })
+  const trigger = page.locator('[data-action="composer-model"]')
+  await trigger.click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Edit provider", exact: true }).click()
+  const provider = dialog
+    .locator("details")
+    .filter({ has: page.getByText("Provider advanced options", { exact: true }) })
+  await provider.getByText("Provider advanced options", { exact: true }).click()
+  await expect(provider.getByRole("textbox", { name: "Overall timeout (ms)", exact: true })).toHaveValue("30000")
+  await provider.getByRole("textbox", { name: "Overall timeout (ms)", exact: true }).fill("-1")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("alert")).toContainText("Check advanced options")
+  expect(fixture.requests).toEqual([])
+  await provider.getByRole("textbox", { name: "Overall timeout (ms)", exact: true }).fill("")
+  await provider.getByRole("textbox", { name: "Stream chunk timeout (ms)", exact: true }).fill("60000")
+  await provider.getByRole("combobox", { name: "Request streamed usage", exact: true }).selectOption("false")
+  const model = dialog.getByRole("group", { name: "Model 1", exact: true })
+  await model.getByText("Model advanced options", { exact: true }).click()
+  const modelRequest = model.getByRole("group", { name: "Model request options", exact: true })
+  await modelRequest.getByRole("textbox", { name: "Reasoning effort", exact: true }).fill("high")
+  await modelRequest
+    .getByRole("combobox", { name: "Output token limit field", exact: true })
+    .selectOption("max_completion_tokens")
+  await model
+    .getByRole("group", { name: "Price tier 1", exact: true })
+    .getByRole("button", { name: "Remove price tier", exact: true })
+    .click()
+  await model
+    .getByRole("group", { name: "Price tier 1", exact: true })
+    .getByRole("textbox", { name: "Output price", exact: true })
+    .fill("8")
+  await model.getByRole("button", { name: "Add price tier", exact: true }).click()
+  const added = model.getByRole("group", { name: "Price tier 2", exact: true })
+  await added.getByRole("textbox", { name: "Input price", exact: true }).fill("2")
+  await added.getByRole("textbox", { name: "Output price", exact: true }).fill("4")
+  await added.getByRole("textbox", { name: "Context tier size (tokens)", exact: true }).fill("2000")
+  await model
+    .getByRole("group", { name: "Variant 1", exact: true })
+    .getByRole("textbox", { name: "Reasoning effort", exact: true })
+    .fill("high")
+  await model
+    .getByRole("group", { name: "Variant 2", exact: true })
+    .getByRole("button", { name: "Remove variant", exact: true })
+    .click()
+  await model.getByRole("button", { name: "Add variant", exact: true }).click()
+  const variant = model.getByRole("group", { name: "Variant 2", exact: true })
+  await variant.getByRole("textbox", { name: "Variant ID", exact: true }).fill("new/variant")
+  await variant.getByRole("textbox", { name: "Reasoning effort", exact: true }).fill("medium")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toContainText("Provider saved")
+  expect(fixture.requests[0]?.body.patch).toMatchObject({
+    settings: { timeout: null, chunkTimeout: 60000 },
+    compatibility: { streamUsage: false },
+    models: {
+      alias: {
+        settings: { reasoningEffort: "high" },
+        compatibility: { maxTokensField: "max_completion_tokens" },
+        cost: { "0": null, "1": { output: 8 }, "2": { input: 2, output: 4, tierSize: 2000 } },
+        variants: {
+          existing: { settings: { reasoningEffort: "high" } },
+          remove: null,
+          "new/variant": { settings: { reasoningEffort: "medium" } },
+        },
+      },
+    },
+  })
+  await expect(
+    model
+      .getByRole("group", { name: "Price tier 1", exact: true })
+      .getByRole("textbox", { name: "Output price", exact: true }),
+  ).toHaveValue("8")
+  await model
+    .getByRole("group", { name: "Price tier 1", exact: true })
+    .getByRole("textbox", { name: "Cache write price", exact: true })
+    .fill("0")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect.poll(() => fixture.requests.length).toBe(2)
+  expect(fixture.requests[1]?.body.patch.models?.alias).toEqual({ cost: { "0": { cacheWrite: 0 } } })
+  await expect(
+    model
+      .getByRole("group", { name: "Price tier 1", exact: true })
+      .getByRole("textbox", { name: "Cache write price", exact: true }),
+  ).toHaveValue("0")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect.poll(() => fixture.requests.length).toBe(3)
+  expect(fixture.requests[2]?.body.patch.models?.alias).toEqual({})
+  await dialog.getByRole("button", { name: "Close", exact: true }).click()
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toHaveText("Existing Model")
 })
 
 test("custom provider text tests are explicit, cancellable and invalidated when saved connection fields change", async ({

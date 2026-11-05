@@ -3,6 +3,7 @@ export * as CustomProvider from "./custom-provider.js"
 import { Schema } from "effect"
 import { Credential } from "./credential.js"
 import { Provider } from "./provider.js"
+import { CustomProviderAdvanced } from "./custom-provider-advanced.js"
 import { PositiveInt, optional } from "./schema.js"
 
 const Text = Schema.String.check(Schema.isMinLength(1))
@@ -17,12 +18,18 @@ export const ModelPatch = Schema.Struct({
   output: Limit,
   tools: Schema.NullOr(Schema.Boolean).pipe(optional),
   image: Schema.NullOr(Schema.Boolean).pipe(optional),
+  settings: CustomProviderAdvanced.SettingsPatch.pipe(optional),
+  compatibility: CustomProviderAdvanced.CompatibilityPatch.pipe(optional),
+  cost: CustomProviderAdvanced.CostsPatch.pipe(optional),
+  variants: CustomProviderAdvanced.VariantsPatch.pipe(optional),
 }).annotate({ identifier: "CustomProvider.ModelPatch" })
 export interface ModelPatch extends Schema.Schema.Type<typeof ModelPatch> {}
 
 export const Patch = Schema.Struct({
   name: ClearText,
   baseURL: Text.pipe(optional),
+  settings: CustomProviderAdvanced.ProviderSettingsPatch.pipe(optional),
+  compatibility: CustomProviderAdvanced.CompatibilityPatch.pipe(optional),
   models: Schema.Record(Text, Schema.NullOr(ModelPatch)).pipe(optional),
 }).annotate({ identifier: "CustomProvider.Patch" })
 export interface Patch extends Schema.Schema.Type<typeof Patch> {}
@@ -44,6 +51,11 @@ export const Definition = Schema.Struct({
   context: Schema.Int.pipe(optional),
   input: Schema.Int.pipe(optional),
   output: Schema.Int.pipe(optional),
+  settings: CustomProviderAdvanced.Settings.pipe(optional),
+  compatibility: CustomProviderAdvanced.Compatibility.pipe(optional),
+  cost: Schema.Array(CustomProviderAdvanced.Cost).pipe(optional),
+  variants: Schema.Array(CustomProviderAdvanced.Variant).pipe(optional),
+  variantsReadonly: Schema.Boolean.pipe(optional),
 }).annotate({ identifier: "CustomProvider.Definition" })
 export interface Definition extends Schema.Schema.Type<typeof Definition> {}
 
@@ -53,6 +65,8 @@ export const Entry = Schema.Struct({
   sources: Schema.Array(Schema.String),
   reason: Schema.String.pipe(optional),
   baseURL: Schema.String.pipe(optional),
+  settings: CustomProviderAdvanced.ProviderSettings.pipe(optional),
+  compatibility: CustomProviderAdvanced.Compatibility.pipe(optional),
   keyReadonly: Schema.Boolean,
   keySources: Schema.Array(Schema.String),
   credentials: Schema.Array(Schema.Struct({ id: Credential.ID, label: Schema.String, active: Schema.Boolean })),

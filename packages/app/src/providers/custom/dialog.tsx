@@ -17,6 +17,17 @@ import { useData } from "@/runtime/server/current"
 import { formatServerError } from "@/runtime/server/errors"
 import { useLocal, type ModelSelection } from "@/providers/models/selection"
 import { uuid } from "@opencode/util/uuid"
+import {
+  advancedDraft,
+  advancedPatch,
+  AdvancedFields,
+  priceRow,
+  pricePatch,
+  PriceFields,
+  variantRow,
+  variantPatch,
+  VariantFields,
+} from "./advanced"
 
 function row(id = "", model: CustomProviderEntry["models"][string] = {}) {
   return {
@@ -30,6 +41,9 @@ function row(id = "", model: CustomProviderEntry["models"][string] = {}) {
     output: model.output?.toString() ?? "",
     tools: model.tools == null ? "inherit" : String(model.tools),
     image: model.image == null ? "inherit" : String(model.image),
+    advanced: advancedDraft(model),
+    costs: model.cost?.map(priceRow) ?? [],
+    variants: model.variants?.map(variantRow) ?? [],
   }
 }
 
@@ -48,6 +62,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     name: string
     baseURL: string
     key: string
+    advanced: ReturnType<typeof advancedDraft>
     credentialID: string
     rows: ReturnType<typeof row>[]
     busy: boolean
@@ -70,6 +85,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     name: "",
     baseURL: "",
     key: "",
+    advanced: advancedDraft(),
     credentialID: `cred_${uuid()}`,
     rows: [row()],
     busy: false,
@@ -182,6 +198,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     clearDiscovery()
     setStore({
       original: entry,
+      advanced: advancedDraft(entry),
       api: "openai",
       view: entry ? "edit" : "create",
       id: entry?.id ?? "",
@@ -363,11 +380,32 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       return
     }
 
+    const advanced = await Promise.resolve()
+      .then(() => ({
+        provider: advancedPatch(store.advanced, advancedDraft(store.original), true),
+        models: store.rows.map((item) => {
+          const original = store.original?.models[item.id]
+
+          return {
+            ...advancedPatch(item.advanced, advancedDraft(original)),
+            cost: pricePatch(item.costs, original?.cost),
+            variants: original?.variantsReadonly ? undefined : variantPatch(item.variants, original?.variants),
+          }
+        }),
+      }))
+      .catch(() => undefined)
+
+    if (!advanced) {
+      setStore("error", language.t("customProvider.advanced.invalid"))
+
+      return
+    }
+
     const models: NonNullable<ExperimentalConfigProvidersUpdateInput["patch"]["models"]> = Object.fromEntries([
       ...Object.keys(store.original?.models ?? {})
         .filter((key) => !keys.includes(key))
         .map((key) => [key, null]),
-      ...store.rows.map((item) => {
+      ...store.rows.map((item, index) => {
         const original = row(item.id, store.original?.models[item.id])
 
         const fields = Object.fromEntries(
@@ -386,7 +424,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
           }),
         )
 
-        return [item.id.trim(), fields]
+        return [item.id.trim(), { ...fields, ...advanced.models[index] }]
       }),
     ])
 
@@ -398,6 +436,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       mode: store.view === "create" ? "create" : "edit",
       revision: store.listing.revision,
       patch: {
+        ...advanced.provider,
         name: store.name === (store.original?.name ?? "") ? undefined : store.name.trim() || null,
         baseURL: store.baseURL === (store.original?.baseURL ?? "") ? undefined : store.baseURL.trim(),
         models,
@@ -423,10 +462,17 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
 
         if (saved.credential !== "failed") setStore("key", "")
         const listing = await load()
-        setStore(
-          "original",
-          listing.providers.find((item) => item.id === input.providerID),
-        )
+        const original = listing.providers.find((item) => item.id === input.providerID)
+        setStore("advanced", advancedDraft(original))
+        store.rows.forEach((item, index) => {
+          const model = original?.models[item.id]
+          setStore("rows", index, {
+            advanced: advancedDraft(model),
+            costs: model?.cost?.map(priceRow) ?? [],
+            variants: model?.variants?.map(variantRow) ?? [],
+          })
+        })
+        setStore("original", original)
         await refresh()
       })
       .catch((error) => setStore("error", formatServerError(error, language.t)))
@@ -660,6 +706,15 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                     </Show>
                   </div>
                   <p>{language.t("customProvider.defaults")}</p>
+                  <details class="flex flex-col gap-3">
+                    <summary>{language.t("customProvider.advanced.provider")}</summary>
+                    <p>{language.t("customProvider.advanced.help")}</p>
+                    <AdvancedFields
+                      provider
+                      value={store.advanced}
+                      onChange={(key, value) => setStore("advanced", key, value)}
+                    />
+                  </details>
                   <p>{language.t("customProvider.testHelp")}</p>
                   <For each={store.rows}>
                     {(item, index) => (
@@ -713,6 +768,25 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                         <Show when={item.tools === "false"}>
                           <p>{language.t("customProvider.noTools")}</p>
                         </Show>
+                        <details class="flex flex-col gap-3">
+                          <summary>{language.t("customProvider.advanced.model")}</summary>
+                          <fieldset class="flex flex-col gap-3">
+                            <legend>{language.t("customProvider.advanced.modelRequest")}</legend>
+                            <AdvancedFields
+                              value={item.advanced}
+                              onChange={(key, value) => setStore("rows", index(), "advanced", key, value)}
+                            />
+                          </fieldset>
+                          <PriceFields
+                            rows={item.costs}
+                            onChange={(rows) => setStore("rows", index(), "costs", rows)}
+                          />
+                          <VariantFields
+                            rows={item.variants}
+                            readonly={store.original?.models[item.id]?.variantsReadonly}
+                            onChange={(rows) => setStore("rows", index(), "variants", rows)}
+                          />
+                        </details>
                         <Button
                           type="button"
                           variant="outline"

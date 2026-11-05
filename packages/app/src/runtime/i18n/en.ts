@@ -1,6 +1,50 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "customProvider.advanced.provider": "Provider advanced options",
+  "customProvider.advanced.model": "Model advanced options",
+  "customProvider.advanced.modelRequest": "Model request options",
+  "customProvider.advanced.help":
+    "Empty fields inherit defaults. Unshown settings, headers and body are preserved; edit their source file to change them. Only enable compression when your endpoint supports it. These options are not verified by the minimal text test.",
+  "customProvider.advanced.inherit": "Inherit",
+  "customProvider.advanced.yes": "Yes",
+  "customProvider.advanced.no": "No",
+  "customProvider.advanced.reasoningEffort": "Reasoning effort",
+  "customProvider.advanced.textVerbosity": "Text verbosity",
+  "customProvider.advanced.parallelToolCalls": "Parallel tool calls",
+  "customProvider.advanced.encoding": "Request body encoding",
+  "customProvider.advanced.timeout": "Overall timeout (ms)",
+  "customProvider.advanced.headerTimeout": "Response header timeout (ms)",
+  "customProvider.advanced.chunkTimeout": "Stream chunk timeout (ms)",
+  "customProvider.advanced.timeoutHint": "Milliseconds, false to disable, or empty to inherit",
+  "customProvider.advanced.reasoningField": "Assistant reasoning field",
+  "customProvider.advanced.maxTokensField": "Output token limit field",
+  "customProvider.advanced.requireReasoning": "Require reasoning on prior messages",
+  "customProvider.advanced.requireFinishReason": "Require a finish reason",
+  "customProvider.advanced.requireAssistantAfterTool": "Require assistant after tool result",
+  "customProvider.advanced.supportsPromptCacheKey": "Accept prompt cache key",
+  "customProvider.advanced.streamUsage": "Request streamed usage",
+  "customProvider.advanced.cacheFormat": "Cache marker format",
+  "customProvider.advanced.priceHelp":
+    "Prices are USD per million tokens, including cache read/write prices. Zero means free. Each tier needs a distinct context size; only one may omit it as the default. Removing every price tier clears this model's price override.",
+  "customProvider.advanced.priceTier": "Price tier {{index}}",
+  "customProvider.advanced.price.input": "Input price",
+  "customProvider.advanced.price.output": "Output price",
+  "customProvider.advanced.price.cacheRead": "Cache read price",
+  "customProvider.advanced.price.cacheWrite": "Cache write price",
+  "customProvider.advanced.price.tierSize": "Context tier size (tokens)",
+  "customProvider.advanced.addPrice": "Add price tier",
+  "customProvider.advanced.removePrice": "Remove price tier",
+  "customProvider.advanced.variant": "Variant {{index}}",
+  "customProvider.advanced.variantID": "Variant ID",
+  "customProvider.advanced.variantHelp":
+    "Edit global configured variants only; generated or inherited variants may remain. Removing a configured variant also removes its unshown headers and body.",
+  "customProvider.advanced.addVariant": "Add variant",
+  "customProvider.advanced.removeVariant": "Remove variant",
+  "customProvider.advanced.variantsReadonly":
+    "Variant IDs are empty, repeated or use reserved identifiers. Edit the source file to resolve them before changing variants here.",
+  "customProvider.advanced.invalid":
+    "Check advanced options: timeouts must be positive whole milliseconds or false; prices must be non-negative numbers with input and output set; tier sizes must be distinct positive whole tokens; variant IDs must be unique, non-empty, contain no # and cannot be default.",
   "customProvider.testText": "Test text response",
   "customProvider.cancelTest": "Cancel text test",
   "customProvider.testHelp":

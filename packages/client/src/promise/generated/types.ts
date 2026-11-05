@@ -378,14 +378,12 @@ export type ConfigModelReasoning =
 
 export type ConfigShellOption = { path: string; name: string; acceptable: boolean }
 
-export type CustomProviderDefinition = {
-  name?: string
-  modelID?: string
-  context?: number
-  input?: number
-  output?: number
-  tools?: boolean | null
-  image?: boolean | null
+export type CustomProviderAdvancedCost = {
+  input: number
+  output: number
+  cacheRead?: number
+  cacheWrite?: number
+  tierSize?: number
 }
 
 export type CustomProviderSaved = {
@@ -457,6 +455,23 @@ export type ModelVariantSettings = { compaction?: ProviderCompaction; encoding?:
 
 export type ConfigModelVariantSettings = { compaction?: ProviderCompaction; encoding?: ProviderEncoding } & {
   [x: string]: JsonValue | null
+}
+
+export type CustomProviderAdvancedProviderSettings = {
+  reasoningEffort?: string
+  textVerbosity?: "low" | "medium" | "high"
+  parallelToolCalls?: boolean
+  encoding?: ProviderEncoding
+  timeout?: number | false
+  headerTimeout?: number | false
+  chunkTimeout?: number | false
+}
+
+export type CustomProviderAdvancedSettings = {
+  reasoningEffort?: string
+  textVerbosity?: "low" | "medium" | "high"
+  parallelToolCalls?: boolean
+  encoding?: ProviderEncoding
 }
 
 export type PermissionRule = { action: string; resource: string; effect: PermissionEffect }
@@ -746,6 +761,17 @@ export type SessionMessageAssistantReasoning1 = {
 
 export type ToolContent1 = ToolTextContent | ToolFileContent1
 
+export type CustomProviderAdvancedCompatibility = {
+  reasoningField?: string
+  maxTokensField?: ModelMaxTokensField
+  requireReasoning?: boolean
+  requireFinishReason?: boolean
+  requireAssistantAfterTool?: boolean
+  supportsPromptCacheKey?: boolean
+  streamUsage?: boolean
+  cacheFormat?: ModelCacheFormat
+}
+
 export type ModelCompatibility = {
   reasoningField?: ModelReasoningField
   requireReasoning?: boolean
@@ -1013,18 +1039,6 @@ export type ConfigModelCapabilities = {
   reasoning?: ConfigModelReasoning
 }
 
-export type CustomProviderEntry = {
-  id: ProviderID
-  name: string
-  sources: Array<string>
-  reason?: string
-  baseURL?: string
-  keyReadonly: boolean
-  keySources: Array<string>
-  credentials: Array<{ id: CredentialID; label: string; active: boolean }>
-  models: { [x: string]: CustomProviderDefinition }
-}
-
 export type CustomProviderDiscovery =
   | { status: "success"; models: Array<CustomProviderCandidate>; warnings: Array<string> }
   | {
@@ -1141,6 +1155,8 @@ export type ModelVariant = {
   headers?: { [x: string]: string }
   body?: { [x: string]: any }
 }
+
+export type CustomProviderAdvancedVariant = { id: string; settings?: CustomProviderAdvancedSettings }
 
 export type PermissionRuleset = Array<PermissionRule>
 
@@ -2298,13 +2314,6 @@ export type ScheduleWhen = ScheduleWhenIn | ScheduleWhenAt | ScheduleWhenEvery |
 
 export type ArtifactContent = { info: ArtifactInfo; files: { [x: string]: string } }
 
-export type CustomProviderListing = {
-  revision: string
-  target: string
-  reason?: string
-  providers: Array<CustomProviderEntry>
-}
-
 export type SessionInboxMove = {
   id: SessionMessageID
   sessionID: SessionID
@@ -2381,6 +2390,21 @@ export type ModelInfo = {
   status: "alpha" | "beta" | "deprecated" | "active"
   enabled: boolean
   limit: { context: number; input?: number; output: number }
+}
+
+export type CustomProviderDefinition = {
+  name?: string
+  modelID?: string
+  context?: number
+  input?: number
+  output?: number
+  tools?: boolean | null
+  image?: boolean | null
+  settings?: CustomProviderAdvancedSettings
+  compatibility?: CustomProviderAdvancedCompatibility
+  cost?: Array<CustomProviderAdvancedCost>
+  variants?: Array<CustomProviderAdvancedVariant>
+  variantsReadonly?: boolean
 }
 
 export type SessionInfo = {
@@ -2742,6 +2766,20 @@ export type AgentInfo = {
   permissions: PermissionRuleset
 }
 
+export type CustomProviderEntry = {
+  id: ProviderID
+  name: string
+  sources: Array<string>
+  reason?: string
+  baseURL?: string
+  settings?: CustomProviderAdvancedProviderSettings
+  compatibility?: CustomProviderAdvancedCompatibility
+  keyReadonly: boolean
+  keySources: Array<string>
+  credentials: Array<{ id: CredentialID; label: string; active: boolean }>
+  models: { [x: string]: CustomProviderDefinition }
+}
+
 export type SessionsResponse = {
   data: Array<SessionInfo>
   cursor: { previous?: SessionsCursor | null; next?: SessionsCursor | null }
@@ -2802,6 +2840,13 @@ export type SessionMessageAssistantContentEncoded =
 export type GenerateDecisionsResponse = { data: GenerateDecisionResult }
 
 export type FormInfo1 = { id: FormID; sessionID: string; title: string; metadata?: FormMetadata1; fields: FormFields1 }
+
+export type CustomProviderListing = {
+  revision: string
+  target: string
+  reason?: string
+  providers: Array<CustomProviderEntry>
+}
 
 export type SessionMessageInfo =
   | SessionMessageAgentSelected
@@ -4932,6 +4977,25 @@ export type ExperimentalConfigProvidersUpdateInput = {
   readonly patch: {
     readonly name?: string | null
     readonly baseURL?: string
+    readonly settings?: {
+      readonly reasoningEffort?: string | null
+      readonly textVerbosity?: "low" | "medium" | "high" | null
+      readonly parallelToolCalls?: boolean | null
+      readonly encoding?: ("zstd" | "gzip" | "none") | null
+      readonly timeout?: number | false | null
+      readonly headerTimeout?: number | false | null
+      readonly chunkTimeout?: number | false | null
+    }
+    readonly compatibility?: {
+      readonly reasoningField?: string | null
+      readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
+      readonly requireReasoning?: boolean | null
+      readonly requireFinishReason?: boolean | null
+      readonly requireAssistantAfterTool?: boolean | null
+      readonly supportsPromptCacheKey?: boolean | null
+      readonly streamUsage?: boolean | null
+      readonly cacheFormat?: ("anthropic" | "alibaba") | null
+    }
     readonly models?: {
       readonly [x: string]: {
         readonly name?: string | null
@@ -4941,6 +5005,41 @@ export type ExperimentalConfigProvidersUpdateInput = {
         readonly output?: number | null
         readonly tools?: boolean | null
         readonly image?: boolean | null
+        readonly settings?: {
+          readonly reasoningEffort?: string | null
+          readonly textVerbosity?: "low" | "medium" | "high" | null
+          readonly parallelToolCalls?: boolean | null
+          readonly encoding?: ("zstd" | "gzip" | "none") | null
+        }
+        readonly compatibility?: {
+          readonly reasoningField?: string | null
+          readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
+          readonly requireReasoning?: boolean | null
+          readonly requireFinishReason?: boolean | null
+          readonly requireAssistantAfterTool?: boolean | null
+          readonly supportsPromptCacheKey?: boolean | null
+          readonly streamUsage?: boolean | null
+          readonly cacheFormat?: ("anthropic" | "alibaba") | null
+        }
+        readonly cost?: {
+          readonly [x: string]: {
+            readonly input?: number
+            readonly output?: number
+            readonly cacheRead?: number | null
+            readonly cacheWrite?: number | null
+            readonly tierSize?: number | null
+          } | null
+        }
+        readonly variants?: {
+          readonly [x: string]: {
+            readonly settings?: {
+              readonly reasoningEffort?: string | null
+              readonly textVerbosity?: "low" | "medium" | "high" | null
+              readonly parallelToolCalls?: boolean | null
+              readonly encoding?: ("zstd" | "gzip" | "none") | null
+            }
+          } | null
+        }
       } | null
     }
   }

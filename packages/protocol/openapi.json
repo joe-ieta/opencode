@@ -17926,6 +17926,462 @@
           }
         ]
       },
+      "CustomProvider.Advanced.Compatibility": {
+        "type": "object",
+        "properties": {
+          "reasoningField": {
+            "type": "string"
+          },
+          "maxTokensField": {
+            "$ref": "#/components/schemas/Model.MaxTokensField"
+          },
+          "requireReasoning": {
+            "type": "boolean"
+          },
+          "requireFinishReason": {
+            "type": "boolean"
+          },
+          "requireAssistantAfterTool": {
+            "type": "boolean"
+          },
+          "supportsPromptCacheKey": {
+            "type": "boolean"
+          },
+          "streamUsage": {
+            "type": "boolean"
+          },
+          "cacheFormat": {
+            "$ref": "#/components/schemas/Model.CacheFormat"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CompatibilityPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningField": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxTokensField": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Model.MaxTokensField"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireReasoning": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireFinishReason": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireAssistantAfterTool": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supportsPromptCacheKey": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "streamUsage": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheFormat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Model.CacheFormat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Cost": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "number"
+          },
+          "output": {
+            "type": "number"
+          },
+          "cacheRead": {
+            "type": "number"
+          },
+          "cacheWrite": {
+            "type": "number"
+          },
+          "tierSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["input", "output"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CostPatch": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "number",
+            "minimum": 0
+          },
+          "output": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cacheRead": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheWrite": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tierSize": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CostsPatch": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.CostPatch"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "CustomProvider.Advanced.ProviderSettings": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "type": "string"
+          },
+          "textVerbosity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "parallelToolCalls": {
+            "type": "boolean"
+          },
+          "encoding": {
+            "$ref": "#/components/schemas/Provider.Encoding"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          },
+          "headerTimeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          },
+          "chunkTimeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.ProviderSettingsPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "textVerbosity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parallelToolCalls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider.Encoding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "headerTimeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chunkTimeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Settings": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "type": "string"
+          },
+          "textVerbosity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "parallelToolCalls": {
+            "type": "boolean"
+          },
+          "encoding": {
+            "$ref": "#/components/schemas/Provider.Encoding"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.SettingsPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "textVerbosity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parallelToolCalls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider.Encoding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Variant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Settings"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.VariantsPatch": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string",
+          "minLength": 1
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "settings": {
+                  "$ref": "#/components/schemas/CustomProvider.Advanced.SettingsPatch"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
       "CustomProvider.Candidate": {
         "type": "object",
         "properties": {
@@ -18028,6 +18484,27 @@
                 "type": "null"
               }
             ]
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Settings"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Compatibility"
+          },
+          "cost": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.Cost"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.Variant"
+            }
+          },
+          "variantsReadonly": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -18178,6 +18655,12 @@
           "baseURL": {
             "type": "string"
           },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.ProviderSettings"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Compatibility"
+          },
           "keyReadonly": {
             "type": "boolean"
           },
@@ -18318,6 +18801,18 @@
                 "type": "null"
               }
             ]
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.SettingsPatch"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CompatibilityPatch"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CostsPatch"
+          },
+          "variants": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.VariantsPatch"
           }
         },
         "additionalProperties": false
@@ -18339,6 +18834,12 @@
           "baseURL": {
             "type": "string",
             "minLength": 1
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.ProviderSettingsPatch"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CompatibilityPatch"
           },
           "models": {
             "type": "object",

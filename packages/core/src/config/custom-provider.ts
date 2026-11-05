@@ -17,6 +17,7 @@ import { Model } from "../model.js"
 import { ModelsDev } from "../models-dev.js"
 import { ConfigDiscovery } from "./discovery.js"
 import { ConfigWrite } from "./write.js"
+import { ConfigProviderAdvanced } from "./custom-provider-advanced.js"
 
 const packageName = "@opencode/ai/providers/openai-compatible"
 const Definitions = Schema.Record(Schema.String, Schema.Json)
@@ -214,6 +215,7 @@ const read = Effect.fn("ConfigCustomProvider.read")(function* () {
           sources: sources.map((item) => item.path),
           reason: readonly,
           baseURL: safeURL(info?.settings?.baseURL),
+          ...ConfigProviderAdvanced.provider(info),
           keyReadonly: !!configuredKey,
           keySources: [
             ...(saved.length ? ["credential"] : []),
@@ -229,6 +231,7 @@ const read = Effect.fn("ConfigCustomProvider.read")(function* () {
             Object.entries(info?.models ?? {}).map(([key, model]) => [
               key,
               {
+                ...ConfigProviderAdvanced.model(model),
                 name: model.name,
                 modelID: model.modelID,
                 context: model.limit?.context,
@@ -306,7 +309,7 @@ export function safeURL(value: unknown) {
 
 function edit(text: string, id: string, input: CustomProvider.Update) {
   const info = Option.getOrUndefined(Schema.decodeUnknownOption(ConfigProvider.Info)(decode(text)?.providers?.[id]))
-  const changes: { path: string[]; value: Schema.Json | undefined }[] = []
+  const changes: { path: (string | number)[]; value: Schema.Json | undefined }[] = []
   if (input.mode === "create") changes.push({ path: ["package"], value: packageName })
   if (input.patch.name !== undefined) changes.push({ path: ["name"], value: input.patch.name ?? undefined })
   if (input.patch.baseURL !== undefined) {
@@ -322,6 +325,7 @@ function edit(text: string, id: string, input: CustomProvider.Update) {
       changes.push({ path: ["models", key], value: { capabilities: { input: ["text"], output: ["text"] } } })
     Object.entries(model).forEach(([field, value]) => {
       if (value === undefined) return
+      if (["settings", "compatibility", "cost", "variants"].includes(field)) return
       const path = ["models", key]
       if (["context", "input", "output"].includes(field)) path.push("limit", field)
       if (field === "tools") path.push("capabilities", "tools")
@@ -343,6 +347,7 @@ function edit(text: string, id: string, input: CustomProvider.Update) {
       changes.push({ path, value: value ?? undefined })
     })
   })
+  changes.push(...ConfigProviderAdvanced.changes(text, id, input.patch, info))
   const result = changes.reduce(
     (current, change) =>
       applyEdits(
@@ -354,6 +359,12 @@ function edit(text: string, id: string, input: CustomProvider.Update) {
     text,
   )
   const validated = Schema.decodeUnknownSync(ConfigProvider.Info)(decode(result)?.providers?.[id])
+  Object.entries(input.patch.models ?? {}).forEach(([key, model]) => {
+    if (!model?.cost || !Object.keys(model.cost).length) return
+    const prices = validated.models?.[key]?.cost
+    if (Array.isArray(prices) && new Set(prices.map((price) => price.tier?.size ?? "default")).size !== prices.length)
+      throw new Error({ kind: "invalid", message: "duplicate-price-tiers" })
+  })
   if (!safeURL(validated.settings?.baseURL) || !Object.keys(validated.models ?? {}).length)
     throw new Error({ kind: "invalid", message: "provider-needs-url-and-model" })
   return result.endsWith("\n") ? result : `${result}\n`
