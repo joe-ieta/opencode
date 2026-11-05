@@ -438,7 +438,6 @@ export const dict = {
   "sidebar.project.recentSessions": "最近会话",
   "sidebar.project.clearNotifications": "清除通知",
   "settings.general.row.interfaceMode.sidebar": "侧栏",
-  "settings.general.row.interfaceMode.sidebar.description": "按项目分组显示会话历史，并始终显示运行中的会话列表。",
 
   "settings.section.server": "服务器",
 

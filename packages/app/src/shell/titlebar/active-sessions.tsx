@@ -149,7 +149,7 @@ export function ActiveSessions() {
                   const value = entry()
 
                   const requests = sessionRequests(
-                    value.ctx.data,
+                    value.ctx,
                     value.id,
                     false,
                     settings.permissions.autoApproves(projectSettingsKey(value.ctx.sdk.scope, session()?.projectID)),

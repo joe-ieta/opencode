@@ -1585,6 +1585,7 @@ export function createData(config: CreateDataInput) {
       status(sessionID: string) {
         return store.session.active[sessionID] ?? "idle"
       },
+      activeReady: () => executionAvailability() !== "loading",
       active() {
         return Object.entries(store.session.active).flatMap(([sessionID, status]) =>
           status === "running" ? [sessionID] : [],
@@ -1878,7 +1879,14 @@ export function createData(config: CreateDataInput) {
               (item) => !ids.has(item.id) && (outbox.has(item.id) || admitted.has(item.id)),
             )
             const messages = local.length === 0 ? fetched : [...fetched, ...local]
+            // The transcript only holds delivered input, so a pending row it contains missed its
+            // inbox.delivered event (and maybe its enqueued echo) while the event stream was down.
+            const delivered = [...admitted].filter((id) => ids.has(id))
             batch(() => {
+              delivered.forEach((id) => {
+                outbox.delete(id)
+                removePending(sessionID, id)
+              })
               messageIndex.set(sessionID, new Map(messages.map((message, index) => [message.id, index])))
               setStore("session", "message", sessionID, reconcile(messages))
               setStore("session", "messageCursor", sessionID, response.cursor.next ?? undefined)
