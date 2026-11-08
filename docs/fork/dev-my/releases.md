@@ -6,20 +6,22 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| Windows 测试 | `v2.2.5-my.5`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) |
+| Windows 测试 | `v2.2.5-my.6`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.6) |
 | Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
 
 本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。本次使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
 
-## v2.2.5-my.6 Windows x64 本地验收（2026-11-08）
+## v2.2.5-my.6 Windows x64 测试预发行
 
+- 2026-11-09 00:36:36（Asia/Shanghai）公开为 Windows x64 测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.6)
 - 构建源码为 `ca61e332a34fa4bd2aa1eeef9c11930817bbf3ba`，基于已同步官方 `dev@caf8d6a554ecd988767c08f1f15508849eff8728` 的 `dev-my`。用户于 2026-11-08 确认 Windows 安装后的手工测试通过，`project-management` 随后快进合入 `dev-my`。
 - 吸收 [PR #2](https://github.com/joe-ieta/opencode/pull/2) 的 Home 项目管理共享思路：Side bar 增加相同的项目菜单及添加项目入口，支持编辑、复制路径、关闭/重新打开、导入/新建会话及导出会话。Side bar 只按项目显示，栏目使用 Projects，保留草稿和运行会话；同时修复新草稿在冷加载时未及时持久化的问题。
 - 合入前完整根检查 33 项、相关单元测试 35 项、生产 Chromium Home/标签回归 102 项及重点重复回归 30 项通过；浏览器回归均无重试。
 - 合入后重新构建生产界面，6/6 Chromium 冒烟通过（三 workers、无重试），覆盖 Home/Side bar 项目共享、项目菜单与编辑、关闭/重新打开后的草稿及运行会话保留、整组收起、历史同步和旧 List 设置兼容。
 - 使用 Bun 1.4.4 构建。模型目录完整比较 7,660 个模型；单次请求遇到五秒插件激活超时后，通过已有 `--via-server` 模式复验。隔离的服务发现、V1 升级确认及迁移历史冒烟通过。
 - 实际安装包的 ASAR/CLI 版本、项目管理资源、NSIS 完整性、固定标签更新源、SHA256SUMS 和更新清单 SHA512/大小均通过校验；产物未签名。
-- 本地安装包位于 `dist/releases/v2.2.5-my.6/opencode-desktop-win-x64.exe`，281,873,709 字节，SHA256 为 `5bd579bd793ca7671e33e6b9f57d7aacb53ba5f5b85241aff05b3a12408223bb`。本次未发布 GitHub Release 或源码标签。
+- 安装包位于 `dist/releases/v2.2.5-my.6/opencode-desktop-win-x64.exe`，281,873,709 字节，SHA256 为 `5bd579bd793ca7671e33e6b9f57d7aacb53ba5f5b85241aff05b3a12408223bb`。源码标签固定在构建提交，四个 GitHub 资产的服务端大小及 SHA256 与本地一致。
+- 三份清单的完整公开下载与本地一致；安装器公开下载入口、总大小及 65,536 字节文件头均已验证。稳定 Latest 接口仍返回 404，本次未改变 Latest。临时分支 `project-management` 的本地和远程引用已在确认完全合入且无开放 PR 后删除。
 
 ## v2.2.5-my.5 Windows x64 测试预发行
 
