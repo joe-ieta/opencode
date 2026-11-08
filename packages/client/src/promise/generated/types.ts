@@ -2569,6 +2569,7 @@ export type ConfigEntry =
           media_blob?: boolean
           schedules?: boolean
           artifacts?: boolean
+          codemode_vm?: boolean
           part_rows?: boolean
           image_generate?: boolean | { model?: string | { providerID: string; model: string; variant?: string } }
           subagent_depth?: number

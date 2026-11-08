@@ -2,6 +2,7 @@ import type { SessionInfo, SessionsResponse } from "@opencode/client/promise"
 import { pathKey } from "@/workspaces/path-key"
 import { SESSION_RECENT_LIMIT, SESSION_RECENT_WINDOW } from "@/runtime/server/global-sync/types"
 
+// Side bar counts and quiet projects require the full inventory; retain only recent rows while folding each page.
 export const HOME_V2_SESSION_PAGE_LIMIT = 5_000
 
 export const HOME_SESSION_LIMIT = 64
@@ -63,7 +64,7 @@ export type HomeSessionInventory = Awaited<ReturnType<typeof loadHomeSessionInve
 
 // Keep this filter for locally known sessions merged into the fetched index.
 export function parseHomeSessionIndex(sessions: SessionInfo[]) {
-  return sessions.filter((session) => !session.parentID && typeof session.time.archived !== "number")
+  return sessions.filter((session) => !session.parentID && session.time.archived === undefined)
 }
 
 export function mergeHomeSessionIndex(fetched: SessionInfo[], known: SessionInfo[]) {

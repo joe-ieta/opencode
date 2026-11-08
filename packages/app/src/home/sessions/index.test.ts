@@ -13,6 +13,7 @@ import {
 } from "./index"
 
 const session = (id: string, input: Partial<SessionInfo> = {}) =>
+  // SAFETY: fixtures spell every other field of the info they model, and each test only reads those fields.
   ({
     id,
     projectID: "project",
