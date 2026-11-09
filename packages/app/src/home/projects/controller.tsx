@@ -8,7 +8,7 @@ import { createResource } from "solid-js"
 import { Schema } from "effect"
 import { Persistence } from "@/runtime/persistence/schema"
 import type { HomeController } from "../model"
-import { createProjectActions } from "./actions"
+import { createProjectActions } from "@/shell/projects/actions"
 
 export const HomeServersSchema = Schema.Struct({
   collapsed: Persistence.record(Persistence.fallback(Schema.Boolean, () => false)),

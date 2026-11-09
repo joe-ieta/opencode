@@ -1,3 +1,4 @@
+import { createSidebarVisibility } from "@/shell/sidebar/visibility"
 import type { SessionInfo, SessionMessageUser } from "@opencode/client/promise"
 import type { ComposerSelection } from "@/composer/adapter"
 import { createSimpleContext } from "@opencode/ui/context"
@@ -111,11 +112,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
     const [regions, setRegions, , regionsReady] = persisted(Persist.window("tabs.panes"), TabStorage.Regions, {})
     const [closed, setClosed, , closedReady] = persisted(Persist.window("tabs.closed"), TabStorage.Closed, [])
     const [promotion, setPromotion] = createSignal(INITIAL_TAB_PROMOTION_STATE)
-    const [sidebarHidden, setSidebarHidden, , sidebarHiddenReady] = persisted(
-      Persist.window("sidebar.hidden"),
-      TabStorage.SidebarHidden,
-      [],
-    )
+    const sidebarVisibility = createSidebarVisibility()
 
     const navigate = useNavigate()
     const location = useLocation()
@@ -180,17 +177,6 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         )
         navigateTab(entry.tab)
       })
-    }
-
-    // Queue visibility changes behind desktop storage hydration, preserving close/reopen order.
-    const hideInSidebar = (tab: SessionTab, hidden: boolean) => {
-      const key = tabKey(tab)
-      const apply = () =>
-        setSidebarHidden((current) =>
-          hidden ? (current.includes(key) ? current : [...current, key]) : current.filter((item) => item !== key),
-        )
-      if (sidebarHiddenReady()) return apply()
-      void sidebarHiddenReady.promise?.then(apply)
     }
 
     const removeDraftPersisted = (draftID: string) => {
@@ -357,7 +343,8 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
     })
 
     const navigateTab = (tab: Tab) => {
-      if (tab.type === "session") hideInSidebar(tab, false)
+      if (tab.type === "session") sidebarVisibility.update(tabKey(tab), false)
+
       if (preview.current()) {
         void startTransition(() => {
           preview.clear()
@@ -473,7 +460,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       },
       addSessionTab: (tab: Omit<SessionTab, "type">) => {
         const next = { type: "session" as const, ...tab }
-        hideInSidebar(next, false)
+        sidebarVisibility.update(tabKey(next), false)
 
         const current = preview.current()
 
@@ -626,9 +613,10 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         if (!tab) return
 
         if (tab.type === "session") {
-          hideInSidebar(tab, true)
+          sidebarVisibility.update(tabKey(tab), true)
           updateClosed((stack) => pushClosedTab(stack, tab, index, info[tabKey(tab)]))
         }
+
         removeTab(index)
       },
       closeTabs(keys: string[], keep: Tab) {
@@ -794,9 +782,9 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       },
       select: navigateTab,
       sidebar: {
-        ready: sidebarHiddenReady,
-        hidden: (tab: Tab) => tab.type === "session" && sidebarHidden.includes(tabKey(tab)),
-        hide: (tab: SessionTab) => hideInSidebar(tab, true),
+        ready: sidebarVisibility.ready,
+        hidden: (tab: Tab) => tab.type === "session" && sidebarVisibility.hidden(tabKey(tab)),
+        hide: (tab: SessionTab) => sidebarVisibility.update(tabKey(tab), true),
       },
       remember(tab: Tab) {
         preview.activate(tab)

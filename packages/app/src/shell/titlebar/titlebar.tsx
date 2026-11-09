@@ -1,4 +1,15 @@
-import { createEffect, createMemo, createSignal, Match, on, onCleanup, Show, Switch, untrack } from "solid-js"
+import {
+  startTransition,
+  createEffect,
+  createMemo,
+  createSignal,
+  Match,
+  on,
+  onCleanup,
+  Show,
+  Switch,
+  untrack,
+} from "solid-js"
 import { Portal } from "solid-js/web"
 import { useLocation } from "@solidjs/router"
 import { uuid } from "@opencode/util/uuid"
@@ -19,8 +30,8 @@ import { TitlebarTabStrip } from "@/shell/titlebar/tab-strip"
 import { macVerticalTrafficLights, SidebarToggle } from "@/shell/sidebar-toggle"
 import { SidebarInbox } from "@/shell/titlebar/inbox"
 import { SidebarOrganized } from "@/shell/titlebar/sidebar-organized"
-import { SidebarMode } from "@/shell/titlebar/sidebar-mode"
-import { ActiveSessions } from "@/shell/titlebar/active-sessions"
+import { SidebarProjects } from "@/shell/sidebar/projects"
+import { RunningSessions } from "@/shell/sidebar/running"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { createMediaQuery } from "@solid-primitives/media"
 import { readSessionTabsRemovedDetail, SESSION_TABS_REMOVED_EVENT } from "@/shell/titlebar/session-events"
@@ -785,7 +796,9 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                                         when={settings.general.sidebarOrganize() === "projects"}
                                         fallback={verticalTabStrip()}
                                       >
-                                        <SidebarOrganized currentTab={currentTab()}>{verticalTabStrip}</SidebarOrganized>
+                                        <SidebarOrganized currentTab={currentTab()}>
+                                          {verticalTabStrip}
+                                        </SidebarOrganized>
                                       </Show>
                                     }
                                   >
@@ -793,9 +806,7 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                                   </Show>
                                 }
                               >
-                                <SidebarMode
-                                  orientation="vertical"
-                                  grouping
+                                <SidebarProjects
                                   tabs={tabsStore}
                                   currentTab={currentTab()}
                                   onNavigate={(tab, el) => {
@@ -804,9 +815,9 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                                   }}
                                   onClose={(tab) => {
                                     const index = tabsStore.findIndex((item) => tabKey(item) === tabKey(tab))
+
                                     if (index !== -1) tabsStoreActions.closeTab(index)
                                   }}
-                                  onReorder={(keys) => tabsStoreActions.reorder(keys)}
                                 />
                               </Show>
                             </div>
@@ -816,7 +827,24 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                               </div>
                             </Show>
                             <Show when={settings.appearance.tabLayout() === "sidebar"}>
-                              <ActiveSessions />
+                              <RunningSessions
+                                connections={global.servers.list().map((conn) => ({
+                                  conn,
+                                  ctx: global.serverCtx(ServerConnection.key(conn)),
+                                }))}
+                                selected={(() => {
+                                  const route = layout.route()
+
+                                  return route.type === "session"
+                                    ? { server: route.server, sessionID: route.sessionId }
+                                    : undefined
+                                })()}
+                                onOpen={(server, sessionID) =>
+                                  void startTransition(() =>
+                                    tabs.select(tabs.addSessionTab({ server, sessionId: sessionID })),
+                                  )
+                                }
+                              />
                             </Show>
                           </Portal>
                         )}

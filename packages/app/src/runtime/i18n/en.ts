@@ -787,11 +787,7 @@ export const dict = {
 
   "sidebar.settings": "Settings",
   "sidebar.help": "Help",
-  "sidebar.grouping.label": "Group sessions",
-  "sidebar.grouping.none": "List",
-  "sidebar.grouping.project": "By project",
   "sidebar.grouping.other": "Other sessions",
-  "sidebar.recent.title": "Recent sessions",
   "sidebar.pinned.title": "Pinned projects",
   "sidebar.draft.unsent": "Draft (unsent)",
   "sidebar.session.branch": "Branch: {{branch}}",

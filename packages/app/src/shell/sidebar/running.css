@@ -24,6 +24,13 @@
     /* Five 36px rows, while preserving project navigation in short windows. */
     max-height: min(180px, 30dvh);
     overflow-y: auto;
+    scrollbar-gutter: stable;
+
+    @media (hover: hover) and (pointer: fine) {
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--v2-border-border-muted);
+      }
+    }
     overscroll-behavior: contain;
   }
 

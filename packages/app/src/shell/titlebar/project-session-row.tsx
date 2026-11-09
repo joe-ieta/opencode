@@ -1,3 +1,4 @@
+import { removeIndexedSessions } from "@/runtime/server/session-queries"
 import { createMemo, createSignal, onCleanup, Show, untrack } from "solid-js"
 import { useQueryClient } from "@tanstack/solid-query"
 import type { SessionInfo } from "@opencode/client/promise"
@@ -78,9 +79,7 @@ export function ProjectSessionRow(props: {
 
       const conn = connection()
 
-      queryClient.setQueryData<SessionInfo[]>(["home-sessions", conn], (sessions) =>
-        sessions?.filter((session) => !ids.includes(session.id)),
-      )
+      removeIndexedSessions(queryClient, conn, ids)
       void current.data.session
         .remove(props.session.id)
         .then(() => {

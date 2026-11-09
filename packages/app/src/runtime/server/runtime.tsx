@@ -231,15 +231,6 @@ function createServerController(
     remove: (sessionID) => sdk.api.session.remove({ sessionID }),
   })
 
-  // Side bar previews need the parent of an active child even when neither session has an open tab.
-  createEffect(() => {
-    if (settings.appearance.tabLayout() !== "sidebar") return
-    new Set(data.session.active().map((id) => data.session.root(id))).forEach((id) => {
-      if (data.session.get(id)) return
-      void data.session.sync(id).catch(() => undefined)
-    })
-  })
-
   // Transcripts otherwise stay loaded for every session this window ever opened. Open tabs and the three most
   // recently viewed sessions keep theirs; any other session reloads its transcript when it is opened again.
   createSessionRetention({

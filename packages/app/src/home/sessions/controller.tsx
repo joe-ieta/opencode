@@ -17,11 +17,12 @@ import {
 import { notifySessionTabsRemoved } from "@/shell/titlebar/session-events"
 import { useCommand } from "@/shell/commands/command"
 import {
-  HOME_SESSION_INDEX_LIMIT,
-  HOME_SESSION_LIMIT,
-  mergeHomeSessionIndex,
-  retainHomeSessions,
-} from "@/home/sessions/index"
+  type SessionIndex,
+  SESSION_INDEX_LIMIT,
+  SESSION_LIST_LIMIT,
+  mergeSessionIndex,
+  retainSessions,
+} from "@/runtime/server/session-index"
 import type { LocalProject } from "@/shell/state/layout"
 import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection } from "@/runtime/server/registry"
@@ -44,7 +45,7 @@ import { usePlatform } from "@/runtime/platform/platform"
 import { sessionLabel, sessionTitle } from "@/session/title"
 import { showToast } from "@/shell/notifications/toast"
 import { archiveHomeSession } from "./archive"
-import { homeSessionsQuery } from "./queries"
+import { removeIndexedSessions, renameIndexedSession, sessionIndexQuery } from "@/runtime/server/session-queries"
 import {
   HOME_SESSIONS_STALE_MS,
   INITIAL_HOME_SESSIONS_LOAD_STATE,
@@ -124,7 +125,7 @@ export function createHomeSessionsController(home: HomeController) {
 
   function homeSessionsTarget(current = focus()): HomeSessionsTarget | undefined {
     if (!current) return
-    const cache = queryClient.getQueryState<SessionInfo[]>(["home-sessions", current.conn])
+    const cache = queryClient.getQueryState<SessionIndex>(["home-sessions", current.conn])
     const cached = cache?.data !== undefined
 
     return {
@@ -185,7 +186,7 @@ export function createHomeSessionsController(home: HomeController) {
     }
 
     // Through the shared query, so a fetch the sidebar already started is joined and the result lands in its cache.
-    void queryClient.fetchQuery({ ...homeSessionsQuery(conn, ctx, queryClient), staleTime: 0 }).then(
+    void queryClient.fetchQuery({ ...sessionIndexQuery(conn, ctx), staleTime: 0 }).then(
       () => dispatchLoad({ type: "fetch.succeeded", attempt, reducedMotion: prefersReducedMotion() }),
       (cause) =>
         dispatchLoad({
@@ -231,7 +232,7 @@ export function createHomeSessionsController(home: HomeController) {
     load()
     const conn = home.server.focused()
 
-    return (conn && queryClient.getQueryData<SessionInfo[]>(["home-sessions", conn])) || []
+    return (conn && queryClient.getQueryData<SessionIndex>(["home-sessions", conn])?.sessions) || []
   })
 
   // The shared index holds one bounded page of the newest sessions. A project scoped to older history asks the server
@@ -260,7 +261,7 @@ export function createHomeSessionsController(home: HomeController) {
     void Promise.allSettled(
       directories.map((directory) =>
         ctx.sdk.api.session.list(
-          { directory, limit: HOME_SESSION_INDEX_LIMIT, order: "desc", parentID: null },
+          { directory, limit: SESSION_INDEX_LIMIT, order: "desc", parentID: null },
           { signal: controller.signal },
         ),
       ),
@@ -277,11 +278,9 @@ export function createHomeSessionsController(home: HomeController) {
 
     if (!ctx || !conn) return []
 
-    return retainHomeSessions(
-      ctx.data.session.apply(
-        mergeHomeSessionIndex([...fetchedSessions(), ...scopedSessions()], ctx.data.session.list()),
-      ),
-      HOME_SESSION_LIMIT,
+    return retainSessions(
+      ctx.data.session.apply(mergeSessionIndex([...fetchedSessions(), ...scopedSessions()], ctx.data.session.list())),
+      SESSION_LIST_LIMIT,
       Date.now(),
     )
   })
@@ -295,7 +294,7 @@ export function createHomeSessionsController(home: HomeController) {
     }),
   )
 
-  const records = createMemo(() => allRecords().slice(0, HOME_SESSION_LIMIT))
+  const records = createMemo(() => allRecords().slice(0, SESSION_LIST_LIMIT))
   const groups = createMemo(() => groupSessions(records(), language))
   const prefetched = new Set<string>()
 
@@ -394,9 +393,7 @@ export function createHomeSessionsController(home: HomeController) {
         // record so date grouping and ordering do not go stale.
         ctx.data.session.invalidate(session.id)
         void ctx.data.session.sync(session.id).catch(() => {})
-        queryClient.setQueryData<SessionInfo[]>(["home-sessions", conn], (current) =>
-          current?.map((item) => (item.id === session.id ? { ...item, title: next } : item)),
-        )
+        renameIndexedSession(queryClient, conn, session.id, next)
 
         return true
       })
@@ -464,10 +461,7 @@ export function createHomeSessionsController(home: HomeController) {
       if (effect.type === "session.removed") {
         const conn = serverContext(props.server)?.conn
 
-        if (conn)
-          queryClient.setQueryData<SessionInfo[]>(["home-sessions", conn], (current) =>
-            current?.filter((item) => !effect.target.removedIDs.includes(item.id)),
-          )
+        if (conn) removeIndexedSessions(queryClient, conn, effect.target.removedIDs)
         notifySessionTabsRemoved({
           server: props.server,
           directory: props.session.location.directory,

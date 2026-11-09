@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onCleanup, Show, untrack, type Ref } from "solid-js"
+import { createEffect, createMemo, createSignal, onCleanup, Show, untrack, type Ref, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Predicate } from "effect"
 import { makeEventListener } from "@solid-primitives/event-listener"
@@ -14,11 +14,8 @@ import { displayName } from "@opencode/ui/project-avatar"
 import { SessionTabAvatarView } from "@/shell/layout/session-tab-avatar"
 import type { SessionInfo } from "@opencode/client/promise"
 import { showToast } from "@/shell/notifications/toast"
-import { sessionLastRunLabel, sessionTabTitle } from "./tab-title"
-import { createSessionBranches } from "./session-branches"
-import { pathKey } from "@/workspaces/path-key"
-import { createSessionExporter } from "@/session/commands/export-session"
-import { TabPreviewPopover } from "./tab-popover"
+import { sessionTabTitle } from "./tab-title"
+import { TabPreviewPopover, type TabPreviewData } from "./tab-popover"
 import {
   INITIAL_TAB_RENAME_STATE,
   isTabRenaming,
@@ -82,7 +79,9 @@ export function TabNavItem(
     closable?: boolean
     closeLabel?: string
     closeMenuLabel?: string
-    showSessionDetails?: boolean
+    previewDetails?: Pick<TabPreviewData, "lastRun" | "branch" | "worktree">
+    onPreviewOpenChange?: (open: boolean) => void
+    menuItems?: JSX.Element
     onDelete: () => void
     onNavigate: () => void
     active?: boolean
@@ -94,7 +93,6 @@ export function TabNavItem(
   },
 ) {
   const language = useLanguage()
-  const exporter = createSessionExporter()
   const [renameState, setRenameState] = createSignal(INITIAL_TAB_RENAME_STATE)
   const editing = () => isTabRenaming(renameState())
   const [titleOverflowing, setTitleOverflowing] = createSignal(false)
@@ -107,6 +105,7 @@ export function TabNavItem(
   const closeTab = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
+
     if (props.closable === false) return
     props.onClose()
   }
@@ -191,34 +190,6 @@ export function TabNavItem(
   })
 
   const [popoverOpen, setPopoverOpen] = createSignal(false)
-  const branches = createSessionBranches()
-  const branchEntry = () => {
-    if (!props.showSessionDetails) return
-    const ctx = serverCtx()
-    const session = props.session
-    return ctx && session ? { ctx, session, server: props.server } : undefined
-  }
-  createEffect(() => {
-    if (!popoverOpen()) return
-    const entry = branchEntry()
-    if (entry) branches.load([entry])
-  })
-  const branch = () => {
-    const entry = branchEntry()
-    return entry && branches.branch(entry)
-  }
-  const worktree = createMemo(() => {
-    if (!props.showSessionDetails) return
-    const value = project()
-    const directory = props.session?.location.directory
-    if (!value || !directory || !("sandboxes" in value)) return
-    const key = pathKey(directory)
-    return (
-      value.sandboxes
-        .filter((root) => key === pathKey(root) || key.startsWith(`${pathKey(root)}/`))
-        .toSorted((a, b) => b.length - a.length)[0] ?? value.worktree
-    )
-  })
 
   const previewBlocked = () =>
     !!props.dragging || selectTabPreviewBlocked(renameState()) || !!props.pressed || !props.session
@@ -587,15 +558,14 @@ export function TabNavItem(
         onOpenChange={(value) => {
           if (value && previewBlocked()) return
           setPopoverOpen(value)
+          props.onPreviewOpenChange?.(value)
         }}
         data={{
           projectName: projectName(),
           title: props.session?.title,
           path: previewPath(),
           serverName: serverLabel(),
-          lastRun: props.showSessionDetails ? sessionLastRunLabel(props.session?.time, language) : undefined,
-          branch: branch(),
-          worktree: worktree(),
+          ...props.previewDetails,
         }}
       />
       <Menu.Context.Portal>
@@ -615,16 +585,7 @@ export function TabNavItem(
           <Menu.Item disabled={!props.session} onSelect={() => startRename("menu")}>
             {language.t("common.rename")}
           </Menu.Item>
-          <Show when={props.showSessionDetails}>
-            <Menu.Item
-              disabled={!props.session || exporter.exporting({ server: props.server, sessionID: props.session.id })}
-              onSelect={() => {
-                if (props.session) exporter.export({ server: props.server, sessionID: props.session.id })
-              }}
-            >
-              {language.t("common.export")}…
-            </Menu.Item>
-          </Show>
+          {props.menuItems}
           <Show when={props.closable !== false}>
             <TabCloseMenuItems
               orientation={props.orientation}

@@ -407,11 +407,7 @@ export const dict = {
 
   "sidebar.settings": "设置",
   "sidebar.help": "帮助",
-  "sidebar.grouping.label": "会话分组",
-  "sidebar.grouping.none": "列表",
-  "sidebar.grouping.project": "按项目",
   "sidebar.grouping.other": "其他会话",
-  "sidebar.recent.title": "最近会话",
   "sidebar.draft.unsent": "草稿（未发送）",
   "sidebar.session.branch": "分支：{{branch}}",
   "sidebar.session.worktree": "工作树：{{path}}",

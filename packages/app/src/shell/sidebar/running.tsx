@@ -1,38 +1,39 @@
-import { createEffect, createMemo, createUniqueId, For, onCleanup, Show, startTransition } from "solid-js"
+import { createEffect, createMemo, createUniqueId, For, on, onCleanup, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { ActivityRing } from "@opencode/ui/activity-ring"
 import { Icon } from "@opencode/ui/icon"
 import { displayName } from "@opencode/ui/project-avatar"
 import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection, serverName } from "@/runtime/server/registry"
-import { useGlobal } from "@/runtime/server/runtime"
+import type { ServerCtx } from "@/runtime/server/runtime"
 import { projectSettingsKey, useSettings } from "@/settings/model"
 import { sessionRequests } from "@/shell/layout/project-avatar-state"
-import { useLayout } from "@/shell/state/layout"
-import { useTabs } from "@/shell/tabs/tabs"
-import { sessionLastRunLabel, sessionTabTitle } from "./tab-title"
-import { workingDuration } from "./inbox-working"
-import { createSessionBranches } from "./session-branches"
+import { sessionLastRunLabel, sessionTabTitle } from "@/shell/titlebar/tab-title"
+import { elapsedTime } from "@/shell/sessions/duration"
+import { createSessionBranches } from "@/shell/sessions/branches"
 import { pathKey } from "@/workspaces/path-key"
-import "./active-sessions.css"
+import "./running.css"
 
 /** Observation includes background work and ancestors, independently of model execution ownership. */
-export function ActiveSessions() {
-  const global = useGlobal()
+export function RunningSessions(props: {
+  connections: { conn: ServerConnection.Any; ctx: ServerCtx | undefined }[]
+  selected?: { server: ServerConnection.Key; sessionID: string }
+  onOpen: (server: ServerConnection.Key, sessionID: string) => void
+}) {
   const language = useLanguage()
   const settings = useSettings()
-  const layout = useLayout()
-  const tabs = useTabs()
   const heading = createUniqueId()
-  const branches = createSessionBranches()
-  const [clock, setClock] = createStore({ now: Date.now() })
 
-  const connections = createMemo(() =>
-    global.servers.list().map((conn) => ({ conn, ctx: global.serverCtx(ServerConnection.key(conn)) })),
+  const branches = createSessionBranches(() =>
+    props.connections.flatMap((item) =>
+      item.ctx?.sdk.connection.status() === "connected" ? [ServerConnection.key(item.conn)] : [],
+    ),
   )
 
+  const [clock, setClock] = createStore({ now: Date.now() })
+
   const entries = createMemo(() =>
-    connections().flatMap((item) => {
+    props.connections.flatMap((item) => {
       const ctx = item.ctx
 
       if (!ctx || ctx.sdk.connection.status() !== "connected") return []
@@ -48,9 +49,9 @@ export function ActiveSessions() {
   )
 
   const byKey = createMemo(() => new Map(entries().map((entry) => [entry.key, entry])))
-  const disconnected = () => connections().some((item) => item.ctx?.sdk.connection.status() !== "connected")
-  const unavailable = () => connections().some((item) => item.ctx?.data.session.activity.unavailable())
-  const loading = () => connections().some((item) => item.ctx && !item.ctx.data.session.activity.ready())
+  const disconnected = () => props.connections.some((item) => item.ctx?.sdk.connection.status() !== "connected")
+  const unavailable = () => props.connections.some((item) => item.ctx?.data.session.activity.unavailable())
+  const loading = () => props.connections.some((item) => item.ctx && !item.ctx.data.session.activity.ready())
 
   createEffect(() => {
     if (!entries().length) return
@@ -63,20 +64,10 @@ export function ActiveSessions() {
     branches.load(
       entries().flatMap((entry) => {
         const session = entry.ctx.data.session.get(entry.id)
+
         return session ? [{ server: entry.server, ctx: entry.ctx, session }] : []
       }),
     )
-  })
-
-  // Read metadata and requests for active IDs only; this overview never loads transcripts or historical indexes.
-  createEffect(() => {
-    entries().forEach((entry) => {
-      void Promise.allSettled([
-        entry.ctx.data.session.sync(entry.id),
-        entry.ctx.data.session.permission.sync(entry.id),
-        entry.ctx.data.session.form.sync(entry.id),
-      ])
-    })
   })
 
   return (
@@ -107,6 +98,28 @@ export function ActiveSessions() {
           {(key) => (
             <Show when={byKey().get(key)}>
               {(entry) => {
+                // A keyed row survives other sessions and shells changing. Refresh only on arrival or a new connection.
+                const context = createMemo(() => entry().ctx)
+
+                createEffect(
+                  on(context, (ctx) => {
+                    void Promise.allSettled([
+                      ctx.data.session.sync(entry().id),
+                      ctx.data.session.permission.sync(entry().id),
+                      ctx.data.session.form.sync(entry().id),
+                    ])
+                  }),
+                )
+
+                // A running child can belong to a parent that this window has never opened.
+                createEffect(() => {
+                  const value = entry()
+                  const root = value.ctx.data.session.root(value.id)
+
+                  if (root === value.id || value.ctx.data.session.get(root)) return
+                  void value.ctx.data.session.sync(root).catch(() => undefined)
+                })
+
                 const session = createMemo(() => entry().ctx.data.session.get(entry().id))
 
                 const project = createMemo(() => {
@@ -118,25 +131,33 @@ export function ActiveSessions() {
                 })
 
                 const projectName = () => displayName(project() ?? { worktree: session()?.location.directory ?? "" })
+
                 const branch = () => {
                   const value = session()
+
                   return value
                     ? branches.branch({ server: entry().server, ctx: entry().ctx, session: value })
                     : undefined
                 }
+
                 const worktree = () => {
                   const root = project()?.worktree
                   const directory = session()?.location.directory
+
                   return !!root && !!directory && pathKey(root) !== pathKey(directory)
                 }
+
                 const duration = () => {
                   const since = entry().ctx.data.session.activity.since(entry().id, true)
+
                   return since === undefined
                     ? undefined
-                    : workingDuration({ time: { busy: since } }, clock.now, language)
+                    : elapsedTime(Math.max(0, Math.floor((clock.now - since) / 1000)), language)
                 }
+
                 const summary = () => {
                   const work = entry().ctx.data.session.activity.list(entry().id, true)
+
                   return language.plural("sidebar.running.activity", work.length, {
                     models: work.filter((item) => item.kind === "model").length,
                     agents: work.filter((item) => item.kind === "subagent").length,
@@ -162,11 +183,8 @@ export function ActiveSessions() {
                   return "working"
                 })
 
-                const selected = () => {
-                  const route = layout.route()
-
-                  return route.type === "session" && route.server === entry().server && route.sessionId === entry().id
-                }
+                const selected = () =>
+                  props.selected?.server === entry().server && props.selected.sessionID === entry().id
 
                 return (
                   <button
@@ -189,12 +207,10 @@ export function ActiveSessions() {
                       .join("\n")}
                     onClick={() => {
                       const value = entry()
-                      void startTransition(() => {
-                        tabs.select(tabs.addSessionTab({ server: value.server, sessionId: value.id }))
-                        const directory = project()?.worktree
+                      props.onOpen(value.server, value.id)
+                      const directory = project()?.worktree
 
-                        if (directory) value.ctx.projects.touch(directory)
-                      })
+                      if (directory) value.ctx.projects.touch(directory)
                     }}
                   >
                     <span data-slot="active-session-mark" aria-hidden="true">
@@ -236,7 +252,7 @@ export function ActiveSessions() {
                           </span>
                         </span>
                       </Show>
-                      <Show when={connections().length > 1}>
+                      <Show when={props.connections.length > 1}>
                         <span class="ms-1.5">{serverName(entry().conn)}</span>
                       </Show>
                     </span>
