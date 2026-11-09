@@ -6,7 +6,7 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：本仓库唯一远端和唯一发布目标（地址见 `.git/config`）；官方上游按 [FORK.md](../../FORK.md) 定义从 `origin` 的官方分支获取（V2 `dev`、V1 `v1`），不配置 `upstream` remote。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
+- `origin`：`git@gitee.com:ieta/opencode-my.git`，本仓库唯一发布远端（地址见 `.git/config`）；`upstream`：<https://github.com/joe-ieta/opencode>，代码同步来源，V2 同步源码从 `upstream/dev` 获取；本机虽有写权限，但只允许通过 PR 与之交互。本项目与 <https://github.com/anomalyco/opencode> 没有关系，不配置也不访问该仓库。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
 - 源码、标签及全部平台发布物只发布到 `origin` 的 Releases。超过 origin 单附件大小限制时按分卷发布并附合并说明与校验值；历史发布只作来源追溯。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
@@ -16,35 +16,28 @@
 ```powershell
 git status --short --branch
 git fetch origin --prune --no-tags
+git fetch upstream --prune --no-tags
 git branch -vv
 git log -1 --oneline origin/dev-my
 git log -1 --oneline origin/oc-headless
 git log -1 --oneline origin/qt-headless
+git log -1 --oneline upstream/dev
 ```
 
 查询标签与发行资产时分别核对；有 tag 不代表已有可下载 Release：
 
 ```powershell
 git ls-remote --tags origin 'v*-dev-my.*' 'oc-headless-v*' 'qt-headless-v*'
-# 发行资产在 origin 的 Releases 页面或 API 核对；gh 只用于官方上游的 Issue/PR 查询
+# 发行资产在 origin 的 Releases 页面或 API 核对；本项目不查询 anomalyco/opencode
 ```
 
 不要因上游“Latest Release”当前展示 V1 而误判 V2 代码版本；同步目标由分支定位确定。
 
-## 2. 跟踪上游贡献
+## 2. 历史上游贡献记录
 
-```powershell
-gh pr list --repo anomalyco/opencode --author joe-ieta --state all --limit 30
-gh pr view 60496 --repo anomalyco/opencode --json state,mergedAt,mergeCommit,headRefOid
-gh pr view 60446 --repo anomalyco/opencode --json state,isDraft,mergeable,reviewDecision,statusCheckRollup
-gh issue view 60241 --repo anomalyco/opencode --comments
-```
+`docs/fork/upstream-prs.md` 中的 Issue/PR 链接属于历史记录，仅作来源追溯，不构成本项目的上游或协作关系。本项目不再查询、更新或推进 anomalyco/opencode 的 Issue/PR；不要为这些历史链接配置远端或运行跟踪命令。
 
-以上命令只查询官方上游贡献记录；官方上游不配置为本仓库 remote，`origin` 是唯一远端，不得混用。官方分支从 `origin` 获取，缺失时报告缺口，不另加远端。
-
-每次交互后更新 [PR 跟踪](upstream-prs.md)，必要时更新 [FORK.md](../../FORK.md)的状态快照。官方设计批准、机器人回复、测试成功、实际合并要分别记录；不要把一个状态推断成另一个。
-
-官方贡献不从本仓库推送：需要时在独立检出或临时工作副本中，基于官方 `dev`（V2）或 `v1`（V1）准备 conventional commit 与 PR。本仓库只做只读跟踪和本地补丁维护，三条发行线分别基于 `origin` 同名分支。保持 fork 文档、品牌和发行脚本不混入无关官方 PR。临时分支与关联 worktree 的清理须先列出并经用户确认。
+本项目与 `upstream` 的变更只通过 PR（或等价评审流程）进行：从对应上游基线创建范围单一的主题分支，仅推送该主题分支并开 PR；禁止直接推送维护分支、发布标签或 fork 元数据。`AGENTS.md`、`FORK.md` 和 `docs/fork/` 的 fork 专属内容必须从上游 PR 分支中排除，推送前用 `git diff --name-only <upstream-base>...HEAD` 核对。临时分支与关联 worktree 的清理须先列出并经用户确认。
 
 ## 3. 同步三条发行线
 
@@ -60,7 +53,7 @@ gh issue view 60241 --repo anomalyco/opencode --comments
 ```powershell
 git switch dev-my
 git merge --ff-only origin/dev-my
-git merge origin/dev
+git merge upstream/dev
 bun install --frozen-lockfile
 bun run check
 ```
@@ -84,7 +77,7 @@ bun run oc:build --skip-install --skip-typecheck
 bun run oc:smoke
 ```
 
-V2 跟踪 `origin/dev`（官方 V2 分支）。`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 origin 发布。
+V2 跟踪 `upstream/dev`（本项目上游的 V2 分支）。`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 origin 发布。
 
 V2 使用最小差异守卫，保留包结构，通过 `--skip-web-ui` 生成 headless 单二进制；避免误套 V1 包删除清单。公开协议变化后先按仓库要求从 `packages/client` 运行 `bun run generate`，不得手改生成客户端。API 契约基线更新必须审阅差异，不能为了让检查通过盲目 `--update`。
 
@@ -100,7 +93,7 @@ bun run qtoc:trim
 bun run qtoc:build --skip-install --skip-typecheck
 ```
 
-跟踪源固定为 `origin/v1`（官方 V1 分支）。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
+跟踪源固定为 `origin/v1`（本项目 V1 基线；`upstream` 当前没有 V1 分支）。sync 已完成依赖和类型检查时才使用 skip 参数；发生冲突后，手工收尾还需 trim、安装、类型检查和协议检查。当前没有 `qtoc:release` 别名，不照抄 V2 命令。
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 
@@ -167,7 +160,7 @@ git push origin refs/tags/v2.2.3-dev-my.3
 
 ```
 
-`gh release` 不适用于 origin。全部平台安装包及更新清单统一发布到 `origin`；单附件超过 origin 限制时按现有分卷流程拆分，并在发行说明中附合并命令与完整文件 SHA256。不要向官方上游推送 fork 发行提交、标签或发布物。
+`gh release` 不适用于 origin。全部平台安装包及更新清单统一发布到 `origin`；单附件超过 origin 限制时按现有分卷流程拆分，并在发行说明中附合并命令与完整文件 SHA256。不要向 `upstream` 推送 fork 发行提交、标签或发布物。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 

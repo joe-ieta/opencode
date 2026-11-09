@@ -54,6 +54,6 @@
 
 ## 发布与验证证据
 
-桌面发行和资产以 [fork Releases](https://github.com/joe-ieta/opencode/releases) 为准；headless 标签与历史构建、Qt 验收记录见本目录各分支的 KB/ops。来源文档的“CI 待补”保留原记录，本次核对 Actions 设置已启用，没有重新运行或冒充通过。
+桌面发行和资产以 [origin Releases](https://gitee.com/ieta/opencode-my/releases) 为准；headless 标签与历史构建、Qt 验收记录见本目录各分支的 KB/ops。来源文档的“CI 待补”保留原记录，本次核对 Actions 设置已启用，没有重新运行或冒充通过。
 
-PR 状态通过 GitHub 查询更新到 [upstream-prs.md](upstream-prs.md)，包括 #60496 已合并、#56929 当前 OPEN、#60446 仍 Draft 且冲突，以及历史关闭的 #54467。记录变化，不把会话中的较早状态当作最终状态。
+[upstream-prs.md](upstream-prs.md) 是历史 PR 快照，仅作来源追溯，不再通过 GitHub 查询或更新。

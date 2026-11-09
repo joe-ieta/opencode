@@ -396,7 +396,7 @@ Text-to-SQL 能力包是双引擎架构的**验证 Demo（demo 工程）**，用
 | 部署与运维         | 部署模板、审计、监控                         | `infra` / `qtoc-infra`        |
 | 架构与规范（可选） | ADR、能力规范、Roadmap                       | `spec` / `qtoc-spec`          |
 
-> 内核 fork 保留 upstream remote（`anomalyco/opencode`）；仓库重命名不影响 `upstream` 跟踪。
+> 内核 fork 保留 `upstream` remote（`joe-ieta/opencode`），仅用于同步和 PR 交互；仓库重命名不影响 `upstream` 跟踪。本项目与 anomalyco/opencode 没有关系。
 
 ### 8.2 依赖方向（单向）
 

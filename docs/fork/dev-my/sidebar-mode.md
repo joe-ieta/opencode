@@ -2,7 +2,7 @@
 
 核对日期：2026-11-02（Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
-> 当前仓库关系以顶层 [AGENTS.md](../../../AGENTS.md) 为准：`origin` 是唯一远端（Gitee）；官方上游按 [FORK.md](../../../FORK.md) 的定义只读获取，不配置为 `upstream` remote，也不推送。
+> 当前仓库关系以顶层 [AGENTS.md](../../../AGENTS.md) 为准：`origin`（Gitee）是唯一发布远端；`upstream`（<https://github.com/joe-ieta/opencode>）是代码同步来源，仅通过 PR 交互。
 
 维护约束：此次更新既有 PR 来自用户明确指示；后续 Side bar 开发只在 `dev-my`，不再并行维护贡献分支。不再发送测试邀请，下文邀请链接仅记录此前已发生的上游交互。
 

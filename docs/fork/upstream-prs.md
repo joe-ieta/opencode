@@ -1,8 +1,8 @@
 # 上游 PR、Issue 与补丁跟踪
 
-总体历史快照：2026-10-31（Asia/Shanghai）；#60867 单独更新于 2026-11-02，其他条目未在本轮重新查询。历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。这是人工维护的状态快照，不是自动监控。
+总体历史快照：2026-10-31（Asia/Shanghai）；#60867 单独更新于 2026-11-02，其他条目未在本轮重新查询。历史条目指向 [anomalyco/opencode](https://github.com/anomalyco/opencode)，仅作来源追溯；本项目与其没有上游或协作关系。
 
-> 当前仓库关系以顶层 [AGENTS.md](../../AGENTS.md) 为准：`origin` 是唯一远端；官方上游按 [FORK.md](../../FORK.md) 的定义从 `origin` 的官方分支获取，不配置为 `upstream` remote，也不推送。
+> 当前仓库关系以顶层 [AGENTS.md](../../AGENTS.md) 为准：`origin`（Gitee）是唯一发布远端；`upstream`（<https://github.com/joe-ieta/opencode>）是代码同步来源，仅通过 PR 交互。本页不再查询或更新，也不构成远端配置。
 
 ## 当前 PR
 

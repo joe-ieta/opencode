@@ -9,8 +9,8 @@
 
 | 项目           | 值                                                                                                                 |
 | -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 上游仓库       | 按项目定义从 `origin` 的官方分支获取（V1 `v1`）；不配置 `upstream` remote                                          |
-| 本仓库（fork） | 唯一远端 `origin`，地址见 `.git/config`                                                                            |
+| 上游仓库       | `upstream`：<https://github.com/joe-ieta/opencode>，代码同步来源，仅通过 PR 交互；V2 使用 `upstream/dev`。本项目与 anomalyco/opencode 没有关系              |
+| 本仓库（fork） | 发布远端 `origin`（Gitee），地址见 `.git/config`                                                                    |
 | 跟踪分支       | `qt-headless`                                                                                                      |
 | 同步工具       | `bun run qtoc:sync`（见 [../ops/qtoc-build.md](../ops/qtoc-build.md) 第 4 节）                                     |
 | 上游同步源     | `origin/v1`（V1 维护线，1.19.x）；`origin/dev` 于 2026-10-10 晋升 V2/2.x（无 `packages/opencode`），本线不同步；origin 缺少 `v1` 时先报告缺口 |

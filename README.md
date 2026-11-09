@@ -34,7 +34,7 @@ OpenCode My 把改动集中在每天都会用到的三件事上：
 
 ### 项目来源
 
-OpenCode My 在本仓库维护，官方上游为 `anomalyco/opencode`，发行桌面应用 **OpenCode My**。`origin` 是唯一远端，发布物只推送到 origin。
+OpenCode My 在本仓库维护，代码同步上游为 `joe-ieta/opencode`，`origin`（Gitee）是唯一发布远端，发布物只推送到 origin。本项目与 `anomalyco/opencode` 没有关系。
 
 ### 本地模型支持
 

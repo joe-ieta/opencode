@@ -4,11 +4,18 @@
 
 以下约定自 2026-11-02 起生效，顶层约束见 [AGENTS.md](AGENTS.md)，覆盖仓库旧文档中的远端、同步和发布配置。
 
-- 本仓库唯一远端及唯一发布目标 `origin`：地址以 `.git/config` 为准。不配置第二个 remote，不向其他地址推送 refs、标签或发布物。
-- 官方上游按本文档定义从 `origin` 的官方分支获取：V2 跟踪 `dev`，V1 跟踪 `v1`。不配置 `upstream` remote；官方分支只读，缺失时报告缺口，不从其他地址补充。
+- 远端 `origin`：`git@gitee.com:ieta/opencode-my.git`，本仓库唯一的发布目标；源码、标签及所有平台发布物只推送到这里。
+- 上游 `upstream`：<https://github.com/joe-ieta/opencode>，代码同步来源；V2 同步源码从 `upstream/dev` 获取。它不是发布目标。
+- 本项目与 <https://github.com/anomalyco/opencode> 没有关系，不配置、不拉取、不推送、不发布到该仓库；文档中的相关链接仅作历史来源追溯。
 - 仅长期维护 `dev-my`、`oc-headless`、`qt-headless`，分别跟踪 `origin` 同名分支；三条发行线独立合并、构建和验证。
 - 源码、标签及所有平台发布物统一使用 `origin` 的 Releases。超过 origin 单附件大小限制时按分卷发布并附合并说明与校验值；历史发布仅作来源追溯。
-- 其他本地/远端分支和关联 worktree 先盘点，获用户明确确认后再清理；官方上游分支不属于清理范围。
+- 其他本地/远端分支和关联 worktree 先盘点，获用户明确确认后再清理；上游分支不属于清理范围。
+
+### 上游交互规则
+
+- 本机具备 `upstream` 的写权限，但禁止直接推送维护分支（`dev-my`、`oc-headless`、`qt-headless`）、发布标签或 fork 元数据；已有上游分支保持只读，不改写其历史。
+- 与上游的变更只通过 PR（或等价评审流程）进行：从对应上游基线创建范围单一的主题分支，仅推送该主题分支并打开 PR，不合并维护分支。
+- `AGENTS.md` 与 `FORK.md` 是 fork 本地策略文件，必须从上游 PR 分支中排除，也不得推送到 `upstream`。`docs/fork/` 的 fork 专属说明同样不进入上游 PR，除非 PR 本身讨论这些文档；提交前用 `git diff --name-only <upstream-base>...HEAD` 核对。
 
 本项目独立维护三个发行分支：V2 桌面应用、V2 headless 内核、V1 headless 内核。Qt 客户端消费内核协议，桌面应用沿用 OpenCode 的 Electron 架构。
 
@@ -19,8 +26,8 @@
 | 分支                                           | 定位与跟踪源                                                           | 当前进度                                                                                                                                                         |
 | ---------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [dev-my](docs/fork/dev-my/README.md)           | 桌面唯一维护主线，发行 OpenCode My | 已同步 V2 2.2.5 `dev@ff90ed9160`；`v2.2.5-dev-my.2` 的 Windows x64 分卷已公开并核对摘要，Linux amd64/arm64 产物见[发行记录](docs/fork/dev-my/releases.md)。#60867 已更新，来源分支仅冻结保留 PR 引用 |
-| [oc-headless](docs/fork/oc-headless/README.md) | 跟随官方 `origin/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入  | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成                      |
-| [qt-headless](docs/fork/qt-headless/README.md) | 跟随官方 `origin/v1`，维护 V1 `qtoc_core` 和 Qt 集成                  | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                                               |
+| [oc-headless](docs/fork/oc-headless/README.md) | 跟随 `upstream/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入  | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成                      |
+| [qt-headless](docs/fork/qt-headless/README.md) | 以 `origin/v1` 为 V1 基线维护 `qtoc_core` 和 Qt 集成                  | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                                               |
 
 三条线独立构建、标记和验收。不要把 `dev-my` 的 GUI 改动整分支合入 headless，也不要把 V2 的协议、目录和迁移假设套用到 V1。桌面现有脚本支持 Windows x64 与 Linux x64/arm64；Linux arm64 可在 Ubuntu 24.04 x64 上交叉构建并用 QEMU 做 CLI 冒烟。macOS 虽属于官方桌面架构支持的平台，目前没有本 fork 的该脚本构建与发行验证。
 
@@ -31,7 +38,9 @@
 - **自定义模型可见性**：保留未知发布日期，防止模型被错误识别为 1970 年旧模型而隐藏。此修复已随桌面 `.2` 发行，并已合入官方。
 - **Qt/headless 工具链**：V1 裁剪与 V2 最小差异构建分开，产物分别命名为 `qtoc_core`、`oc_core`，不互相替代。
 
-## 上游贡献与合并策略
+## 历史 PR 记录（仅追溯）
+
+> 下表链接指向历史第三方仓库，仅作来源追溯，不表示本项目与其存在上游或协作关系。
 
 | PR                                                                                | 当前状态                                            | 后续处理                                                                   |
 | --------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -41,7 +50,7 @@
 | [#60867](https://github.com/anomalyco/opencode/pull/60867) 独立 Side bar 模式     | **OPEN / Draft**，head `b88b94a75d`，基线 `ff90ed9160` | 本次按用户明确要求同步项目收起、后代活动及 RTL 修复；开发统一 dev-my，本地来源分支已删除，远端仅冻结保留 PR 引用 |
 | [#60446](https://github.com/anomalyco/opencode/pull/60446) 原 Side tabs 概览      | **CLOSED**，未合并，2026-10-31                      | 由 #60867 替代；旧分支已于 2026-11-02 清理，原设计与本地提交归档保留                                 |
 
-完整 Issue、历史 PR、设计建议和补丁去留规则见 [上游跟踪](docs/fork/upstream-prs.md)。官方 Issue/PR 用于上游贡献跟踪；日常维护基于 `origin` 对应维护分支，官方上游按本文档定义从 `origin` 的官方分支获取，不配置为远端，也不从本仓库推送官方分支。三条发行线通过 merge 吸收各自上游，保留已发布历史。
+完整历史 PR、设计建议和补丁去留规则见 [历史跟踪](docs/fork/upstream-prs.md)。本项目当前不向 anomalyco/opencode 查询、提交或推送贡献；日常维护基于 `origin` 对应维护分支，V2 官方代码从 `upstream/dev` 同步。三条发行线通过 merge 保留已发布历史。
 
 ## 文档、构建与发布入口
 

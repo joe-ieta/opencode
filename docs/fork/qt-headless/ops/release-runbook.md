@@ -41,7 +41,7 @@
 | 项       | 要求                                                                                                                                                                         |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 分支     | `qt-headless`，工作区干净                                                                                                                                                    |
-| 远端     | `origin` 是唯一远端和推送目标；官方 V1 分支从 `origin/v1` 获取（`dev` 已于 2026-10-10 晋升 V2/2.x，不可作为本线同步源）；不配置 `upstream` remote |
+| 远端     | `origin` 是唯一发布远端和推送目标；`upstream`（<https://github.com/joe-ieta/opencode>）是代码同步来源，仅通过 PR 交互。V1 基线从 `origin/v1` 获取（`upstream` 当前没有 V1 分支；`dev` 已于 2026-10-10 晋升 V2/2.x，不可作为本线同步源） |
 | Bun      | ≥ 1.3.14（仓库 `packageManager` 声明；CI 用 latest，本机验证 1.4.2）；安装见 [bun-install.md](bun-install.md)                                                                |
 | Git 身份 | 本机未配置全局身份：合并提交与附注标签前必须设置 `GIT_AUTHOR_*` / `GIT_COMMITTER_*` 环境变量（见第 4 节 Step 1），否则报 `Committer identity unknown`                        |
 | 凭据     | `origin` 的推送凭据由用户在本机提供（SSH 私钥或令牌）；历史 GitHub Actions 命令仅作追溯                                                                                     |

@@ -21,7 +21,7 @@
 | 项               | 要求/说明                                                                                                                                             |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bun              | ≥ 1.4.2（V2 根 `packageManager` 声明；CI 用 latest）                                                                                                  |
-| 分支             | `oc-headless`，工作区干净；`origin` 是唯一远端，官方 V2 分支从 `origin/dev` 获取                                                                       |
+| 分支             | `oc-headless`，工作区干净；`origin` 是唯一发布远端，官方 V2 分支从 `upstream/dev` 获取                                                              |
 | 预推送钩子       | 钩子执行 `bun run check`（lint + typecheck）。本机 Node < 23.6 时需 `NODE_OPTIONS=--experimental-strip-types`（oxlint 加载 TS 插件）；CI 自带合适环境 |
 | Windows 符号链接 | 上游 `packages/app                                                                                                                                    | enterprise/src/custom-elements.d.ts`与多处`public/\*`为 symlink；无 symlink 权限的检出会得到占位内容，导致`app`/`enterprise`typecheck 误报`TS1128`。临时以目标内容替换（不提交）后跑检查，推送后 `git checkout --` 还原 |
 | git 身份         | 与 V1 线一致：合并/附注标签前注入 `GIT_AUTHOR_*`/`GIT_COMMITTER_*`（frank <48937772+joe-ieta@users.noreply.github.com>）；`GIT_MERGE_AUTOEDIT=no`     |

@@ -1,15 +1,18 @@
 ## Repository Constraints (highest priority within this repository)
 
-- `origin` is the only remote of this project, and its URL in `.git/config` is the single authoritative fetch and push destination. Never add, restore, or use a second remote or mirror, and never push refs, tags, or release assets to an address other than `origin`.
-- Address `origin` explicitly in every remote operation (`git fetch origin`, `git push origin <branch>`). Do not publish the same refs to another host as a fallback or in parallel.
-- If this machine cannot push to `origin` (missing credential or SSH key), stop and report exactly which access is missing so the user can help set up the access private key. Do not switch the remote, rewrite its URL, or push to another address to work around the failure.
-- Upstream is obtained from `origin` itself, using the official branches named by the project definition in this repository (`FORK.md` and `docs/fork/`): `dev` for V2 and `v1` for V1. Do not configure an `upstream` remote and do not fetch the upstream project from another address.
-- If a required official branch is missing from `origin`, stop and report the missing branch instead of adding another remote or fetching it from elsewhere. Official branches are read-only: never push them or rewrite their history.
-- Publish source, tags, and release assets to `origin` only. Release pages and asset uploads follow `origin`; no other host is a fork release destination.
+- `origin` is the project's only publish remote: `git@gitee.com:ieta/opencode-my.git` (the URL in `.git/config` is authoritative). Fetch, push, tags, and release assets go only to `origin`.
+- `upstream` is the source remote: `https://github.com/joe-ieta/opencode`. Fetch source code and reference it from here; it is not a release destination.
+- This project has no relationship with `https://github.com/anomalyco/opencode`. Do not configure, fetch, push, or publish to that repository. Historical links in documentation are provenance only and do not define a remote relationship.
+- This machine has write access to `upstream`, but direct pushes to it are forbidden. Interact with `upstream` only through pull requests (or an equivalent review flow): a scoped topic branch may be pushed for an open PR, never a maintained branch (`dev-my`, `oc-headless`, `qt-headless`), a release tag, or fork metadata.
+- `AGENTS.md` and `FORK.md` are fork-local policy files. Exclude both from every upstream PR branch and never push them to `upstream`; base upstream contributions on the upstream tree without these files.
+- Address remotes explicitly in every remote operation (`git fetch origin`, `git fetch upstream`, `git push origin <branch>`). Never push release refs, tags, maintained branches, or fork metadata to `upstream` or any other address.
+- If this machine cannot reach `origin` or `upstream` (missing credential or SSH key), stop and report exactly which access is missing. Do not switch remotes, rewrite their URLs, or use another host as a workaround.
+- The V2 synchronization source is `upstream/dev`. If that branch is missing, stop and report the gap. Existing upstream branches are read-only: never push them or rewrite their history.
+- Publish source, tags, and release assets to `origin` only. Release pages and asset uploads follow `origin`; no other host is a release destination.
 - These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes.
 - Maintain exactly three long-lived branches: `dev-my` (V2 desktop), `oc-headless` (V2 headless), and `qt-headless` (V1 headless). Track the same-named `origin` branches. Keep their code, builds, and release histories separate.
-- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. When synchronizing, fetch `origin` and merge its official branch (`dev` or `v1`) into the matching maintained branch, then push only to `origin`, preserving local patches with merges.
-- Scoped official contributions are not pushed from this project. They need a separate checkout with its own remote configuration; never retarget `origin` or push upstream branches from here.
+- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`; maintain `qt-headless` from `origin/v1` because `upstream` has no V1 branch. Merge into maintained branches, preserve local patches with merges, then push only to `origin`.
+- For a scoped upstream pull request, create a topic branch from the relevant upstream base (`upstream/dev` for V2), include only the scoped change, exclude `AGENTS.md` and `FORK.md`, push that topic branch to `upstream`, and open the PR. Never push a maintained branch or rewrite upstream history.
 - Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. A default-branch change also needs explicit confirmation.
 - Historical release records and assets are provenance only; do not delete remote repositories or existing release assets when configuration changes.
 

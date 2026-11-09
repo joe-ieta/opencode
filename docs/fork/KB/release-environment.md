@@ -118,7 +118,7 @@ bun install --frozen-lockfile --cpu=*
 
 1. 确认 WSL2 可用：`wsl --status`、`wsl -l -v`。
 2. 确认 `origin` 的推送凭据可用（SSH 私钥或令牌；由用户在本机配置，不写入仓库）。
-3. 配置 Git 身份；确认 `origin` 是唯一远端，官方分支也从 `origin` 获取；源码、标签与发布物只发布到 `origin`，不配置 `upstream` remote。
+3. 配置 Git 身份；确认 `origin`（Gitee）是唯一发布远端，`upstream`（<https://github.com/joe-ieta/opencode>）是代码同步来源且仅通过 PR 交互；源码、标签与发布物只发布到 `origin`，不直接推送到 `upstream`。
 4. 确保系统盘有足够空间；WSL VHDX 建议放到数据盘。
 
 推送示例（凭据由本机配置提供）：
