@@ -14,6 +14,7 @@ import { showToast } from "@/shell/notifications/toast"
 import type { LocalProject } from "@/shell/state/layout"
 import { createProjectSessionActions } from "@/shell/tabs/project-sessions"
 import { useDirectoryPicker } from "@/workspaces/selection/picker"
+import { displayName } from "@opencode/ui/project-avatar"
 import { addProjects } from "./add"
 import {
   INITIAL_PROJECT_IMPORT_STATE,
@@ -205,8 +206,20 @@ export function createProjectActions() {
 
       directories(project).forEach((directory) => notification?.project.markViewed(directory))
     },
-    hide: (conn: ServerConnection.Any, project: LocalProject) =>
-      global.serverCtx(ServerConnection.key(conn))?.projects.hide(project),
+    hide(conn: ServerConnection.Any, project: LocalProject) {
+      const ctx = global.serverCtx(ServerConnection.key(conn))
+      if (!ctx) return
+      ctx.projects.hide(project)
+      showToast({
+        title: language.t("sidebar.project.closed", { project: displayName(project) }),
+        actions: [
+          {
+            label: language.t("sidebar.project.reopen"),
+            onClick: () => global.serverCtx(ServerConnection.key(conn))?.projects.touch(project.worktree),
+          },
+        ],
+      })
+    },
     canReveal: revealProject.available,
     reveal: revealProject.reveal,
   }

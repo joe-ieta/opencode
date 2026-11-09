@@ -37,7 +37,7 @@ test("Home keeps the session list in every interface mode", async ({ page }) => 
   await expect(row(page, earlier.title)).toBeVisible()
 
   // The Inbox mode moves session tabs into the sidebar inbox; Home stays the session list.
-  for (const mode of ["Side tabs", "Inbox", "Top tabs"]) {
+  for (const mode of ["Side tabs", "Inbox", "Side bar", "Top tabs"]) {
     await page.keyboard.press("Control+,")
     const settings = page.getByTestId("settings-screen")
     const option = settings.getByRole("radio", { name: mode, exact: true })
@@ -282,56 +282,65 @@ async function homeProjects(page: Page, projects: unknown[]) {
   return { server, rows: page.locator('[data-component="home-project-row"] [data-slot="home-row-label"]') }
 }
 
-test("Home lists the used server projects by recent activity, hides them, and lists them again once used", async ({
-  page,
-}) => {
-  // `recent` was first resolved under another ID, so one directory has two projects.
-  const listed = [entry("unused", 4), entry("recent", 3), entry("older", 2), entry("oldest", 1)]
-  listed.push(entry("recent", 0, "proj_recent_before_git"))
-  const view = await homeProjects(page, listed)
-  await seed(page, { usedProjects: { local: ["proj_recent_before_git", "proj_older", "proj_oldest"] } })
-  await page.goto("/")
-  await expect(view.rows).toHaveText(["recent", "older", "oldest"])
+for (const mode of ["horizontal", "sidebar"] as const) {
+  test(`Home lists projects by activity, closes and reopens them in ${mode} mode`, async ({ page }) => {
+    // `recent` was first resolved under another ID, so one directory has two projects.
+    const listed = [entry("unused", 4), entry("recent", 3), entry("older", 2), entry("oldest", 1)]
+    listed.push(entry("recent", 0, "proj_recent_before_git"))
+    const view = await homeProjects(page, listed)
+    await seed(page, {
+      usedProjects: { local: ["proj_recent_before_git", "proj_older", "proj_oldest"] },
+      settings: { appearance: { tabLayout: mode } },
+    })
+    await page.goto("/")
+    await expect(view.rows).toHaveText(
+      mode === "sidebar" ? ["unused", "recent", "older", "oldest"] : ["recent", "older", "oldest"],
+    )
 
-  // Activity moves a project up and an archived project leaves; a project this client never used stays out.
-  const active = { ...listed[3]!, time: { ...listed[3]!.time, active: T0 + 5 } }
-  const archived = { ...listed[2]!, time: { ...listed[2]!.time, archived: T0 + 6 } }
-  const fresh = entry("fresh", 7)
-  listed.splice(0, listed.length, fresh, active, listed[0]!, listed[1]!, listed[4]!)
-  await view.server.push(
-    [active, archived, fresh].map(
-      (data, index): OpenCodeEvent => ({
-        id: `evt_home_project_${index}`,
-        created: T0 + index,
-        type: "project.updated",
-        data,
-      }),
-    ),
-  )
-  await expect(view.rows).toHaveText(["oldest", "recent"])
+    // Server history includes projects from other clients; archived projects leave the list.
+    const active = { ...listed[3]!, time: { ...listed[3]!.time, active: T0 + 5 } }
+    const archived = { ...listed[2]!, time: { ...listed[2]!.time, archived: T0 + 6 } }
+    const fresh = entry("fresh", 7)
+    listed.splice(0, listed.length, fresh, active, listed[0]!, listed[1]!, listed[4]!)
+    await view.server.push(
+      [active, archived, fresh].map(
+        (data, index): OpenCodeEvent => ({
+          id: `evt_home_project_${index}`,
+          created: T0 + index,
+          type: "project.updated",
+          data,
+        }),
+      ),
+    )
+    await expect(view.rows).toHaveText(
+      mode === "sidebar" ? ["fresh", "oldest", "unused", "recent"] : ["oldest", "recent"],
+    )
 
-  const recent = page.locator('[data-component="home-project-row"]').filter({ hasText: "recent" })
-  await recent.locator("..").getByRole("button", { name: "More options", exact: true }).click()
-  await page.getByRole("menuitem", { name: "Close", exact: true }).click()
-  await expect(view.rows).toHaveText(["oldest"])
+    const recent = page.locator('[data-component="home-project-row"]').filter({ hasText: "recent" })
+    await recent.locator("..").getByRole("button", { name: "More options", exact: true }).click()
+    await page.getByRole("menuitem", { name: "Close", exact: true }).click()
+    await expect(view.rows).toHaveText(mode === "sidebar" ? ["fresh", "oldest", "unused"] : ["oldest"])
 
-  // Closing a project moves it out of the added list, but it remains discoverable in the server inventory.
-  await page
-    .locator('[data-component="home-project-row"]')
-    .filter({ hasText: "oldest" })
-    .locator("..")
-    .getByRole("button", { name: "New session", exact: true })
-    .click()
-  await newSessionLocation(page).click()
-  const options = page.getByRole("dialog").getByRole("option")
-  await expect(options.locator(".command-palette-title")).toHaveText(["oldest", "Other projects", "Add project"])
-  await options.filter({ hasText: "Other projects" }).click()
-  await expect(options.locator(".command-palette-title")).toHaveText(["fresh", "unused", "recent"])
-  await options.filter({ hasText: "C:/OpenCode/recent" }).click()
-  await expect(newSessionLocation(page)).toContainText("recent")
-  await page.getByRole("button", { name: "Home", exact: true }).click()
-  await expect(view.rows).toHaveText(["oldest", "recent"])
-})
+    // Closing a project moves it out of the added list, but it remains discoverable in the server inventory.
+    await page
+      .locator('[data-component="home-project-row"]')
+      .filter({ hasText: "oldest" })
+      .locator("..")
+      .getByRole("button", { name: "New session", exact: true })
+      .click()
+    await newSessionLocation(page).click()
+    const options = page.getByRole("dialog").getByRole("option")
+    await expect(options.locator(".command-palette-title")).toHaveText(["oldest", "Other projects", "Add project"])
+    await options.filter({ hasText: "Other projects" }).click()
+    await expect(options.locator(".command-palette-title")).toHaveText(["fresh", "unused", "recent"])
+    await options.filter({ hasText: "C:/OpenCode/recent" }).click()
+    await expect(newSessionLocation(page)).toContainText("recent")
+    await page.getByRole("button", { name: "Home", exact: true }).click()
+    await expect(view.rows).toHaveText(
+      mode === "sidebar" ? ["fresh", "oldest", "unused", "recent"] : ["oldest", "recent"],
+    )
+  })
+}
 
 test("Home migrates the directories an older build listed to the server's current projects", async ({ page }) => {
   const view = await homeProjects(page, [
@@ -351,6 +360,7 @@ test("Home migrates the directories an older build listed to the server's curren
     },
   })
   await page.goto("/")
+  // Official modes show migrated client usage; `docs` remains in the server inventory.
   await expect(view.rows).toHaveText(["api", "web"])
   await expect
     .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("opencode.global.dat:server") ?? "{}")))
