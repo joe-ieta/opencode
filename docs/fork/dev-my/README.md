@@ -5,7 +5,7 @@
 代码同步自 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
 - 源码基线已同步至 V2 2.2.5 的 `dev@12a661ea40`，保留共享项目历史、独立 Side bar、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
-- 最新 Windows x64 测试预发行 [v2.2.5-my.7](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7)，构建源码 `5e4e2bd703`。安装包与清单已核验，安装后人工验收待完成。详见[发行记录](releases.md)。
+- 最新 Windows x64 测试预发行 [v2.2.5-my.7](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7)，构建源码 `5e4e2bd703`。安装包与清单已核验，用户已确认 Windows 安装及 Side bar 项目管理手工测试通过。详见[发行记录](releases.md)。
 - 本版将 Side bar 拆成独立模块，并接入会话索引、共享项目操作与 Running 的复审修正。
 - Windows 下载入口指向已核验的测试预发行。历史验收记录见 [发行记录](releases.md)。
 - 最新 Linux amd64/arm64 测试版：[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，Ubuntu 24.04 基线，源码 `3777b783c5`；提供 AppImage/deb。全部平台统一使用本仓库 GitHub Release。两架构 CLI/目录/迁移冒烟、实际安装包与远端摘要校验通过；Linux GUI 与原生 ARM64 GUI 尚未人工验收。
