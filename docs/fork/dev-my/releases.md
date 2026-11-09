@@ -6,12 +6,12 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| Windows 测试 | `v2.2.5-my.7` | Windows x64 | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
-| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
+| Windows | `v2.2.5-my.7` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
+| Linux | `v2.2.5-my.7` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
 
-以上列出已核验的测试版下载。Windows 测试预发行使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+`v2.2.5-my.7` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
 
-## v2.2.5-my.7 Windows x64 测试预发行
+## v2.2.5-my.7 Windows x64 与 Linux amd64/arm64 正式发行
 
 - 2026-11-09 17:23:21（Asia/Shanghai）公开为 Windows x64 测试预发行，`draft=false`、`prerelease=true`，设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7)
 - 构建源码为 `5e4e2bd7033fa86e3beaf8026f25e26ec5fab21f`，已合入官方 `dev@12a661ea40`。Side bar 的项目、会话行、草稿和 Running 各有独立模块。Home 和 Side bar 共用项目操作与会话索引，项目清单与保留的会话行共用一个缓存快照。
@@ -19,6 +19,9 @@
 - 完整检查 33 项、正式 App TypeScript 检查、相关单元测试 46 项和生产 Chromium 回归 102 项通过。模型目录比较覆盖 7,645 个模型，CLI 服务发现与 V1 历史迁移冒烟通过。
 - NSIS 完整性、ASAR 和内置 CLI 版本、固定标签更新源、清单和四个远端资产摘要已核验。安装包 `opencode-desktop-win-x64.exe` 为 281,676,454 字节，SHA256 为 `9b3ea0ef4cc60199b462c8b247d41bc2ea805522c5142089529c88f13cfc5826`。安装包未签名。
 - 2026-11-09（Asia/Shanghai），用户确认 Windows x64 安装和 Side bar 项目管理手工测试均通过。
+- Windows 验收通过后，以同一不可变标签和同一模型快照在 Ubuntu 24.04 容器中构建 Linux x64、ARM64 的 AppImage 和 deb。ARM64 AppImage 使用 Electron Builder 的静态启动器（`toolsets.appimage=1.0.3`）。GitHub Release 已转为正式发行并设为 Latest。
+- Linux 完整检查 33 项通过。两种架构的 7,645 个模型目录、服务发现、V1 迁移及历史冒烟通过。已从实际安装包核验 ELF、ASAR、CLI、原生终端组件和更新源。ARM64 冒烟使用模拟环境，Linux 桌面未做人工验收。
+- 两份 Linux 更新清单和全部 10 个 GitHub 资产的大小与摘要已核对。联合 `SHA256SUMS` 覆盖 5 个安装包，`build.json` 记录三种构建目标。安装包未签名。
 
 ## v2.2.5-my.6 Windows x64 测试预发行
 
