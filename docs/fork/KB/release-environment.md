@@ -4,6 +4,8 @@
 > 实测环境：Windows 11 x64 + WSL2 Ubuntu 24.04.1 LTS；发布目标为 Windows x64 与 Ubuntu amd64/arm64。  
 > 本文面向需要复现 OpenCode My 发布环境的维护者。实际发行记录与哈希以 [dev-my 发行记录](../dev-my/releases.md) 为准。
 
+2026-11-09 起配置为：`origin` 为 Gitee `ieta/opencode-my`，`upstream` 为 `joe-ieta/opencode`；本项目与 `anomalyco/opencode` 没有关系。源码、标签与发行物只发布到 `origin`；历史 GitHub/Gitee 记录保留供追溯。
+
 ## 1. 需求定义
 
 ### 1.1 发布目标
@@ -13,9 +15,9 @@
 | Windows  | x64 NSIS 安装包，`opencode-desktop-win-x64.exe`                                          |
 | Ubuntu   | 24.04 LTS 为验证基线，amd64/arm64 的 AppImage 与 deb                                     |
 | 更新清单 | Windows `latest.yml`；Linux x64 `latest-linux.yml`；Linux arm64 `latest-linux-arm64.yml` |
-| 校验     | `SHA256SUMS`、`build.json`，以及 origin 服务端资产 SHA256                                |
+| 校验     | `SHA256SUMS`、`build.json`，以及 GitHub 服务端资产 SHA256                                |
 | 源码溯源 | `build.json.commit` 必须等于待打标签的源码提交                                           |
-| 发布形态 | origin 的 Releases 保存全部平台完整安装包与更新清单 |
+| 发布形态 | GitHub fork Release 保存本版实际构建的平台及完整清单                                     |
 | 不在范围 | macOS、Windows arm64、官方签名/公证、自动覆盖升级                                        |
 
 ### 1.2 功能需求
@@ -33,9 +35,9 @@
 | ---- | ----------------------------------------------------------------------------------------------- |
 | 主机 | Windows 10/11 x64，启用 WSL2；6 核以上、16 GB 以上内存                                          |
 | 磁盘 | 系统盘至少 10 GB 空闲；WSL VHDX 建议放在 D:/E: 等数据盘；构建与产物约需 8–10 GB                 |
-| 网络 | 可访问 origin、npm、models.dev；origin 的 Release 资产上传/下载正常                            |
+| 网络 | 可访问 GitHub、npm、models.dev；GitHub Release 资产下载/上传正常                                |
 | 时间 | 首次环境准备 30–60 分钟；Windows 构建约 5–10 分钟；Linux x64+arm64 约 20–40 分钟；上传约 1.5 GB |
-| 账号 | origin 账号具备目标仓库 release 权限；Git 可推送分支和标签（凭据由用户提供，不入库）             |
+| 账号 | GitHub CLI 已登录，具备目标仓库 release 权限；Git remote 可推送分支和标签                       |
 | 安全 | 产物未签名；代理、Token、证书不写入仓库或文档                                                   |
 
 ## 2. 实测环境清单
@@ -87,13 +89,13 @@ flowchart TD
 
 ```bash
 # 当前主机架构
-bun run release:desktop:my --version=<version>-dev-my.<N>
+bun run release:desktop:my --version=<version>-my.<N>
 
 # 只构建 arm64
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=arm64
+bun run release:desktop:my --version=<version>-my.<N> --arch=arm64
 
 # 同一标签同时构建 x64 与 arm64（推荐 Linux 发行）
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=all
+bun run release:desktop:my --version=<version>-my.<N> --arch=all
 ```
 
 - `--arch` 省略时使用 `process.arch`。
@@ -117,15 +119,11 @@ bun install --frozen-lockfile --cpu=*
 ### 4.1 Windows 侧
 
 1. 确认 WSL2 可用：`wsl --status`、`wsl -l -v`。
-2. 确认 `origin` 的推送凭据可用（SSH 私钥或令牌；由用户在本机配置，不写入仓库）。
-3. 配置 Git 身份；确认 `origin`（Gitee）是唯一发布远端，`upstream`（<https://github.com/joe-ieta/opencode>）是代码同步来源且仅通过 PR 交互；源码、标签与发布物只发布到 `origin`，不直接推送到 `upstream`。
+2. 安装 GitHub CLI 并登录：`gh auth status`。
+3. 配置 Git 身份；确认 `origin` 为 Gitee `ieta/opencode-my`，`upstream` 为 `joe-ieta/opencode` 且仅通过 PR 交互；发行只推送 `origin`。
 4. 确保系统盘有足够空间；WSL VHDX 建议放到数据盘。
 
-推送示例（凭据由本机配置提供）：
-
-```powershell
-git push origin dev-my
-```
+本机 `origin` 推送使用 Gitee SSH 凭据，由本机配置提供，不写入仓库：
 
 ### 4.2 Ubuntu WSL 安装与迁移
 
@@ -240,22 +238,22 @@ export HTTPS_PROXY="http://$gateway:<port>"
 export HTTP_PROXY="$HTTPS_PROXY"
 ```
 
-验证 origin、npm 和 Release 资产下载；Release 资产 CDN 是 Electron/Bun 交叉编译下载的关键路径：
+验证 GitHub、npm 和 Release 资产下载；Release 资产（`release-assets.githubusercontent.com`）是 Electron/Bun 交叉编译下载的关键路径：
 
 ```bash
-git ls-remote origin >/dev/null
+curl -fsSI https://github.com
 curl -fsSI https://registry.npmjs.org
-# 另按当前 Bun 版本验证 Bun 官方发布的 Linux arm64 压缩包可下载
+curl -fsSI https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-aarch64.zip
 ```
 
 代理值属于本机环境，不写入仓库。
 
-上传大文件时若连接持续低速，先确认上传仍在推进；需要重试时保留草稿及已完成资产，只重新上传本次草稿中未完成的同名文件，公开前仍核对全部资产的服务端大小和 SHA256。代理设置与传输调优均不进入构建产物。
+2026-10-31 本机 Windows 的 `gh` 大文件上传在 HTTP/2 单连接下持续低速；仅为当前上传进程设置 `GODEBUG=http2client=0` 后，四个安装包改用独立连接，传输明显改善。该开关由 [Go 官方文档](https://go.dev/doc/godebug)定义，不作为全局设置或通用提速保证。先确认上传仍在推进；需要重试时保留草稿及已完成资产，只重新上传本次草稿中未完成的同名文件，公开前仍核对全部资产的服务端大小和 SHA256。代理环境与该开关均不进入构建产物。
 
 ### 4.6 克隆与检查
 
 ```bash
-git clone --branch dev-my <origin-url> ~/opencode-my
+git clone --branch dev-my https://github.com/joe-ieta/opencode.git ~/opencode-my
 cd ~/opencode-my
 git config user.name frank
 git config user.email 48937772+joe-ieta@users.noreply.github.com
@@ -272,7 +270,7 @@ bun run check
 ```powershell
 bun install --frozen-lockfile
 bun run check
-bun run release:desktop:my --version=<version>-dev-my.<N>
+bun run release:desktop:my --version=<version>-my.<N>
 ```
 
 产物：`dist/releases/v<version>/`，包含 NSIS 安装包、`latest.yml`、单架构 `SHA256SUMS` 和 `build.json`。
@@ -286,7 +284,7 @@ export HTTPS_PROXY="http://<wsl-gateway>:<port>"
 export HTTP_PROXY="$HTTPS_PROXY"
 
 cd ~/opencode-my
-bun run release:desktop:my --version=<version>-dev-my.<N> --arch=all
+bun run release:desktop:my --version=<version>-my.<N> --arch=all
 ```
 
 产物：
@@ -349,26 +347,25 @@ Windows 和 Linux 在不同文件系统构建，需要把 Linux 产物复制到 
 
 ### 6.4 发布后
 
-- [ ] origin Release 的 10 个资产大小与 SHA256 和本地一致。
-- [ ] origin Release 包含全部平台完整安装包及对应更新清单。
-- [ ] `draft=false`、`prerelease=false`，Latest 指向预期版本。
-- [ ] 公开下载 `latest-linux-arm64.yml` 和至少一个安装包成功。
+- [ ] GitHub Release 的全部资产大小与 SHA256 和本地一致。
+- [ ] Release 仅含本版实际构建的平台；不再发布到 Gitee。
+- [ ] 测试版 `draft=false`、`prerelease=true`、`--latest=false`；正式版另行确认。
+- [ ] 公开下载本版更新清单和安装包成功。
 
 ## 7. 发布流程
 
 ```powershell
 # 1. 用 build.json 的源码提交打标签；标签对象指向构建来源
 git tag -a v<version> <build.json commit> -m 'OpenCode My <version>'
-git push origin dev-my
 git push origin refs/tags/v<version>
-# origin 保存源码、标签与全部平台完整资产
+# 分支仅在可快进且已确认内容时推送 origin；不要覆盖并行开发的远端提交。
+# upstream 是官方仓库，不接收本 fork 的发行分支或标签。
 
-# 2. 在 origin 的 Releases 创建发行版，上传全部 10 个资产
-#    网页操作，或使用 origin 平台的 Releases API；访问令牌由用户在本机提供
+# 2. 在 origin（Gitee）的 Releases 创建测试版，上传本次实际构建的资产
+#    gh release 不适用于 Gitee；使用网页或 origin 平台的 Releases API
+#    核对服务端大小与 SHA256 后再公开
 
-# 3. 核对服务端大小与 SHA256 后再公开
-
-# 4. 单独提交发行记录文档，不改变已发布标签
+# 3. 单独提交发行记录文档，不改变已发布标签
 git add FORK.md docs/fork/dev-my docs/fork/maintenance.md
 git commit -m 'docs: record <version> release'
 
@@ -376,9 +373,7 @@ git commit -m 'docs: record <version> release'
 
 标签不可变。发现构建问题时创建新的 `.N` 迭代，不覆盖已发布标签或资产。
 
-### 7.1 下载与更新源
-
-全部平台直接下载 origin Releases 的安装包。更新清单与安装包置于同一不可变标签；超过 origin 单附件限制时按分卷发布并附合并说明，不维护额外镜像。顶层远端及维护分支约束见 [AGENTS.md](../../../AGENTS.md)。
+Windows 使用 origin 的完整安装包；超过 origin 单附件限制时按现有分卷流程处理。需要独立服务器保存完整安装包、提供更快下载或作为更新源时，见 [自建发布物存储](self-hosted-release-storage.md)。
 
 ## 8. 经验与坑
 
@@ -411,7 +406,7 @@ git commit -m 'docs: record <version> release'
 | arm64 包缺少 `pty.node`                                               | 未安装双架构可选依赖                        | `bun install --frozen-lockfile --cpu=*`                        |
 | `Unknown file extension ".ts"`（oxlint）                              | Node 太旧，无法加载 TS 插件                 | 安装 Node 24，或设置 `NODE_OPTIONS=--experimental-strip-types` |
 | WSL 无法启动，`ERROR_FILE_NOT_FOUND`                                  | VHDX 已移动但 `BasePath` 未更新             | 修正注册表或 export/import                                     |
-| origin Release 下载超时                                               | WSL 未走代理，或代理未允许 Release 资产域名 | 使用 WSL 网关代理并测试 origin 的资产域名                      |
+| GitHub Release 下载超时                                               | WSL 未走代理，或代理未允许 Release 资产域名 | 使用 WSL 网关代理并测试 `release-assets.githubusercontent.com` |
 | `bun install` 出现 patch 不再适用警告                                 | lockfile 中已有依赖演进                     | 与构建失败区分；不要仅凭警告改 lockfile                        |
 | 磁盘空间不足                                                          | WSL VHDX 在系统盘增长                       | 迁移 VHDX，清理 `.cache`/`dist` 后重建                         |
 
@@ -424,7 +419,7 @@ git commit -m 'docs: record <version> release'
 3. Windows 可生成 NSIS 安装包；Linux 可用 `--arch=all` 生成 x64/arm64 AppImage 与 deb。
 4. x64 与 arm64 的 CLI 模型目录冒烟、desktop CLI 冒烟通过。
 5. 5 个安装包的架构、版本、清单、`SHA256SUMS` 和 `build.json` 一致。
-6. origin Release 的 10 个资产服务端大小与 SHA256 全部匹配。
+6. GitHub Release 的 10 个资产服务端大小与 SHA256 全部匹配。
 7. 发行记录写明源码提交、标签、构建环境、验证范围、未验证项和哈希。
 
 ## 11. 参考

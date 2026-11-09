@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 import { prepareDevElectron } from "./dev-electron"
 import { downloadCliToResources, windowsify } from "./utils"
 
-type ServerSource = { type: "build" } | { type: "download"; version: string }
+type ServerSource = { type: "build" } | { type: "download"; version: string } | { type: "live" }
 
 type DevOptions = { server: ServerSource; electron: string[] }
 
@@ -15,6 +15,10 @@ async function main() {
   process.env.OPENCODE_DISABLE_CHANNEL_DB = "0"
   const options = selectOptions()
 
+  if (options.server.type === "live") {
+    process.env.OPENCODE_DESKTOP_LIVE_SERVER = "1"
+    process.env.OPENCODE_DESKTOP_ISOLATED_SERVER = "0"
+  }
   if (options.server.type === "build") process.env.OPENCODE_DESKTOP_SERVER_CHANNEL = "local"
   process.env.OPENCODE_DESKTOP_ISOLATED_SERVER ??= "1"
   await prepareDesktop()
@@ -35,21 +39,28 @@ function selectOptions(): DevOptions {
   const args = process.argv.slice(2)
   const build = args.indexOf("--build-server")
   const download = args.indexOf("--download-server")
+  const live = args.indexOf("--live-server")
 
-  if (build >= 0 && download >= 0) {
-    throw new Error("--build-server and --download-server cannot be used together")
+  if ([build, download, live].filter((index) => index >= 0).length > 1) {
+    throw new Error("--build-server, --download-server and --live-server cannot be used together")
   }
 
   if (download >= 0 && !args[download + 1]) throw new Error("--download-server requires a version")
-  const consumed = new Set([build, download, download >= 0 ? download + 1 : -1])
+  const consumed = new Set([build, download, live, download >= 0 ? download + 1 : -1])
 
   return {
-    server: download >= 0 ? { type: "download", version: args[download + 1] } : { type: "build" },
+    server:
+      live >= 0
+        ? { type: "live" }
+        : download >= 0
+          ? { type: "download", version: args[download + 1] }
+          : { type: "build" },
     electron: args.filter((_, index) => !consumed.has(index)),
   }
 }
 
 async function prepareServer(source: ServerSource) {
+  if (source.type === "live") return
   if (source.type === "download")
     return downloadCliToResources(source.version, windowsify("resources/opencode-cli-dev"))
   buildWebUi()

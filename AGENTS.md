@@ -6,15 +6,15 @@
 - This machine has write access to `upstream`, but direct pushes to it are forbidden. Interact with `upstream` only through pull requests (or an equivalent review flow): a scoped topic branch may be pushed for an open PR, never a maintained branch (`dev-my`, `oc-headless`, `qt-headless`), a release tag, or fork metadata.
 - `AGENTS.md` and `FORK.md` are fork-local policy files. Exclude both from every upstream PR branch and never push them to `upstream`; base upstream contributions on the upstream tree without these files.
 - Address remotes explicitly in every remote operation (`git fetch origin`, `git fetch upstream`, `git push origin <branch>`). Never push release refs, tags, maintained branches, or fork metadata to `upstream` or any other address.
-- If this machine cannot reach `origin` or `upstream` (missing credential or SSH key), stop and report exactly which access is missing. Do not switch remotes, rewrite their URLs, or use another host as a workaround.
-- The V2 synchronization source is `upstream/dev`. If that branch is missing, stop and report the gap. Existing upstream branches are read-only: never push them or rewrite their history.
-- Publish source, tags, and release assets to `origin` only. Release pages and asset uploads follow `origin`; no other host is a release destination.
-- These constraints supersede all older remote, synchronization, contribution, and release instructions in repository documents, archived notes, skills, and restored stashes.
+- The V2 synchronization source is `upstream/dev`. Existing upstream branches are read-only: never push them or rewrite their history.
 - Maintain exactly three long-lived branches: `dev-my` (V2 desktop), `oc-headless` (V2 headless), and `qt-headless` (V1 headless). Track the same-named `origin` branches. Keep their code, builds, and release histories separate.
-- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`; maintain `qt-headless` from `origin/v1` because `upstream` has no V1 branch. Merge into maintained branches, preserve local patches with merges, then push only to `origin`.
+- The default branch is `dev-my`. The `dev` branch is an upstream tracking mirror only: keep `origin/dev` aligned with `upstream/dev`, with no fork-specific commits or sync merge commits. It is not a fourth maintenance line. Preserve any existing fork commits in a maintained branch or archive before realigning it.
+- For maintenance, base worktrees and comparisons on the matching `origin/<branch>`. Synchronize `dev-my` and `oc-headless` from `upstream/dev`; maintain `qt-headless` from `origin/v1` because `upstream` has no V1 branch. Preserve local patches with merges, then push only to `origin`.
 - For a scoped upstream pull request, create a topic branch from the relevant upstream base (`upstream/dev` for V2), include only the scoped change, exclude `AGENTS.md` and `FORK.md`, push that topic branch to `upstream`, and open the PR. Never push a maintained branch or rewrite upstream history.
 - Before deleting any other local/remote branch or associated worktree, list it and obtain the user's explicit confirmation. Inspect uncommitted changes, unmerged commits, open PR references, and the remote default branch first. A default-branch change also needs explicit confirmation.
 - Historical release records and assets are provenance only; do not delete remote repositories or existing release assets when configuration changes.
+
+- Windows 2.2.5-my.3 installer acceptance passed on 2026-11-03. Maintain Side bar in dev-my; origin/sidebar-mode is only the existing PR transport ref, updated when the user requests synchronization, never a parallel development line.
 
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.
@@ -197,6 +197,14 @@ const table = sqliteTable("session", {
 - A breaking move of shipped SDK or plugin API (including moving it under `experimental`) keeps the old path and type names as deprecated aliases of the new ones until the next minor, each marked `@deprecated` with the replacement and "Removed in the next minor". Generated SDK moves get them from the codegen (`compile(..., { aliases: true })` in `packages/client/script/generate.ts`), not by hand.
 - Experimental plugin hooks are named `experimental.*` (`experimental.ws.handshake`).
 
+### Feature Flags
+
+- When you open a PR, decide whether the change needs a flag: new user-visible behavior, risky core changes, and anything not ready to release get one; fixes, refactors, docs and tests do not.
+- Gate risky behavior, or behavior that lands over several PRs, with a key and a description in `packages/schema/src/config/flag.ts`, and read it with `Flag.enabled("<key>")` from `@opencode/core/flag`.
+- Flags are on in local and dev builds and off in releases; `experimental.<key>` in config and `OPENCODE_FLAGS="key,-other"` override that.
+- Say in the PR body which flag guards the change. To try every flag at once, use `OPENCODE_FLAGS=all` or `experimental.all_flags: true`; a `-<key>` opt-out or `experimental.<key>: false` still wins, and neither `all` nor `all_flags` is a flag key.
+- Ship a feature by deleting its flag and the checks that read it.
+
 ## Testing
 
 - Avoid mocks as much as possible, you shouldn't be using globalThis.\* at all unless it's the only option.
@@ -210,6 +218,13 @@ const table = sqliteTable("session", {
 - During focused iteration, run `bun typecheck` from the affected package directory (for example, `packages/core`). Never run `tsc` directly.
 - Local `typecheck` scripts use `bun check`. CI and package publishing run `typecheck:tsc`, which uses the official TypeScript compiler (`@typescript/native`). When the two disagree, `tsc` is the source of truth; reproduce with `bun run typecheck:tsc` from the package directory.
 - `bun check` aims to match TypeScript 7.1, not the `7.0.2` that `process.versions.typescript` reports (oven-sh/bun#46536). When `bun check` and `tsc` from the pinned `@typescript/native` report different errors, file a minimal, dependency-free repro at https://github.com/oven-sh/bun/issues, with the output of both. `bun check` writes no declaration files, so declaration-emit errors such as TS5088 or TS2883 are expected to appear only in `tsc`; do not report those.
+
+## Plugin Loading
+
+- Plugins load asynchronously. Server handlers never wait for them (`Plugin.awaitActivation`), never retry until something appears, and never turn slow plugins into a timeout or 503. This applies to reads and to actions such as `generate.*`, `rpc.call`, `vcs.init` and `websearch.query`.
+- The server answers with what is loaded now: lists may be empty or partial on a cold Location, and an action whose model, provider or RPC hasn't loaded yet fails with not-found. That is expected, not a bug to fix on the server.
+- Clients are responsible for making sure what they need is loaded before they call. Long-lived clients refresh on the matching `*.updated` event (`model.updated`, `agent.updated`, `skill.updated`, `integration.updated`, `plugin.updated`, ...). One-shot clients (CLI commands, ACP, SDK callers) wait on their side, for example by polling `plugin.list` or the entry they need. See `packages/cli/src/services/plugin-startup.ts`.
+- Running the hooks that are registered and waiting for their result is fine (for example `hooks.trigger("session", "http.request", ...)`). What is not allowed is waiting for plugins to load first: if the plugin that adds a hook hasn't loaded yet, the call runs without that hook.
 
 ## Session Core
 

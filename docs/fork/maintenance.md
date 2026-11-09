@@ -6,8 +6,9 @@
 
 ## 1. 环境、分支与检查
 
-- `origin`：`git@gitee.com:ieta/opencode-my.git`，本仓库唯一发布远端（地址见 `.git/config`）；`upstream`：<https://github.com/joe-ieta/opencode>，代码同步来源，V2 同步源码从 `upstream/dev` 获取；本机虽有写权限，但只允许通过 PR 与之交互。本项目与 <https://github.com/anomalyco/opencode> 没有关系，不配置也不访问该仓库。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
-- 源码、标签及全部平台发布物只发布到 `origin` 的 Releases。超过 origin 单附件大小限制时按分卷发布并附合并说明与校验值；历史发布只作来源追溯。
+- `origin`：`git@gitee.com:ieta/opencode-my.git`，本仓库唯一发布远端；`upstream`：<https://github.com/joe-ieta/opencode>，代码同步来源，V2 从 `upstream/dev` 获取。本机虽有写权限，但只允许通过 PR 与之交互。本项目与 <https://github.com/anomalyco/opencode> 没有关系，不配置也不访问该仓库。顶层 [AGENTS.md](../../AGENTS.md) 的仓库约束覆盖旧配置。
+- 源码、标签及全部平台发布物只发布到 `origin` 的 Releases；Windows 使用完整安装包，按现有分卷流程处理 origin 的单附件限制。
+- 默认分支为 `dev-my`；`dev` 仅镜像 `upstream/dev`，不放 fork 改动或额外同步合并提交。三条维护线仍为 `dev-my`、`oc-headless`、`qt-headless`。对齐镜像前核对独有提交归属并保留归档，更新时使用明确旧 SHA 的 `--force-with-lease`，不改写三条维护线。
 - 使用当前分支根 `package.json` 的 `packageManager` 指定 Bun；本次三个分支均为 **bun@1.4.4**。切换 V1/V2 后重新安装对应 lockfile，不共享一份假定兼容的依赖目录。
 - 多条线同时工作时用独立 worktree，避免在有运行任务的目录里切分支；文档更新和检查不要求重启正在使用的桌面或后台服务。
 
@@ -21,7 +22,6 @@ git branch -vv
 git log -1 --oneline origin/dev-my
 git log -1 --oneline origin/oc-headless
 git log -1 --oneline origin/qt-headless
-git log -1 --oneline upstream/dev
 ```
 
 查询标签与发行资产时分别核对；有 tag 不代表已有可下载 Release：
@@ -43,10 +43,9 @@ git ls-remote --tags origin 'v*-dev-my.*' 'oc-headless-v*' 'qt-headless-v*'
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从远端删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从 GitHub/Gitee 删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
-
-2026-11-02 按用户确认核对并清理旧 Side tabs 分支：本地 `sidetab-overview@bb2f2669e9`、`sidetab-update@1f20601184` 及远端 `origin/sidetab-overview@1f20601184` 已删除；远端原本没有 `sidetab-update`。旧提交不是 `dev-my` 的直接祖先，但项目分组、共享历史、运行会话、新建入口、分支/工作树提示及子会话过滤已通过原维护提交和 `8a63200923` 吸收，随后 `0b82c40bff` 将其迁入独立 Side bar。旧提交保存在本地 `refs/archive/2026-11-02/heads/sidetab-overview` 和 `refs/archive/2026-11-02/heads/sidetab-update`；关联 `.cache/sidetab-pr` 工作树已转为 detached，文件保留。开放 PR 来源 `home-project-list`（#60570）、`sidebar-mode`（#60867）、`upstream-migration`（#56929）继续保留，其余候选分支本次未处理。
+2026-11-02 按用户确认核对并清理旧 Side tabs 分支：本地 `sidetab-overview@bb2f2669e9`、`sidetab-update@1f20601184` 及 GitHub `origin/sidetab-overview@1f20601184` 已删除；远端原本没有 `sidetab-update`。旧提交不是 `dev-my` 的直接祖先，但项目分组、共享历史、运行会话、新建入口、分支/工作树提示及子会话过滤已通过原维护提交和 `8a63200923` 吸收，随后 `0b82c40bff` 将其迁入独立 Side bar。旧提交保存在本地 `refs/archive/2026-11-02/heads/sidetab-overview` 和 `refs/archive/2026-11-02/heads/sidetab-update`；关联 `.cache/sidetab-pr` 工作树已转为 detached，文件保留。开放 PR 来源 `home-project-list`（#60570）、`sidebar-mode`（#60867）、`upstream-migration`（#56929）继续保留，其余候选分支本次未处理。
 
 在该分支的干净工作区中：
 
@@ -77,7 +76,7 @@ bun run oc:build --skip-install --skip-typecheck
 bun run oc:smoke
 ```
 
-V2 跟踪 `upstream/dev`（本项目上游的 V2 分支）。`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 origin 发布。
+V2 跟踪 `upstream/dev`。`oc:sync` 已执行同步、守卫、依赖安装和类型检查；仅在这些门禁本轮已成功后，构建才可使用 skip 参数。一键候选流程为 `bun run oc:release`，不自动完成记录、打标签和 origin 发布。
 
 V2 使用最小差异守卫，保留包结构，通过 `--skip-web-ui` 生成 headless 单二进制；避免误套 V1 包删除清单。公开协议变化后先按仓库要求从 `packages/client` 运行 `bun run generate`，不得手改生成客户端。API 契约基线更新必须审阅差异，不能为了让检查通过盲目 `--update`。
 
@@ -97,9 +96,28 @@ bun run qtoc:build --skip-install --skip-typecheck
 
 V1 同步需要保留已裁剪包的删除。脚本可以处理特定 modify/delete 冲突，其余冲突须检查后解决，尤其 package.json、构建入口和 lockfile；不要普遍使用 `--ours`/`--theirs`。
 
+### Headless 本地发布与固定交付目录
+
+两条 headless 线分别归档，不建立日期或时间戳汇总目录：
+
+| 分支          | 最终交付目录      | 稳定名            | 版本化名                                         |
+| ------------- | ----------------- | ----------------- | ------------------------------------------------ |
+| `qt-headless` | `artifacts/qtoc/` | `qtoc_core[.exe]` | `qtoc_core-<version>-<os>-<arch>[.exe]`          |
+| `oc-headless` | `artifacts/oc/`   | `oc_core[.exe]`   | `oc_core-<version>-<os>-<arch>[-baseline][.exe]` |
+
+每份二进制附同名 `.sha256`；两个目录分别保存自己的 `build.json`，记录实际构建源提交、官方上游提交、版本、平台、文件大小、SHA256 及验收结果。不要用后续文档提交冒充构建来源。
+
+独立 worktree 的构建脚本先产出其工作区内的 `artifacts/qtoc/` 或 `artifacts/oc/`。完成本轮同步、裁剪、安装、检查和隔离冒烟后，将稳定名、版本化文件、校验侧车及清单原名复制到主仓库对应目录；本机最终位置为 `E:\ChatGPT\opencode\artifacts\qtoc\` 和 `E:\ChatGPT\opencode\artifacts\oc\`。核对旧稳定版已有版本化归档，保留历史版本，再更新稳定名；复制后重新校验全部哈希。
+
+冒烟使用仓库之外的系统临时目录、独立配置和数据库、随机端口及独立密码，避免加载父级 `.opencode` 开发工具或接触正在使用的服务。V1 检查版本、健康、401、`question` 与 SSE；V2 检查 info 200/版本、401 与 SSE，两者均要求 stderr 空。测试后关闭其进程。
+
+默认只做本地发布：源码和发布记录可提交到本地分支，二进制由 Git 忽略；不推送分支、标签或发布物，不触发远端 CI。远端发布须另有用户明确授权。两条维护分支的 `packages/qtui/docs/ops/release-runbook.md` 已分别固化这一流程。
+
 ## 4. 按变更范围验证
 
 - 根目录 `bun run check` 为规范的完整 lint/类型检查；受影响包可先运行 `bun typecheck`。CI/发布的正式编译器验证使用包内 `bun run typecheck:tsc`，不直接调用 tsc。
+- 拉取涉及依赖升级的源码后先执行 `bun install --frozen-lockfile`，确认实际安装版本与锁文件一致，再运行检查。2026-11-02 的 util 五个类型错误源于本机残留 Effect 4.0.6，而源码与锁文件已要求 4.1.0；按锁文件安装即可消除，不删减 `duplex` 支持或修改类型断言。修复后根检查 35/35、util 正式 TypeScript 检查及现有子进程回归 25/25 均通过。
+- 正常推送保留 `.husky/pre-push` 的 Bun 版本与完整检查，不设置 `HUSKY=0` 或覆盖 `core.hooksPath` 跳过检查。
 - 测试从包目录执行；写测试前读相应 `.opencode/skills`。不要从仓库根跑测试。
 - GUI 行为采用正式构建和隔离数据验证；不得为了测试重启用户正在运行的应用/后台。附着 live Electron 时遵守 `noDefaults: true` 等仓库诊断规范。
 - 纯文档整理检查链接、来源与命令，不需要重新构建二进制；文档提交不能冒用此前二进制的源码 provenance。
@@ -153,14 +171,13 @@ bun run release:desktop:my --version=2.2.3-dev-my.3 --arch=all
 git tag -a v2.2.3-dev-my.3 <build.json中的源码提交> -m 'OpenCode My 2.2.3-dev-my.3'
 git push origin dev-my
 git push origin refs/tags/v2.2.3-dev-my.3
-# 在 origin 的 Releases 创建发行版并上传资产：
-#   - 网页：仓库 → 发行版 → 新建发行版，选择上面的标签
-#   - 或 origin 平台的 Releases API；访问令牌由用户在本机提供，不写入仓库
-# 上传后逐项核对服务端大小与 SHA256，再公开为 Latest
+gh release create v2.2.3-dev-my.3 dist/releases/v2.2.3-dev-my.3/opencode-desktop-win-x64.exe dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-x86_64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-amd64.deb dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.AppImage dist/releases/v2.2.3-dev-my.3/opencode-desktop-linux-arm64.deb dist/releases/v2.2.3-dev-my.3/latest.yml dist/releases/v2.2.3-dev-my.3/latest-linux.yml dist/releases/v2.2.3-dev-my.3/latest-linux-arm64.yml dist/releases/v2.2.3-dev-my.3/SHA256SUMS dist/releases/v2.2.3-dev-my.3/build.json --repo joe-ieta/opencode --verify-tag --draft --title 'OpenCode My 2.2.3-dev-my.3 (Windows amd64 + Ubuntu amd64/arm64)' --notes-file <release-notes.md>
+# 上传完成，核对资产大小和服务端 SHA256 digest 后再公开
+gh release edit v2.2.3-dev-my.3 --repo joe-ieta/opencode --draft=false --prerelease=false --latest
 
 ```
 
-`gh release` 不适用于 origin。全部平台安装包及更新清单统一发布到 `origin`；单附件超过 origin 限制时按现有分卷流程拆分，并在发行说明中附合并命令与完整文件 SHA256。不要向 `upstream` 推送 fork 发行提交、标签或发布物。
+`gh release create` 只对本仓库 `joe-ieta/opencode` 执行，全部平台安装包及更新清单统一使用本仓库 GitHub Release。不要向官方 `upstream` 推送 fork 发行提交、标签或发布物。
 
 只列入实际完成构建与验收的架构和清单；不把未构建的平台记成通过。Linux 按架构提供 `latest-linux.yml` / `latest-linux-arm64.yml`。GUI appId 独立，后台渠道仍为 `dev`；配置、服务/历史和 tag 固定更新源约定见 [dev-my](dev-my/README.md)。
 
@@ -171,13 +188,22 @@ git push origin refs/tags/v2.2.3-dev-my.3
 | oc-headless | `oc-headless-v<内核版本>[.<N>]` | `artifacts/oc/oc_core*` 及各自 `.sha256`     | 本分支 `.github/workflows/oc-headless.yml` |
 | qt-headless | `qt-headless-v<内核版本>[.<N>]` | `artifacts/qtoc/qtoc_core*` 及各自 `.sha256` | 本分支 `.github/workflows/qtoc.yml`        |
 
-先记录源提交、内核版本、平台、文件大小和哈希、协议变化及冒烟结果，再打标签、把分支/标签推送到 `origin` 并核验产物。两条 headless 的 CI 工作流文件仍保留在分支中，但只有 origin 托管对应流水线时才会由推送触发；历史 GitHub Actions 运行记录仅作追溯。当前产物以本地构建归档为准，不把这些 artifacts 写成永久发行资产。
+先记录源提交、内核版本、平台、文件大小和哈希、协议变化及冒烟结果，再打标签、推分支/标签并核验 Actions。当前工作流发布的是有保留期限的 Actions artifacts；不要把它写成永久 GitHub Release 资产。
 
-缺少记录或流水线尚未运行时，明确记为待补，不把本地构建成功改写成 CI 通过。2026-10-30 的 Actions 快照只作追溯。
+```powershell
+gh api repos/joe-ieta/opencode/actions/permissions
+gh run list --repo joe-ieta/opencode --workflow oc-headless.yml --limit 5
+gh run list --repo joe-ieta/opencode --workflow qtoc.yml --limit 5
+gh run view <run-id> --repo joe-ieta/opencode
+```
+
+工作流可能只存在于 headless 分支；调用时先确认该 ref 的文件与注册状态，必要时指定 workflow ID 和实际 ref。缺少记录或 CI 尚未运行，就明确记为待补。本次只查询状态，没有重新 dispatch 构建。
+
+截至 2026-10-30，Actions 设置 `enabled=true`；两条 headless 最近发行的归档仍记录“当时被禁用，CI 待补”，不得仅凭开关恢复改写成通过。
 
 ## 7. 标签和文档维护约定
 
-桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub 时期 Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
+桌面安装包采用保留策略：保留当前稳定 Latest，以及各平台最新测试发行；被替代的历史 GitHub Release 与其资产可以清理，源码标签保留。删除前核对每个平台的保留版本，删除后独立核验 Release 清单、Latest 和源码标签；不把该策略套用于 headless 分支或其 Actions artifacts。2026-10-31 首次清理结果见 [发行记录](dev-my/releases.md#历史发行清理2026-10-31)。
 
 新发行优先使用新的、不可变的迭代标签，不默认强推覆盖已发布标签。历史 Qt 冲突曾在明确授权下按“备份旧 annotated tag → 对齐远端”处理：
 

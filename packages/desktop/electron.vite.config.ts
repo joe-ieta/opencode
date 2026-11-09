@@ -115,6 +115,10 @@ export default defineConfig(async ({ command }) => {
       },
     },
     renderer: {
+      // Windows may deny IPv6 loopback even when localhost makes Vite listen on ::1.
+      server: {
+        host: "127.0.0.1",
+      },
       experimental: {
         bundledDev: true,
       },

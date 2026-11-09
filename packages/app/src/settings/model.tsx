@@ -133,6 +133,7 @@ const generalSchema = Persistence.struct({
   foldUserMessages: Schema.Boolean,
   // The redesigned keyboard-first question dock, off until it ships.
   newQuestionUI: Schema.Boolean,
+  sidebarOrganize: Schema.Literals(["projects", "list"]),
   mobileTitlebarPosition: Schema.Literals(["top", "bottom"]),
   // Owned by the review plugin, which copies it out once; kept so settings rewrites cannot drop it first.
   mobileDiffWrap: Persistence.optional(Schema.Boolean),
@@ -146,7 +147,6 @@ const appearanceSchema = Persistence.struct({
   terminal: Schema.String,
   // "inbox" is experimental: the vertical layout with a server-wide session inbox in place of tabs.
   tabLayout: Schema.Literals(["horizontal", "vertical", "inbox", "sidebar"]),
-  tabGrouping: Schema.Literals(["none", "project"]),
   sidebarOpen: Persistence.optional(Schema.Boolean),
   reduceMotion: Schema.Literals(["system", "on", "off"]),
 })
@@ -307,6 +307,7 @@ export const defaultSettings: Settings = {
     newIcons: false,
     foldUserMessages: false,
     newQuestionUI: false,
+    sidebarOrganize: "list",
     mobileTitlebarPosition: "top",
     followUpBehavior: "steer",
   },
@@ -316,7 +317,6 @@ export const defaultSettings: Settings = {
     sans: "",
     terminal: "",
     tabLayout: "horizontal",
-    tabGrouping: "project",
     reduceMotion: "system",
   },
   keybinds: {},
@@ -433,6 +433,10 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         setNewQuestionUI(value: boolean) {
           setStore("general", "newQuestionUI", value)
         },
+        sidebarOrganize: withFallback(() => store.general?.sidebarOrganize, defaultSettings.general.sidebarOrganize),
+        setSidebarOrganize(value: "projects" | "list") {
+          setStore("general", "sidebarOrganize", value)
+        },
         mobileTitlebarPosition: withFallback(
           () => store.general?.mobileTitlebarPosition,
           defaultSettings.general.mobileTitlebarPosition,
@@ -468,10 +472,6 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         tabLayout: withFallback(() => store.appearance?.tabLayout, defaultSettings.appearance.tabLayout),
         setTabLayout(value: TabLayout) {
           setStore("appearance", "tabLayout", value)
-        },
-        tabGrouping: withFallback(() => store.appearance?.tabGrouping, defaultSettings.appearance.tabGrouping),
-        setTabGrouping(value: Settings["appearance"]["tabGrouping"]) {
-          setStore("appearance", "tabGrouping", value)
         },
         sidebarOpen: withFallback(() => store.appearance?.sidebarOpen, true),
         setSidebarOpen(value: boolean) {

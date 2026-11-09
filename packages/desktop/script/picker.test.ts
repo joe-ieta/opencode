@@ -4,7 +4,7 @@ import { createServer } from "vite"
 import { fileURLToPath } from "node:url"
 
 test.each([true, false])(
-  "serves browser-loadable picker scripts with bundled dev = %s",
+  "serves browser-loadable picker scripts over IPv4 with bundled dev = %s",
   async (bundledDev) => {
     const loaded = await loadConfigFromFile(
       { command: "serve", mode: "development" },
@@ -28,7 +28,7 @@ test.each([true, false])(
         rolldownOptions: { input: { main: fileURLToPath(new URL("./fixtures/picker/index.html", import.meta.url)) } },
       },
       experimental: { bundledDev },
-      server: { host: "127.0.0.1", port: 0 },
+      server: { ...config.server, port: 0 },
       logLevel: "silent",
     })
 
@@ -42,6 +42,7 @@ test.each([true, false])(
       : undefined
 
     try {
+      expect(new URL(url).hostname).toBe("127.0.0.1")
       if (socket && !server.environments.client.bundledDev?.hasBuildOutput) {
         await new Promise<void>((resolve, reject) => {
           socket.addEventListener("error", reject, { once: true })
