@@ -483,20 +483,20 @@ test("Side bar sorts project names independently of activity and persists alphab
   await expect(headings).toHaveText(["Alpha", "Beta", "ProjectOrder", "Zeta"])
   await sidebar.getByRole("heading", { name: "Zeta", exact: true }).hover()
   await sidebar.getByRole("button", { name: "Pin project Zeta", exact: true }).click()
-  await expect(headings).toHaveText(["Zeta", "Alpha", "Beta", "ProjectOrder"])
+  await expect(headings).toHaveText(["Alpha", "Beta", "ProjectOrder", "Zeta"])
   await sidebar.getByRole("heading", { name: "Beta", exact: true }).hover()
   await sidebar.getByRole("button", { name: "Pin project Beta", exact: true }).click()
-  await expect(headings).toHaveText(["Beta", "Zeta", "Alpha", "ProjectOrder"])
+  await expect(headings).toHaveText(["Alpha", "ProjectOrder", "Beta", "Zeta"])
   await sidebar.getByRole("button", { name: "Collapse project Zeta", exact: true }).click()
   await page.reload()
-  await expect(headings).toHaveText(["Beta", "Zeta", "Alpha", "ProjectOrder"])
+  await expect(headings).toHaveText(["Alpha", "ProjectOrder", "Beta", "Zeta"])
   await expect(sidebar.getByRole("button", { name: "Unpin project Zeta", exact: true })).toHaveAttribute(
     "aria-pressed",
     "true",
   )
   await expect(sidebar.getByRole("button", { name: "Expand project Zeta", exact: true })).toBeVisible()
   await sidebar.getByRole("button", { name: "Unpin project Zeta", exact: true }).click()
-  await expect(headings).toHaveText(["Beta", "Alpha", "ProjectOrder", "Zeta"])
+  await expect(headings).toHaveText(["Alpha", "ProjectOrder", "Zeta", "Beta"])
   await sidebar.getByRole("button", { name: "Unpin project Beta", exact: true }).click()
   await expect(headings).toHaveText(["Alpha", "Beta", "ProjectOrder", "Zeta"])
 })
@@ -641,10 +641,12 @@ test("Side bar keeps pinned projects fixed while the regular project list scroll
     pinned.getByRole("button", { name: "New session in Project 0", exact: true, includeHidden: true }),
   ).toBeHidden()
   await expect(sidebar.getByRole("heading", { level: 2 })).toHaveText([
-    "Pinned projects",
     "Projects",
+    "Pinned projects",
     "Running sessions",
   ])
+  await expect(sidebar.getByTitle("11 projects", { exact: true })).toHaveText("11")
+  await expect(pinned.getByTitle("2 pinned projects", { exact: true })).toHaveText("2")
   await expect
     .poll(() =>
       pinned.evaluate(
@@ -1315,7 +1317,10 @@ test("sidebar grouping keeps servers separate and reorders only the chosen proje
   const local = headers.filter({ hasNotText: "Remote" })
   await remote.hover()
   await remote.getByRole("button", { name: "Pin project Tabs", exact: true }).click()
-  await expect(titles).toHaveText([b.title, c.title, a.title])
+  await expect(titles).toHaveText([c.title, a.title, b.title])
+  await expect(
+    sidebar.getByRole("region", { name: "Pinned projects", exact: true }).getByText("Remote", { exact: true }),
+  ).toBeVisible()
   await expect(
     local.getByRole("button", { name: "Pin project Tabs", exact: true, includeHidden: true }),
   ).toHaveAttribute("aria-pressed", "false")
