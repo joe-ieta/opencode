@@ -6,10 +6,25 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| Windows 测试 | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 | Windows | `v2.2.5-my.7` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
 | Linux | `v2.2.5-my.7` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
 
-`v2.2.5-my.7` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+`v2.2.6-my.1` 为 Windows 本地验证预发行；`v2.2.5-my.7` 仍为 Windows 和 Linux 的正式发行及 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.2.6-my.1 Windows x64 测试预发行
+
+- 2026-11-10 18:45:29（Asia/Shanghai）公开，`draft=false`、`prerelease=true`，设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)
+- 构建源码为 `231de37312ef7172cb6be387ea89d6a427934555`。维护分支 `dev-my` 合入官方 `dev@57719d7fd400721783a059fee78c7d33a21cd9b6`，相对上次官方基线新增 78 个提交，版本更新为 2.2.6。
+- Side bar 增加项目计数、固定项目下置及按需显示的 origin/upstream 提示。保留 my.7 的 Home/Side bar 共享项目缓存、会话索引和 Running 分支加载实现，避免引入旧贡献稿的重复逻辑。
+- 合入官方会话已读/未读菜单、侧面板关闭与恢复快捷键、GitHub Copilot Auto、OpenAI/Google/Vertex 嵌入模型入口，以及 OAuth 刷新、Claude Agent 会话、缓存预热和会话生成用量统计修复。
+- 简洁性审阅：远程提示复用现有 VCS 缓存，不增加独立轮询或持久化；Copilot Auto 复用模型解析 hook，嵌入模型复用请求执行器。新增远程信息放入 `experimental.remotes`，客户端与 OpenAPI 由生成器更新；修正带凭据和端口的 HTTPS 地址被误判为 SCP 地址的问题，提示移除凭据、查询参数和片段，并保留端口。地址回归用例已验证修复前失败、修复后通过。
+- 按本仓库明确约束保留服务端非阻塞插件加载，未采纳官方本轮临时等待插件并超时返回 503 的补丁。
+- 根检查 34/34 项、App 官方 TypeScript 检查、相关单元测试 222 项、生产 Chromium 回归 115 项及 Side bar 重点重复回归 40 项通过；浏览器测试均无重试。VCS 套件在本机默认 30 秒预算下出现真实 Git 进程超时及随后清理临时目录的 `EBUSY`，诊断运行中的远程信息用例通过，未将整套 VCS 测试记为通过。
+- Bun 1.4.4 构建，模型目录比较覆盖 7,676 个模型；CLI 服务发现、V1 升级确认与历史迁移冒烟通过。NSIS 完整性、实际 ASAR/CLI 版本、项目管理资源、固定标签更新源及清单 SHA512/大小已核验。
+- 安装包 `opencode-desktop-win-x64.exe` 为 281,699,674 字节，SHA256 为 `cadb9c9c32c8ce331e8c19d5482a9318632e7a07ec6c504096f3cbd8c4cdc9dd`。本地路径为 `dist/releases/v2.2.6-my.1/opencode-desktop-win-x64.exe`。安装包未签名，安装后的人工验收待完成；本次仅构建 Windows x64。
+- 四个 GitHub 资产的服务端大小及 SHA256 与本地一致；三份清单的完整公开下载、安装器公开下载入口、总大小和 65,536 字节文件头均核验通过。稳定 Latest 仍为 `v2.2.5-my.7`。源码标签固定在上述构建提交，发行文档另行提交。
+- 原 `origin/dev@171d675ae1a233c891c13f47e68003bc99aeb3a7` 的 fork 历史已完整保存到 `origin/dev-my`，随后使用租约校验将 `origin/dev` 恢复为上述官方提交的镜像。默认分支仍为 `dev-my`。
 
 ## v2.2.5-my.7 Windows x64 与 Linux amd64/arm64 正式发行
 
