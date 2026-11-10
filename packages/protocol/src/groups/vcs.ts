@@ -59,7 +59,8 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
         OpenApi.annotations({
           identifier: "vcs.get",
           summary: "VCS info",
-          description: "Get current and default branch information for the requested location.",
+          description:
+            "Get current and default branch information and configured remotes for the requested location.",
         }),
       ),
   )

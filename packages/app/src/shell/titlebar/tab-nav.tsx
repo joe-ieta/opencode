@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onCleanup, Show, untrack, type Ref } from "solid-js"
+import { createEffect, createMemo, createSignal, onCleanup, Show, untrack, type Ref, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Predicate } from "effect"
 import { makeEventListener } from "@solid-primitives/event-listener"
@@ -15,7 +15,7 @@ import { SessionTabAvatarView } from "@/shell/layout/session-tab-avatar"
 import type { SessionInfo } from "@opencode/client/promise"
 import { showToast } from "@/shell/notifications/toast"
 import { sessionTabTitle } from "./tab-title"
-import { TabPreviewPopover } from "./tab-popover"
+import { TabPreviewPopover, type TabPreviewData } from "./tab-popover"
 import {
   INITIAL_TAB_RENAME_STATE,
   isTabRenaming,
@@ -37,24 +37,26 @@ export type TabCloseActions = {
   onCloseAfter?: () => void
 }
 
-function TabCloseMenuItems(props: TabCloseActions & { orientation?: "horizontal" | "vertical" }) {
+function TabCloseMenuItems(props: TabCloseActions & { orientation?: "horizontal" | "vertical"; label?: string }) {
   const language = useLanguage()
 
   return (
     <>
-      <Menu.Item onSelect={props.onClose}>{language.t("common.closeTab")}</Menu.Item>
-      <Menu.Item disabled={!props.onCloseOthers} onSelect={props.onCloseOthers}>
-        {language.t("common.closeOtherTabs")}
-      </Menu.Item>
-      <Menu.Item disabled={!props.onCloseAfter} onSelect={props.onCloseAfter}>
-        {language.t(
-          props.orientation === "vertical"
-            ? "common.closeTabsBelow"
-            : language.direction() === "rtl"
-              ? "common.closeTabsToLeft"
-              : "common.closeTabsToRight",
-        )}
-      </Menu.Item>
+      <Menu.Item onSelect={props.onClose}>{props.label ?? language.t("common.closeTab")}</Menu.Item>
+      <Show when={props.label === undefined}>
+        <Menu.Item disabled={!props.onCloseOthers} onSelect={props.onCloseOthers}>
+          {language.t("common.closeOtherTabs")}
+        </Menu.Item>
+        <Menu.Item disabled={!props.onCloseAfter} onSelect={props.onCloseAfter}>
+          {language.t(
+            props.orientation === "vertical"
+              ? "common.closeTabsBelow"
+              : language.direction() === "rtl"
+                ? "common.closeTabsToLeft"
+                : "common.closeTabsToRight",
+          )}
+        </Menu.Item>
+      </Show>
     </>
   )
 }
@@ -74,6 +76,12 @@ export function TabNavItem(
     /** Shows a title at once: the optimistic one, or the one to restore when its save fails. */
     onRememberTitle: (sessionID: string, title: string | undefined) => void
     onSaveTitle: (sessionID: string, title: string, signal: AbortSignal) => Promise<void>
+    closable?: boolean
+    closeLabel?: string
+    closeMenuLabel?: string
+    previewDetails?: Pick<TabPreviewData, "lastRun" | "branch" | "worktree">
+    onPreviewOpenChange?: (open: boolean) => void
+    menuItems?: JSX.Element
     onDelete: () => void
     onNavigate: () => void
     active?: boolean
@@ -97,6 +105,7 @@ export function TabNavItem(
   const closeTab = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
+    if (props.closable === false) return
     props.onClose()
   }
 
@@ -180,7 +189,6 @@ export function TabNavItem(
   })
 
   const [popoverOpen, setPopoverOpen] = createSignal(false)
-
   const previewBlocked = () =>
     !!props.dragging || selectTabPreviewBlocked(renameState()) || !!props.pressed || !props.session
 
@@ -514,18 +522,20 @@ export function TabNavItem(
           <span data-mark="unread" data-slot="tab-status-dot" />
           <span data-mark="failed" data-slot="tab-status-dot" />
         </span>
-        <IconButton
-          size="small"
-          variant="ghost-muted"
-          class="hover-reveal relative z-10"
-          onPointerDown={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-          }}
-          onClick={closeTab}
-          icon={<Icon name="xmark-small" />}
-          aria-label={language.t("common.closeTab")}
-        />
+        <Show when={props.closable !== false}>
+          <IconButton
+            size="small"
+            variant="ghost-muted"
+            class="hover-reveal relative z-10"
+            onPointerDown={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
+            onClick={closeTab}
+            icon={<Icon name="xmark-small" />}
+            aria-label={props.closeLabel ?? language.t("common.closeTab")}
+          />
+        </Show>
       </div>
     </div>
   )
@@ -546,12 +556,14 @@ export function TabNavItem(
         onOpenChange={(value) => {
           if (value && previewBlocked()) return
           setPopoverOpen(value)
+          props.onPreviewOpenChange?.(value)
         }}
         data={{
           projectName: projectName(),
           title: props.session?.title,
           path: previewPath(),
           serverName: serverLabel(),
+          ...props.previewDetails,
         }}
       />
       <Menu.Context.Portal>
@@ -571,12 +583,16 @@ export function TabNavItem(
           <Menu.Item disabled={!props.session} onSelect={() => startRename("menu")}>
             {language.t("common.rename")}
           </Menu.Item>
-          <TabCloseMenuItems
-            orientation={props.orientation}
-            onClose={props.onClose}
-            onCloseOthers={props.onCloseOthers}
-            onCloseAfter={props.onCloseAfter}
-          />
+          {props.menuItems}
+          <Show when={props.closable !== false}>
+            <TabCloseMenuItems
+              orientation={props.orientation}
+              label={props.closeMenuLabel}
+              onClose={props.onClose}
+              onCloseOthers={props.onCloseOthers}
+              onCloseAfter={props.onCloseAfter}
+            />
+          </Show>
           <Menu.Separator />
           <Menu.Item data-variant="critical" disabled={!props.session} onSelect={props.onDelete}>
             {language.t("session.delete.title")}…
