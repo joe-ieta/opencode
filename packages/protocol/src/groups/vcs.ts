@@ -60,7 +60,7 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
           identifier: "vcs.get",
           summary: "VCS info",
           description:
-            "Get current and default branch information and configured remotes for the requested location.",
+            "Get current and default branch information for the requested location. Configured remotes are returned under experimental.remotes (Experimental: may change without compatibility guarantees).",
         }),
       ),
   )

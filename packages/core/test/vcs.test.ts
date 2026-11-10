@@ -820,7 +820,7 @@ describe("Vcs", () => {
 
         const vcs = yield* Vcs.Service
         yield* vcs.reload()
-        expect((yield* vcs.info()).remotes?.toSorted((a, b) => a.name.localeCompare(b.name))).toEqual([
+        expect((yield* vcs.info()).experimental?.remotes?.toSorted((a, b) => a.name.localeCompare(b.name))).toEqual([
           { name: "origin", url: "https://github.com/team/project.git" },
           { name: "upstream", url: "git@github.com:team/project-fork.git" },
         ])

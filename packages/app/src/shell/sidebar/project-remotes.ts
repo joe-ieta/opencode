@@ -1,6 +1,6 @@
 import type { VcsInfo } from "@opencode/client/promise"
 
-type Remote = NonNullable<VcsInfo["remotes"]>[number]
+type Remote = NonNullable<NonNullable<VcsInfo["experimental"]>["remotes"]>[number]
 
 /** The concise origin/upstream lines shown in a project's hint. */
 export function projectRemoteHint(remotes: readonly Remote[] | undefined) {
@@ -17,15 +17,18 @@ export function projectRemoteHint(remotes: readonly Remote[] | undefined) {
 
 /** Drops the protocol, credentials, `.git` suffix and trailing slash from a remote URL. */
 export function compactRemote(url: string) {
-  const value = url.trim().replace(/\.git$/i, "")
+  const value = url
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\.git$/i, "")
   if (!value) return ""
 
-  const scp = /^[^@\s]+@([^:/\s]+):(.+)$/.exec(value)
+  const scp = /^[^@:/\s]+@([^:/\s]+):(.+)$/.exec(value)
   if (scp) return `${scp[1]}/${scp[2].replace(/^\/+/, "")}`
 
   try {
     const parsed = new URL(value)
-    return `${parsed.hostname}${parsed.pathname}`.replace(/\/+$/, "")
+    return `${parsed.host}${parsed.pathname}`.replace(/\/+$/, "").replace(/\.git$/i, "")
   } catch {
     return value.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^[^@/]+@/, "")
   }

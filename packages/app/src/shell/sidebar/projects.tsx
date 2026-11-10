@@ -540,7 +540,8 @@ export function SidebarProjects(props: {
 
   const groupRemotes = (group: { connection: ServerConnection.Key; directory?: string }) =>
     group.directory
-      ? global.serverCtx(group.connection)?.data.location.vcs.info({ directory: group.directory })?.remotes
+      ? global.serverCtx(group.connection)?.data.location.vcs.info({ directory: group.directory })?.experimental
+          ?.remotes
       : undefined
 
   const loadGroupRemotes = (group: { connection: ServerConnection.Key; directory?: string }) => {

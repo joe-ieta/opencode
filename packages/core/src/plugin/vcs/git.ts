@@ -77,7 +77,7 @@ function make(proc: AppProcess.Interface, input: { directory: string; worktree: 
       )
       return {
         branch: { current, default: root?.name },
-        ...(remotes.length > 0 ? { remotes } : {}),
+        ...(remotes.length > 0 ? { experimental: { remotes } } : {}),
       } satisfies Info
     }),
     base: () => ctx.git.base(ctx.directory),

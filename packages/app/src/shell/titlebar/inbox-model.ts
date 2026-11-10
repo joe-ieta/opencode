@@ -16,6 +16,7 @@ import { sessionFormRequest, sessionPermissionRequest, sessionTreeIDs } from "@/
 import { notifySessionTabsRemoved } from "./session-events"
 import { errorMessage } from "@/shell/layout/helpers"
 import { showToast } from "@/shell/notifications/toast"
+import { createSessionRenamer } from "@/session/commands/rename-session"
 import { workingSince } from "./inbox-working"
 import { createSessionBranches } from "@/shell/sessions/branches"
 import {
@@ -60,6 +61,8 @@ export function createSessionInbox(options: { archived?: boolean } = {}) {
   const tabs = useTabs()
   const language = useLanguage()
   const queryClient = useQueryClient()
+
+  const rename = createSessionRenamer()
 
   const [clock, setClock] = createStore({ second: Date.now(), minute: Date.now() })
   const timer = setInterval(() => setClock("minute", Date.now()), 60_000)
@@ -366,8 +369,9 @@ export function createSessionInbox(options: { archived?: boolean } = {}) {
     // Marking viewed reads the loaded session, and rows from the index usually are not loaded, so load it first.
     markViewed: (entry: InboxEntry) => {
       if (!entry.ctx.data.session.get(entry.session.id)) entry.ctx.data.session.remember(entry.session)
-      entry.ctx.notification.session.markViewed(entry.session.id)
+      entry.ctx.notification.session.markRead(entry.session.id)
     },
+    rename: (entry: InboxEntry, title: string) => rename(entry.server, entry.session, title),
     archive: (entry: InboxEntry) =>
       entry.ctx.sdk.api.session
         .update({ sessionID: entry.session.id, archived: true })

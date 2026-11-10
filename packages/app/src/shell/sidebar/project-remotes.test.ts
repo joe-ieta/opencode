@@ -1,10 +1,17 @@
 import { expect, test } from "bun:test"
 import { compactRemote, projectRemoteHint } from "./project-remotes"
 
-test("compacts HTTPS and SCP-style remote URLs", () => {
-  expect(compactRemote("https://github.com/joe-ieta/opencode.git")).toBe("github.com/joe-ieta/opencode")
-  expect(compactRemote("git@gitee.com:ieta/opencode-my.git")).toBe("gitee.com/ieta/opencode-my")
-  expect(compactRemote("ssh://git@github.com/team/project.git")).toBe("github.com/team/project")
+test.each([
+  ["https://github.com/joe-ieta/opencode.git", "github.com/joe-ieta/opencode"],
+  ["git@github.com:team/project.git", "github.com/team/project"],
+  ["ssh://git@github.com/team/project.git", "github.com/team/project"],
+  [
+    "https://user:secret@git.example.com:8443/team/project.git/?token=secret#branch",
+    "git.example.com:8443/team/project",
+  ],
+  ["", ""],
+])("compacts %s without credentials", (url, expected) => {
+  expect(compactRemote(url)).toBe(expected)
 })
 
 test("shows origin and upstream once each", () => {
