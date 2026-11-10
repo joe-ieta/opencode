@@ -43,7 +43,7 @@ git ls-remote --tags origin 'v*-dev-my.*' 'oc-headless-v*' 'qt-headless-v*'
 
 ### dev-my
 
-桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从 GitHub/Gitee 删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
+桌面应用的唯一维护与发行主线是 `dev-my`；本地 Side bar 需求直接在 `dev-my` 维护。2026-11-02 按用户要求整合贡献分支历史，并将项目收起、后代活动与 RTL 修复同步到既有 #60867；此后远端 `sidebar-mode` 仅冻结保留为 PR 来源引用，不再接收开发提交，本地同名分支已删除。2026-11-10 起，Side bar 提取工作以 `sidebar-interface` 作为唯一组合 PR 分支，`session-index`、`project-actions`、`running-sessions` 仅作评审切片；等待上游合并后再清理 `sidebar-mode`。旧 `sidetab-overview` 的 #60446 已关闭，仅保留历史参考；旧 `sidebar-projects` 已从 GitHub/Gitee 删除，历史提交在本地 `refs/archive/sidebar-projects` 保留。其原始补丁 `966e97bf71` 与已进入 `dev-my` 的 `0a3c0c4e4a` 补丁指纹一致，不要再次整支合入。独立模式设计和验证见 [Side bar 记录](dev-my/sidebar-mode.md)。
 
 2026-11-02 按用户确认核对并清理旧 Side tabs 分支：本地 `sidetab-overview@bb2f2669e9`、`sidetab-update@1f20601184` 及 GitHub `origin/sidetab-overview@1f20601184` 已删除；远端原本没有 `sidetab-update`。旧提交不是 `dev-my` 的直接祖先，但项目分组、共享历史、运行会话、新建入口、分支/工作树提示及子会话过滤已通过原维护提交和 `8a63200923` 吸收，随后 `0b82c40bff` 将其迁入独立 Side bar。旧提交保存在本地 `refs/archive/2026-11-02/heads/sidetab-overview` 和 `refs/archive/2026-11-02/heads/sidetab-update`；关联 `.cache/sidetab-pr` 工作树已转为 detached，文件保留。开放 PR 来源 `home-project-list`（#60570）、`sidebar-mode`（#60867）、`upstream-migration`（#56929）继续保留，其余候选分支本次未处理。
 

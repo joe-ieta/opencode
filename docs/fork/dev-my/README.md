@@ -4,7 +4,7 @@
 
 代码同步自 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码基线已同步至 V2 2.2.5 的 `dev@12a661ea40`，保留共享项目历史、独立 Side bar、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
+- 源码基线已同步至 V2 2.2.5 的 `dev@12a661ea40`，保留共享项目历史、独立 Side bar、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线；远端 `sidebar-interface` 是 Side bar 组合 PR 分支，`sidebar-mode` 冻结为旧 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
 - 最新正式发行 [v2.2.5-my.7](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) 提供 Windows x64 NSIS 和 Linux x64、ARM64 的 AppImage 与 deb，构建源码 `5e4e2bd703`。Windows 安装和 Side bar 项目管理手工验收已通过。
 - 本版将 Side bar 拆成独立模块，并接入会话索引、共享项目操作与 Running 的复审修正。
 - 正式发行已设为 GitHub Latest。构建和验收结果见 [发行记录](releases.md)。

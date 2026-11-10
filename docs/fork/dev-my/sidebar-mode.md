@@ -1,6 +1,8 @@
 # Side bar 独立模式：设计、需求与上游贡献
 
-**最新状态（2026-11-03）**：用户确认 Windows 2.2.5-my.3 安装后人工验收通过。既有 PR #60867 已更新至 `703db47378`，目标为官方 `dev@3ba597f776`，保留 Draft 等待设计评审；`sidebar-mode` 仅作 PR 传输引用，开发仍统一在 `dev-my`。
+**2026-11-10 分支策略**：Side bar 的提取工作合并为一个组合 PR 分支 `sidebar-interface`，等待上游评审与合并；`session-index`、`project-actions`、`running-sessions` 仅作为该组合 PR 的评审切片保留。`sidebar-mode` 冻结为旧 #60867 的传输引用，不再接收新开发提交，待上游处理后再清理。Side bar 新功能仍只在 `dev-my` 落地。
+
+**历史状态（2026-11-03）**：用户确认 Windows 2.2.5-my.3 安装后人工验收通过。既有 PR #60867 已更新至 `703db47378`，目标为官方 `dev@3ba597f776`，保留 Draft 等待设计评审；`sidebar-mode` 仅作 PR 传输引用，开发仍统一在 `dev-my`。
 
 历史整合记录（2026-11-02，Asia/Shanghai）。开发统一在 `dev-my`。按用户本次明确要求，将最新项目收起、后代活动与 RTL 修复同步到既有 #60867；远端 `sidebar-mode` 随后冻结为 PR 来源引用，本地同名分支已删除。旧 `sidebar-projects` 的 GitHub/Gitee 分支已删除，历史提交保留在本地归档引用中。
 
