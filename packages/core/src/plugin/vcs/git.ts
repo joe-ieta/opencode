@@ -71,10 +71,14 @@ function make(proc: AppProcess.Interface, input: { directory: string; worktree: 
 
   return {
     info: Effect.fn("VcsGit.info")(function* () {
-      const [current, root] = yield* Effect.all([ctx.git.branch(ctx.directory), ctx.git.defaultBranch(ctx.directory)], {
-        concurrency: 2,
-      })
-      return { branch: { current, default: root?.name } } satisfies Info
+      const [current, root, remotes] = yield* Effect.all(
+        [ctx.git.branch(ctx.directory), ctx.git.defaultBranch(ctx.directory), ctx.git.remotes(ctx.directory)],
+        { concurrency: 3 },
+      )
+      return {
+        branch: { current, default: root?.name },
+        ...(remotes.length > 0 ? { remotes } : {}),
+      } satisfies Info
     }),
     base: () => ctx.git.base(ctx.directory),
     branches: Effect.fn("VcsGit.branches")(function* (options?: BranchOptions) {
@@ -249,6 +253,19 @@ function makeGit(proc: AppProcess.Interface, env?: Record<string, string>) {
     if (list.length === 1) return list[0]
     if (list.includes("upstream")) return "upstream"
     return list[0]
+  })
+
+  const remotes = Effect.fn("VcsGit.remotes")(function* (cwd: string) {
+    const list = yield* lines(["remote", "-v"], { cwd })
+    const result = new Map<string, string>()
+
+    list.forEach((line) => {
+      const match = /^(\S+)\s+(.+?)\s+\((fetch|push)\)$/.exec(line)
+      if (!match || match[3] === "push" || result.has(match[1])) return
+      result.set(match[1], match[2])
+    })
+
+    return [...result].map(([name, url]) => ({ name, url }))
   })
 
   const branch = Effect.fn("VcsGit.branch")(function* (cwd: string) {
@@ -500,6 +517,7 @@ function makeGit(proc: AppProcess.Interface, env?: Record<string, string>) {
     branches,
     base,
     defaultBranch,
+    remotes,
     hasHead,
     mergeBase,
     status,

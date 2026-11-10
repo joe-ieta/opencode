@@ -27,6 +27,7 @@ import { displayName } from "@opencode/ui/project-avatar"
 import { pathKey } from "@/workspaces/path-key"
 import { setSidebarUnread } from "@/shell/sidebar-peek"
 import { createSessionIndexes } from "./history"
+import { projectRemoteHint } from "./project-remotes"
 import { createProjectActions } from "@/shell/projects/actions"
 import { ProjectMenuItems } from "@/shell/projects/menu"
 import { isServerFailed } from "@/runtime/server/health-machine"
@@ -253,6 +254,12 @@ export function SidebarProjects(props: {
       .filter((group) => pinned[0].includes(group.key))
       .map((group) => group.key),
   )
+  const unpinnedGroups = createMemo(() =>
+    groups()
+      .filter((group) => !pinned[0].includes(group.key))
+      .map((group) => group.key),
+  )
+
   const currentKey = createMemo(() => props.currentTab && tabKey(props.currentTab))
   const projectActivity = createMemo(
     () =>
@@ -482,6 +489,21 @@ export function SidebarProjects(props: {
     )
   }
 
+  const groupRemotes = (group: { connection: ServerConnection.Key; directory?: string }) =>
+    group.directory
+      ? global.serverCtx(group.connection)?.data.location.vcs.info({ directory: group.directory })?.remotes
+      : undefined
+
+  const loadGroupRemotes = (group: { connection: ServerConnection.Key; directory?: string }) => {
+    const directory = group.directory
+    const ctx = global.serverCtx(group.connection)
+
+    if (!directory || !ctx) return
+    const location = { directory }
+    if (ctx.data.location.vcs.info(location)) return
+    void ctx.data.location.vcs.sync(location).catch(() => undefined)
+  }
+
   const renderGroup = (key: string) => (
     <>
       <Show when={groupsByKey().get(key)}>
@@ -489,6 +511,8 @@ export function SidebarProjects(props: {
           <div
             class="sidebar-project-header mt-3 mb-1 min-w-0 rounded-md bg-v2-background-bg-layer-02 px-1.5 py-1"
             data-menu-open={projectMenu.open === key ? "" : undefined}
+            onPointerEnter={() => loadGroupRemotes(group())}
+            onFocusIn={() => loadGroupRemotes(group())}
             onContextMenu={(event) => {
               if (!group().project) return
               event.preventDefault()
@@ -505,6 +529,7 @@ export function SidebarProjects(props: {
               group().name,
               group().directory,
               group().server,
+              ...projectRemoteHint(groupRemotes(group())),
               language.plural("sidebar.recent.count", group().total, {
                 recent: group().recent,
                 shown:
@@ -762,34 +787,17 @@ export function SidebarProjects(props: {
           }
         }}
       >
-        <Show when={pinnedGroups().length > 0}>
-          <section
-            aria-label={language.t("sidebar.pinned.title")}
-            class="flex min-h-0 max-h-[40%] shrink-0 flex-col pb-3"
-          >
-            <h2 class="mb-1 shrink-0 text-[13px] leading-4 font-medium text-v2-text-text-muted">
-              {language.t("sidebar.pinned.title")}
-            </h2>
-            <div
-              data-slot="sidebar-pinned-scroll"
-              data-scrollable
-              class="min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
-            >
-              <div
-                data-titlebar-tab-list
-                data-orientation="vertical"
-                class="flex w-full min-w-0 flex-col items-stretch"
-              >
-                <For each={pinnedGroups()}>{renderGroup}</For>
-              </div>
-            </div>
-          </section>
-        </Show>
         <>
           <div class="mb-2 flex h-7 shrink-0 items-center justify-between gap-2 [app-region:no-drag]">
             <h2 class="min-w-0 flex-1 text-[13px] leading-4 font-medium text-v2-text-text-muted">
               {language.t("home.projects")}
             </h2>
+            <span
+              class="shrink-0 rounded px-1 text-[11px] leading-4 tabular-nums text-v2-text-text-faint"
+              title={language.plural("sidebar.projects.count", unpinnedGroups().length)}
+            >
+              {unpinnedGroups().length}
+            </span>
             <Show
               when={servers.visible.length === 1}
               fallback={
@@ -847,15 +855,40 @@ export function SidebarProjects(props: {
             class="flex w-full min-w-0 flex-col items-stretch"
             ref={listRef}
           >
-            <For
-              each={groups()
-                .filter((group) => !pinned[0].includes(group.key))
-                .map((group) => group.key)}
-            >
-              {renderGroup}
-            </For>
+            <For each={unpinnedGroups()}>{renderGroup}</For>
           </div>
         </div>
+        <Show when={pinnedGroups().length > 0}>
+          <section
+            aria-label={language.t("sidebar.pinned.title")}
+            class="flex min-h-0 max-h-[40%] shrink-0 flex-col border-t border-v2-border-border-base pt-3 pb-3"
+          >
+            <div class="mb-1 flex shrink-0 items-center gap-2">
+              <h2 class="min-w-0 truncate text-[13px] leading-4 font-medium text-v2-text-text-muted">
+                {language.t("sidebar.pinned.title")}
+              </h2>
+              <span
+                class="shrink-0 rounded px-1 text-[11px] leading-4 tabular-nums text-v2-text-text-faint"
+                title={language.plural("sidebar.pinned.count", pinnedGroups().length)}
+              >
+                {pinnedGroups().length}
+              </span>
+            </div>
+            <div
+              data-slot="sidebar-pinned-scroll"
+              data-scrollable
+              class="min-h-6 overflow-y-auto overflow-x-hidden overscroll-contain"
+            >
+              <div
+                data-titlebar-tab-list
+                data-orientation="vertical"
+                class="flex w-full min-w-0 flex-col items-stretch"
+              >
+                <For each={pinnedGroups()}>{renderGroup}</For>
+              </div>
+            </div>
+          </section>
+        </Show>
       </DragDropProvider>
     </div>
   )

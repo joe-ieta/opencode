@@ -353,6 +353,8 @@ export type ReferenceGitSource = { type: "git"; repository: string; branch?: str
 
 export type VcsBranch = { current?: string; default?: string }
 
+export type VcsRemote = { name: string; url: string }
+
 export type VcsBase = { name: string; ref: string; source: "reflog" | "default" }
 
 export type VcsFileStatus = {
@@ -975,7 +977,7 @@ export type JobImage = {
   model: string
 }
 
-export type VcsInfo = { provider?: string; branch: VcsBranch }
+export type VcsInfo = { provider?: string; branch: VcsBranch; remotes?: Array<VcsRemote> }
 
 export type WebSearchProvider = { id: WebSearchID; name: string }
 
