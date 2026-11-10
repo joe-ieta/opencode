@@ -47,7 +47,7 @@ process.env.OPENCODE_VERSION = version
 process.env.OPENCODE_CHANNEL = "dev"
 process.env.OPENCODE_DESKTOP_APP_ID = "ai.opencode.desktop.dev-my"
 process.env.OPENCODE_DESKTOP_PRODUCT_NAME = "OpenCode My"
-process.env.OPENCODE_DESKTOP_UPDATE_URL = `https://github.com/joe-ieta/opencode/releases/download/${tag}/`
+process.env.OPENCODE_DESKTOP_UPDATE_URL = `https://gitee.com/ieta/opencode-my/releases/download/${tag}/`
 process.env.CSC_IDENTITY_AUTO_DISCOVERY = "false"
 process.env.OPENCODE_MODELS_SNAPSHOT = path.join(work, "models-catalog.json")
 process.env.NODE_OPTIONS = "--max-old-space-size=4096"
