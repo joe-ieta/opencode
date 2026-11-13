@@ -7,11 +7,11 @@
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
 | Windows | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
-| Linux | `v2.2.5-my.7` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7) |
+| Linux | `v2.2.6-my.1` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 
-`v2.2.6-my.1` 为 Windows 正式发行及 GitHub Latest；Linux 继续使用正式发行 `v2.2.5-my.7`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+`v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
 
-## v2.2.6-my.1 Windows x64 正式发行
+## v2.2.6-my.1 Windows x64 与 Linux amd64/arm64 正式发行
 
 - 2026-11-10 18:45:29（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)
 - 2026-11-10，用户确认 Windows 本地验证通过；沿用同一源码标签和四个已验证资产，转为正式发行（`prerelease=false`）并设为 GitHub Latest。
@@ -22,9 +22,21 @@
 - 按本仓库明确约束保留服务端非阻塞插件加载，未采纳官方本轮临时等待插件并超时返回 503 的补丁。
 - 根检查 34/34 项、App 官方 TypeScript 检查、相关单元测试 222 项、生产 Chromium 回归 115 项及 Side bar 重点重复回归 40 项通过；浏览器测试均无重试。VCS 套件在本机默认 30 秒预算下出现真实 Git 进程超时及随后清理临时目录的 `EBUSY`，诊断运行中的远程信息用例通过，未将整套 VCS 测试记为通过。
 - Bun 1.4.4 构建，模型目录比较覆盖 7,676 个模型；CLI 服务发现、V1 升级确认与历史迁移冒烟通过。NSIS 完整性、实际 ASAR/CLI 版本、项目管理资源、固定标签更新源及清单 SHA512/大小已核验。
-- 安装包 `opencode-desktop-win-x64.exe` 为 281,699,674 字节，SHA256 为 `cadb9c9c32c8ce331e8c19d5482a9318632e7a07ec6c504096f3cbd8c4cdc9dd`。本地路径为 `dist/releases/v2.2.6-my.1/opencode-desktop-win-x64.exe`。安装包未签名，Windows 本地安装验证已由用户确认通过；本次仅构建 Windows x64。
-- 四个 GitHub 资产的服务端大小及 SHA256 与本地一致；三份清单的完整公开下载、安装器公开下载入口、总大小和 65,536 字节文件头均核验通过。源码标签固定在上述构建提交，发行文档另行提交。
+- 安装包 `opencode-desktop-win-x64.exe` 为 281,699,674 字节，SHA256 为 `cadb9c9c32c8ce331e8c19d5482a9318632e7a07ec6c504096f3cbd8c4cdc9dd`。本地路径为 `dist/releases/v2.2.6-my.1/opencode-desktop-win-x64.exe`。安装包未签名，Windows 本地安装验证已由用户确认通过；初次发布仅含 Windows x64，Linux 追加记录见下。
+- Windows 初次发行时，四个 GitHub 资产的服务端大小及 SHA256 与本地一致；三份清单的完整公开下载、安装器公开下载入口、总大小和 65,536 字节文件头均核验通过。源码标签固定在上述构建提交，发行文档另行提交。
 - 原 `origin/dev@171d675ae1a233c891c13f47e68003bc99aeb3a7` 的 fork 历史已完整保存到 `origin/dev-my`，随后使用租约校验将 `origin/dev` 恢复为上述官方提交的镜像。默认分支仍为 `dev-my`。
+- 2026-11-13（Asia/Shanghai），在同一正式 Release 追加 Linux amd64/arm64 的 AppImage、deb 和两份更新清单。构建使用同一不可变源码标签及 Windows 模型快照，快照 SHA256 为 `6a14794d0dc259042e56fc52b1e974cdd091247a99c3ba23d1c9490e330ed087`。
+- Linux 环境为 Ubuntu 24.04.5 容器、Node 24.15.0、Bun 1.4.4。完整检查 34/34 项通过；两个架构各比较 7,676 个模型，并通过 CLI 服务发现、V1 升级确认和历史迁移冒烟。
+- 四个安装包均已实际解包，核验 Electron、CLI、终端组件的架构、ASAR 版本与界面资源、桌面入口、metainfo 及更新源；同架构 AppImage/deb 的 ASAR 与 CLI 相同，包内 CLI 与构建所用二进制一致。两份 Linux 更新清单的 SHA512、文件大小和目标架构匹配。
+- ARM64 AppImage 沿用静态启动器（`toolsets.appimage=1.0.3`）。ARM64 CLI 及 AppImage 解包通过 QEMU 执行；两种 Linux 桌面均未进行人工验收，ARM64 尚未做原生桌面验证。
+- 联合 `SHA256SUMS` 覆盖全部 5 个安装包，`build.json` 记录三个构建目标。全部 10 个 GitHub 资产的大小及 SHA256 均已验证，公开清单完整下载与各安装包的 65,536 字节范围下载均匹配本地。原 Windows 安装包与 `latest.yml` 的资产 ID、大小及摘要保持一致；Release 仍为正式版及 Latest。
+
+| 安装包 | 字节 | SHA256 |
+| --- | ---: | --- |
+| `opencode-desktop-linux-x86_64.AppImage` | 328,499,886 | `886b4fa551c18ed4cb8e40560bdf542351044a74df5436db6f02ac1a4559fd04` |
+| `opencode-desktop-linux-amd64.deb` | 274,221,356 | `9719ce99d315e19ee8d777e3c256b714c5a79110bd13c60696ff17929c84f8d9` |
+| `opencode-desktop-linux-arm64.AppImage` | 306,429,237 | `3b9cebd88087adf8a86bef9daa07690ce430deaeb7cf6df847b86041b0c4ea8f` |
+| `opencode-desktop-linux-arm64.deb` | 263,897,780 | `d7052aeb250c5814d2f12d1ff7feadc7a2c0c5786c7f2d9eb40e375ca9c422ae` |
 
 ## v2.2.5-my.7 Windows x64 与 Linux amd64/arm64 正式发行
 
