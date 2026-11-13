@@ -28,7 +28,8 @@
 - 2026-11-13（Asia/Shanghai），在同一正式 Release 追加 Linux amd64/arm64 的 AppImage、deb 和两份更新清单。构建使用同一不可变源码标签及 Windows 模型快照，快照 SHA256 为 `6a14794d0dc259042e56fc52b1e974cdd091247a99c3ba23d1c9490e330ed087`。
 - Linux 环境为 Ubuntu 24.04.5 容器、Node 24.15.0、Bun 1.4.4。完整检查 34/34 项通过；两个架构各比较 7,676 个模型，并通过 CLI 服务发现、V1 升级确认和历史迁移冒烟。
 - 四个安装包均已实际解包，核验 Electron、CLI、终端组件的架构、ASAR 版本与界面资源、桌面入口、metainfo 及更新源；同架构 AppImage/deb 的 ASAR 与 CLI 相同，包内 CLI 与构建所用二进制一致。两份 Linux 更新清单的 SHA512、文件大小和目标架构匹配。
-- ARM64 AppImage 沿用静态启动器（`toolsets.appimage=1.0.3`）。ARM64 CLI 及 AppImage 解包通过 QEMU 执行；两种 Linux 桌面均未进行人工验收，ARM64 尚未做原生桌面验证。
+- ARM64 AppImage 沿用静态启动器（`toolsets.appimage=1.0.3`）。ARM64 CLI 及 AppImage 解包通过 QEMU 执行。
+- 2026-11-13（Asia/Shanghai），用户确认 Linux 本地验证通过；Windows 与 Linux 的本地验收均已完成。
 - 联合 `SHA256SUMS` 覆盖全部 5 个安装包，`build.json` 记录三个构建目标。全部 10 个 GitHub 资产的大小及 SHA256 均已验证，公开清单完整下载与各安装包的 65,536 字节范围下载均匹配本地。原 Windows 安装包与 `latest.yml` 的资产 ID、大小及摘要保持一致；Release 仍为正式版及 Latest。
 
 | 安装包 | 字节 | SHA256 |
