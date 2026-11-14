@@ -8,8 +8,19 @@
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
 | Windows | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 | Linux | `v2.2.6-my.1` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
+| Windows 测试（`dev-my-models`） | `v2.3.0-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1) |
 
 `v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.3.0-my.1 Windows x64 测试预发行（dev-my-models）
+
+- 2026-11-14 11:14:19（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1)
+- 构建源码为 `fb4b28252b9a06bea58af3ad26311075881235a2`：将 `dev-my@50295da4da6e159483b80aaf7f611b414e27ec5d` 合入 `dev-my-models`，官方基线为 V2 2.3.0 的 `upstream/dev@f0089856c0`；合并无冲突。
+- 该分支相对 `dev-my` 仅增加 Custom Provider 设计文档及其入口，尚未实现文档描述的模型管理功能。运行时代码与已验证的 `dev-my` 一致，包含下节记录的新侧栏分组、Recent 视图、会话排序及本地 Side bar 补丁。
+- 合并后完整 `bun run check` 35/35 项通过；桌面安装器配置、项目选择器、服务连接与迁移状态机测试 25 项通过。相同运行时代码的 App 官方 TypeScript 检查、2,723 项应用单元测试、94 项核心测试、113 项生产 Chromium 回归及额外 E2E 类型检查的限制见下节源码同步记录。
+- Bun 1.4.4 构建，模型目录比较覆盖 7,855 个模型；CLI 服务发现、V1 升级确认与历史迁移冒烟通过。NSIS 完整性、实际 ASAR/CLI 版本、项目管理资源、固定标签更新源及清单 SHA512/大小已核验。
+- 安装包 `opencode-desktop-win-x64.exe` 为 281,928,299 字节，SHA256 为 `0f379fcb97fb527eaf1b30c62b8856465a9ace412943aa319f09dd5000837a7c`。本地路径为 `dist/releases/v2.3.0-my.1/opencode-desktop-win-x64.exe`，附 `latest.yml`、`SHA256SUMS`、`build.json`。安装包未签名，Windows 人工安装验收待本地验证。
+- 四个 GitHub 资产的服务端大小及 SHA256 与本地一致；三份清单完整公开下载、安装器公开下载入口、总大小及 65,536 字节文件头均已核验。Latest 仍为 `v2.2.6-my.1`，其 10 个既有资产的 ID、大小及摘要保持一致。源码标签固定在上述构建提交，发行文档另行提交到 `dev-my-models`。
 
 ## 2026-11-14：同步官方 dev 至 2.3.0 源码
 

@@ -5,6 +5,7 @@
 跟随官方 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
 - 2026-11-14，源码基线已同步至 V2 2.3.0 的 `dev@f0089856c0`，合入 227 个上游提交，保留共享项目历史、独立 Side bar、Running、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
+- 2026-11-14，将 `dev-my` 合入 `dev-my-models` 后发布 Windows x64 测试预发行 [v2.3.0-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1)，构建源码 `fb4b28252b`。完整检查及安装包核验通过，人工安装验收待本地验证；Latest 仍为 `v2.2.6-my.1`。本次分支只增加 Custom Provider 设计文档，尚未实现其模型管理功能。
 - 最新正式发行 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) 提供 Windows x64 NSIS 和 Linux amd64、arm64 的 AppImage 与 deb，构建源码 `231de37312`。Windows 与 Linux 本地验证均已通过。
 - 本版增加 Side bar 项目计数、固定区域下置与远程仓库提示，并合入官方会话已读菜单、侧面板恢复、Copilot Auto 和嵌入模型入口；继续复用共享项目缓存、会话索引与 Running 实现。
 - 正式发行已设为 GitHub Latest。构建和验收结果见 [发行记录](releases.md)。
