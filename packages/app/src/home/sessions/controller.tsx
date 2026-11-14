@@ -279,7 +279,7 @@ export function createHomeSessionsController(home: HomeController) {
     if (!ctx || !conn) return []
 
     return retainSessions(
-      ctx.data.session.apply(mergeSessionIndex([...fetchedSessions(), ...scopedSessions()], ctx.data.session.list())),
+      ctx.data.session.apply(mergeSessionIndex([...fetchedSessions(), ...scopedSessions()], ctx.data.session.known())),
       SESSION_LIST_LIMIT,
       Date.now(),
     )
@@ -389,10 +389,7 @@ export function createHomeSessionsController(home: HomeController) {
       .update({ sessionID: session.id, title: next }, { signal })
       .then(() => {
         ctx.data.session.remember({ ...(ctx.data.session.get(session.id) ?? session), title: next })
-        // Rename advances time.updated server-side; re-sync the canonical
-        // record so date grouping and ordering do not go stale.
-        ctx.data.session.invalidate(session.id)
-        void ctx.data.session.sync(session.id).catch(() => {})
+        // Rename changes the title now; ordering follows the next list reload.
         renameIndexedSession(queryClient, conn, session.id, next)
 
         return true
@@ -574,7 +571,8 @@ export function createHomeSessionsController(home: HomeController) {
           const tab = tabs.addSessionTab({ server: connKey, sessionId: session.id })
 
           if (!options?.background) tabs.select(tab)
-          ctx.data.session.remember(session)
+          // Keep the canonical record's server times: the list row may carry a local send bump.
+          ctx.data.session.remember(ctx.data.session.get(session.id) ?? session)
 
           if (!options?.background) ctx.projects.touch(directory)
         })
@@ -654,7 +652,10 @@ function localDay(date: Date) {
   return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
 }
 
-function groupSessions(records: HomeSessionRecord[], language: ReturnType<typeof useLanguage>): HomeSessionGroup[] {
+export function groupSessions(
+  records: HomeSessionRecord[],
+  language: ReturnType<typeof useLanguage>,
+): HomeSessionGroup[] {
   const now = new Date()
   const today = localDay(now)
   const yesterday = localDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))

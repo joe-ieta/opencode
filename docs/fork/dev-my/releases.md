@@ -11,6 +11,15 @@
 
 `v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
 
+## 2026-11-14：同步官方 dev 至 2.3.0 源码
+
+- 从 `upstream/dev` 合入 `f0089856c07eded13396a0a0d05f19f1718be7b9`，相对上一基线新增 227 个提交；`origin/dev` 同步为该官方提交的镜像。
+- 保留独立 Side bar、项目计数、完整会话索引与 Running，接入上游共享会话排序、新侧栏分组和 Recent 视图；适配后台作业活动通知及子会话测试依赖。
+- 修正本地与上游隐藏会话词条重名，以及新增灰阶检查在 Windows 路径下无法匹配既有例外的问题。公共协议合并后重新运行客户端生成器。
+- 验证通过：根目录 `bun run check`（35/35 项）、App 官方 TypeScript 检查、应用单元测试 2,723 项、核心作业/活动/执行/子会话测试 94 项，以及生产 Chromium 的 Home/标签/Side bar 回归 113 项（无重试）。共享索引和侧栏排序用例重复 10 次，合计 210 项通过。浏览器回归验证了重命名缓存、关闭菜单及执行完成后的重排。
+- 额外的 `typecheck:e2e` 未通过：共 190 条诊断，包含其他回归用例的旧字段、未使用变量及 E2E 配置缺少 CSS/Vite 类型等；本轮修改的 Home/tabs 用例和 mock-server 未报类型错误。Home 性能基准 `exp_d319fa` 因测试浏览器 CDP 连接中断而未完成，不据此作性能结论。
+- 本次为源码同步，已验收的 `v2.2.6-my.1` 安装包、标签与 Latest 发行保持原样。
+
 ## v2.2.6-my.1 Windows x64 与 Linux amd64/arm64 正式发行
 
 - 2026-11-10 18:45:29（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)

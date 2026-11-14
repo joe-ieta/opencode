@@ -57,7 +57,7 @@ export function createSessionIndexes(connections: Accessor<{ conn: ServerConnect
             item.ctx.data.session.apply(
               mergeSessionIndex(
                 queries[index]?.isPending ? [] : (queries[index]?.data?.()?.sessions ?? []),
-                item.ctx.data.session.list(),
+                item.ctx.data.session.known(),
               ),
             ),
             SESSION_LIST_LIMIT,

@@ -371,7 +371,7 @@ export function SidebarSessionRow(props: {
         sortGroup={props.sortGroup}
         sortDisabled={props.sortDisabled}
         closable={props.opened !== false || props.dismissible}
-        closeLabel={props.opened === false ? language.t("sidebar.recent.hide") : undefined}
+        closeLabel={props.opened === false ? language.t("sidebar.history.hide") : undefined}
         session={session()}
         preparing={!!pending()}
         unread={!!props.status?.unread}

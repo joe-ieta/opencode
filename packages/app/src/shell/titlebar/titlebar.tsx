@@ -29,9 +29,11 @@ import { createTitlebarHistory } from "./history"
 import { TitlebarTabStrip } from "@/shell/titlebar/tab-strip"
 import { macVerticalTrafficLights, SidebarToggle } from "@/shell/sidebar-toggle"
 import { SidebarInbox } from "@/shell/titlebar/inbox"
+import { SidebarCustomized, type SidebarStripGrouping } from "@/shell/titlebar/sidebar-customized"
 import { SidebarOrganized } from "@/shell/titlebar/sidebar-organized"
 import { SidebarProjects } from "@/shell/sidebar/projects"
 import { RunningSessions } from "@/shell/sidebar/running"
+import { RecentSessions } from "@/shell/titlebar/recent-sessions"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { createMediaQuery } from "@solid-primitives/media"
 import { readSessionTabsRemovedDetail, SESSION_TABS_REMOVED_EVENT } from "@/shell/titlebar/session-events"
@@ -194,7 +196,8 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
             createEffect(() => {
               if (
                 settings.appearance.tabLayout() === "vertical" &&
-                settings.general.sidebarOrganize() === "projects" &&
+                (settings.general.sidebarOrganize() === "projects" ||
+                  settings.general.sidebarOrganize() === "customize") &&
                 !mobile()
               )
                 return
@@ -293,10 +296,17 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
 
             const toggleHome = () => tabs.toggleHome({ home: layout.route().type === "home", current: currentTab() })
 
-            const verticalTabStrip = (highlightActive?: () => boolean, onNavigate?: () => void) => (
+            const verticalTabStrip = (
+              highlightActive?: () => boolean,
+              onNavigate?: () => void,
+              grouped?: SidebarStripGrouping,
+            ) => (
               <TitlebarTabStrip
                 orientation="vertical"
                 highlightActive={highlightActive?.()}
+                sections={grouped?.sections}
+                tabFooter={grouped?.tabFooter}
+                tabLabel={grouped?.tabLabel}
                 tabs={tabsStore}
                 currentTab={currentTab()}
                 onNavigate={(tab, el) => {
@@ -574,7 +584,8 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                   <SidebarToggle />
                 </Show>
                 <Show when={!mobile() && !props.verticalTabs}>
-                  <div class="flex shrink-0 items-center gap-0.5">
+                  {/* Pulls the first tab's avatar 10px from Search, past the row gap plus the tab's own inset. */}
+                  <div class="-me-0.5 flex shrink-0 items-center gap-0.5">
                     {homeButton()}
                     {searchButton()}
                   </div>
@@ -795,40 +806,37 @@ export function Titlebar(props: { verticalTabs?: { mount?: HTMLElement } }) {
                             </div>
                             <div class="h-4 w-full shrink-0" aria-hidden="true" />
                             <div class="flex min-h-0 flex-1 flex-col gap-1">
-                              <Show
-                                when={settings.appearance.tabLayout() === "sidebar"}
-                                fallback={
-                                  <Show
-                                    when={settings.appearance.tabLayout() === "inbox"}
-                                    fallback={
-                                      <Show
-                                        when={settings.general.sidebarOrganize() === "projects"}
-                                        fallback={verticalTabStrip()}
-                                      >
-                                        <SidebarOrganized currentTab={currentTab()}>
-                                          {verticalTabStrip}
-                                        </SidebarOrganized>
-                                      </Show>
-                                    }
-                                  >
-                                    <SidebarInbox />
-                                  </Show>
-                                }
-                              >
-                                <SidebarProjects
-                                  tabs={tabsStore}
-                                  currentTab={currentTab()}
-                                  onNavigate={(tab, el) => {
-                                    tabs.select(tab)
-                                    el?.scrollIntoView({ behavior: "instant", block: "nearest" })
-                                  }}
-                                  onClose={(tab) => {
-                                    const index = tabsStore.findIndex((item) => tabKey(item) === tabKey(tab))
+                              <Switch fallback={verticalTabStrip()}>
+                                <Match when={settings.appearance.tabLayout() === "sidebar"}>
+                                  <SidebarProjects
+                                    tabs={tabsStore}
+                                    currentTab={currentTab()}
+                                    onNavigate={(tab, el) => {
+                                      tabs.select(tab)
+                                      el?.scrollIntoView({ behavior: "instant", block: "nearest" })
+                                    }}
+                                    onClose={(tab) => {
+                                      const index = tabsStore.findIndex((item) => tabKey(item) === tabKey(tab))
 
-                                    if (index !== -1) tabsStoreActions.closeTab(index)
-                                  }}
-                                />
-                              </Show>
+                                      if (index !== -1) tabsStoreActions.closeTab(index)
+                                    }}
+                                  />
+                                </Match>
+                                <Match when={settings.appearance.tabLayout() === "inbox"}>
+                                  <SidebarInbox />
+                                </Match>
+                                <Match when={settings.general.sidebarOrganize() === "projects"}>
+                                  <SidebarOrganized currentTab={currentTab()}>{verticalTabStrip}</SidebarOrganized>
+                                </Match>
+                                <Match when={settings.general.sidebarOrganize() === "customize"}>
+                                  <SidebarCustomized currentTab={currentTab()} onNewSession={openNewTab}>
+                                    {(grouped) => verticalTabStrip(undefined, undefined, grouped)}
+                                  </SidebarCustomized>
+                                </Match>
+                                <Match when={settings.general.sidebarOrganize() === "recent"}>
+                                  <RecentSessions />
+                                </Match>
+                              </Switch>
                             </div>
                             <Show when={titlebarItems.ids().length > 0}>
                               <div data-slot="vertical-tabs-footer" class="mt-2 flex w-full shrink-0 flex-col">

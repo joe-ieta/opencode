@@ -74,7 +74,7 @@ export function RecentlyClosedTabsMenu(props: {
         if (!ctx) return []
 
         return ctx.data.session
-          .apply(mergeSessionIndex(sessions[index]?.data?.()?.sessions ?? [], ctx.data.session.list()))
+          .apply(mergeSessionIndex(sessions[index]?.data?.()?.sessions ?? [], ctx.data.session.known()))
           .filter((session) => !sessionIDHasOpenTab(tabs.store, server, session.id))
           .filter(
             (session) => !recent().some((entry) => entry.tab.server === server && entry.tab.sessionId === session.id),

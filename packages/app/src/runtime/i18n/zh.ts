@@ -180,12 +180,11 @@ export const dict = {
   "dialog.model.unpaid.viewMoreProviders": "查看另外 70 多个提供商",
 
   "dialog.provider.viewAll": "查看更多提供商",
-
   "provider.connect.title": "连接 {{provider}}",
-  "provider.connect.title.anthropicProMax": "登录 Anthropic",
+
   "provider.connect.method.apiKey": "API 密钥",
   "provider.connect.status.inProgress": "正在授权…",
-  "provider.connect.status.waiting": "等待授权…",
+  "provider.connect.status.waiting": "等待授权",
   "provider.connect.status.failed": "授权失败：{{error}}",
   "provider.connect.apiKey.description":
     "输入你的 {{provider}} API 密钥以连接账户，并在 OpenCode 中使用 {{provider}} 模型。",
@@ -381,7 +380,6 @@ export const dict = {
   "session.new.project.search": "搜索项目",
   "session.new.project.add": "添加项目",
   "session.new.workspace.runIn": "运行会话的位置",
-  "session.new.workspace.triggerLocal": "本地",
   "session.new.workspace.local": "本地仓库",
   "session.new.git.none": "无 Git",
 
@@ -412,7 +410,7 @@ export const dict = {
   "sidebar.session.branch": "分支：{{branch}}",
   "sidebar.session.worktree": "工作树：{{path}}",
   "sidebar.project.newSession": "在 {{project}} 中新建会话",
-  "sidebar.recent.hide": "从最近会话中隐藏",
+  "sidebar.history.hide": "从最近会话中隐藏",
   "sidebar.recent.more.one": "更多（{{count}}）",
   "sidebar.recent.more.other": "更多（{{count}}）",
   "sidebar.recent.expand.one": "再显示 {{project}} 中的 {{count}} 个会话",

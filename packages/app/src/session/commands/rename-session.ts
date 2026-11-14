@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/solid-query"
 import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection } from "@/runtime/server/registry"
 import { useGlobal } from "@/runtime/server/runtime"
+import { renameIndexedSession } from "@/runtime/server/session-queries"
 
 export function createSessionRenamer() {
   const global = useGlobal()
@@ -19,10 +20,14 @@ export function createSessionRenamer() {
     if (!ctx || !conn) throw new Error(language.t("common.requestFailed"))
     await ctx.sdk.api.session.update({ sessionID: session.id, title })
     ctx.data.session.remember({ ...(ctx.data.session.get(session.id) ?? session), title })
-    ctx.data.session.invalidate(session.id)
-    void ctx.data.session.sync(session.id).catch(() => undefined)
-    void queryClient.invalidateQueries({ queryKey: ["home-sessions", conn], exact: true })
-    void queryClient.invalidateQueries({ queryKey: ["inbox-sessions", conn], exact: true })
-    void queryClient.invalidateQueries({ queryKey: ["inbox-archived-sessions", conn], exact: true })
+
+    // Like the iOS app, a rename changes the title only. The server advanced time.updated, and the session moves
+    // when a list next reloads, so update the cached indexes instead of refetching them now.
+    renameIndexedSession(queryClient, conn, session.id, title)
+    for (const queryKey of ["inbox-sessions", "inbox-archived-sessions"]) {
+      queryClient.setQueryData<SessionInfo[]>([queryKey, conn], (current) =>
+        current?.map((item) => (item.id === session.id ? { ...item, title } : item)),
+      )
+    }
   }
 }
