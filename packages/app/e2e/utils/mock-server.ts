@@ -1,3 +1,4 @@
+import type { CustomProvider } from "@opencode/schema/custom-provider"
 import type { Page } from "@playwright/test"
 import type { OpenCodeEvent, SessionMessageInfo, SessionActivityInfo } from "@opencode/client/promise"
 import { Permission } from "@opencode/schema/permission"
@@ -60,6 +61,13 @@ export interface MockServerConfig {
   onConnectKey?: (input: { integrationID: string; body: unknown }) => void | { error: string }
   // Terminal shells the settings offer (`/api/config/shell`).
   shells?: unknown[]
+  customProviders?: Resolvable<CustomProvider.Listing>
+  onCustomProviderTest?: (input: CustomProvider.TextTestRequest) => CustomProvider.TextTest
+  onCustomProviderDiscover?: (
+    target: CustomProvider.DiscoveryInput,
+    options?: Pick<CustomProvider.DiscoveryRequest, "api" | "metadata">,
+  ) => CustomProvider.Discovery
+  onCustomProviderUpdate?: (id: string, body: CustomProvider.Update) => CustomProvider.Saved
   // Background shell commands (`GET /api/shell`).
   shellCommands?: Resolvable<unknown[]>
   sessionActivity?: Resolvable<SessionActivityInfo[]> | false
@@ -942,6 +950,27 @@ function mockHandlers(
             id: ctx.params.projectID,
             canonical: projectSeed(config)?.canonical ?? config.directory,
           }),
+        customProviders: () =>
+          config.customProviders
+            ? Effect.sync(() => resolve(config.customProviders!))
+            : unsupported("edit custom providers", "customProviders"),
+        customProviderUpdate: (ctx) =>
+          config.onCustomProviderUpdate
+            ? Effect.sync(() => config.onCustomProviderUpdate!(ctx.params.providerID, ctx.payload))
+            : unsupported("save custom providers", "onCustomProviderUpdate"),
+        customProviderTest: (ctx) =>
+          config.onCustomProviderTest
+            ? Effect.sync(() => config.onCustomProviderTest!(ctx.payload))
+            : unsupported("test provider text response", "onCustomProviderTest"),
+        customProviderDiscover: (ctx) =>
+          config.onCustomProviderDiscover
+            ? Effect.sync(() =>
+                config.onCustomProviderDiscover!(ctx.payload.target, {
+                  api: ctx.payload.api,
+                  metadata: ctx.payload.metadata,
+                }),
+              )
+            : unsupported("discover provider models", "onCustomProviderDiscover"),
         configShells: () => Effect.succeed(config.shells ?? []),
         configUpdate: () => noContent,
         websearchProviders: () =>

@@ -384,6 +384,58 @@ export type ConfigModelReasoning =
 
 export type ConfigShellOption = { path: string; name: string; acceptable: boolean }
 
+export type CustomProviderAdvancedCost = {
+  input: number
+  output: number
+  cacheRead?: number
+  cacheWrite?: number
+  tierSize?: number
+}
+
+export type CustomProviderSaved = {
+  revision: string
+  config: "saved" | "deleted"
+  credential: "unchanged" | "saved" | "failed" | "deleted"
+  catalog: "ready" | "pending"
+}
+
+export type CustomProviderCandidate = {
+  id: string
+  name?: string
+  context?: number
+  input?: number
+  output?: number
+  maxContext?: number
+  loaded?: boolean
+  tools?: boolean
+  image?: boolean
+  metadataPending?: boolean
+  sources: { [x: string]: string }
+  warnings: Array<string>
+}
+
+export type CustomProviderTextTest =
+  | { status: "success" }
+  | {
+      status: "error"
+      kind:
+        | "model-not-found"
+        | "invalid-url"
+        | "blocked-address"
+        | "authentication"
+        | "unsupported"
+        | "redirect"
+        | "http"
+        | "network"
+        | "timeout"
+        | "too-large"
+        | "invalid-response"
+        | "empty"
+        | "unsupported-auth"
+        | "no-text"
+      httpStatus?: number
+    }
+
 export type LocationPublicRef = { directory: AbsolutePath }
 
 export type FileSystemWrite = { path: AbsolutePath }
@@ -409,6 +461,23 @@ export type ModelVariantSettings = { compaction?: ProviderCompaction; encoding?:
 
 export type ConfigModelVariantSettings = { compaction?: ProviderCompaction; encoding?: ProviderEncoding } & {
   [x: string]: JsonValue | null
+}
+
+export type CustomProviderAdvancedProviderSettings = {
+  reasoningEffort?: string
+  textVerbosity?: "low" | "medium" | "high"
+  parallelToolCalls?: boolean
+  encoding?: ProviderEncoding
+  timeout?: number | false
+  headerTimeout?: number | false
+  chunkTimeout?: number | false
+}
+
+export type CustomProviderAdvancedSettings = {
+  reasoningEffort?: string
+  textVerbosity?: "low" | "medium" | "high"
+  parallelToolCalls?: boolean
+  encoding?: ProviderEncoding
 }
 
 export type PermissionRule = { action: string; resource: string; effect: PermissionEffect }
@@ -699,6 +768,17 @@ export type SessionMessageAssistantReasoning1 = {
 }
 
 export type ToolContent1 = ToolTextContent | ToolFileContent1
+
+export type CustomProviderAdvancedCompatibility = {
+  reasoningField?: string
+  maxTokensField?: ModelMaxTokensField
+  requireReasoning?: boolean
+  requireFinishReason?: boolean
+  requireAssistantAfterTool?: boolean
+  supportsPromptCacheKey?: boolean
+  streamUsage?: boolean
+  cacheFormat?: ModelCacheFormat
+}
 
 export type ModelCompatibility = {
   reasoningField?: ModelReasoningField
@@ -1011,6 +1091,27 @@ export type ConfigModelCapabilities = {
   reasoning?: ConfigModelReasoning
 }
 
+export type CustomProviderDiscovery =
+  | { status: "success"; models: Array<CustomProviderCandidate>; warnings: Array<string> }
+  | {
+      status: "error"
+      kind:
+        | "model-not-found"
+        | "invalid-url"
+        | "blocked-address"
+        | "authentication"
+        | "unsupported"
+        | "redirect"
+        | "http"
+        | "network"
+        | "timeout"
+        | "too-large"
+        | "invalid-response"
+        | "empty"
+        | "unsupported-auth"
+      httpStatus?: number
+    }
+
 export type SessionMessageLocationSwitched = {
   id: SessionMessageID
   metadata?: { [x: string]: JsonValue }
@@ -1108,6 +1209,8 @@ export type ModelVariant = {
   headers?: { [x: string]: string }
   body?: { [x: string]: any }
 }
+
+export type CustomProviderAdvancedVariant = { id: string; settings?: CustomProviderAdvancedSettings }
 
 export type PermissionRuleset = Array<PermissionRule>
 
@@ -2373,6 +2476,21 @@ export type ModelInfo = {
   limit: { context: number; input?: number; output: number }
 }
 
+export type CustomProviderDefinition = {
+  name?: string
+  modelID?: string
+  context?: number
+  input?: number
+  output?: number
+  tools?: boolean | null
+  image?: boolean | null
+  settings?: CustomProviderAdvancedSettings
+  compatibility?: CustomProviderAdvancedCompatibility
+  cost?: Array<CustomProviderAdvancedCost>
+  variants?: Array<CustomProviderAdvancedVariant>
+  variantsReadonly?: boolean
+}
+
 export type SessionInfo = {
   id: SessionID
   parentID?: SessionID
@@ -2741,6 +2859,20 @@ export type AgentInfo = {
   permissions: PermissionRuleset
 }
 
+export type CustomProviderEntry = {
+  id: ProviderID
+  name: string
+  sources: Array<string>
+  reason?: string
+  baseURL?: string
+  settings?: CustomProviderAdvancedProviderSettings
+  compatibility?: CustomProviderAdvancedCompatibility
+  keyReadonly: boolean
+  keySources: Array<string>
+  credentials: Array<{ id: CredentialID; label: string; active: boolean }>
+  models: { [x: string]: CustomProviderDefinition }
+}
+
 export type SessionsResponse = {
   data: Array<SessionInfo>
   cursor: { previous?: SessionsCursor | null; next?: SessionsCursor | null }
@@ -2801,6 +2933,13 @@ export type SessionMessageAssistantContentEncoded =
 export type GenerateDecisionsResponse = { data: GenerateDecisionResult }
 
 export type FormInfo1 = { id: FormID; sessionID: string; title: string; metadata?: FormMetadata1; fields: FormFields1 }
+
+export type CustomProviderListing = {
+  revision: string
+  target: string
+  reason?: string
+  providers: Array<CustomProviderEntry>
+}
 
 export type SessionMessageInfo =
   | SessionMessageAgentSelected
@@ -4938,6 +5077,112 @@ export type ExperimentalConfigUpdateInput = { readonly shell: string | null }
 
 export type ExperimentalConfigUpdateOutput = void
 
+export type ExperimentalConfigProvidersListInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+}
+
+export type ExperimentalConfigProvidersListOutput = CustomProviderListing
+
+export type ExperimentalConfigProvidersUpdateInput = {
+  readonly providerID: string
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly mode: "create" | "edit" | "delete"
+  readonly revision: string
+  readonly patch?:
+    | {
+        readonly name?: string | null
+        readonly baseURL?: string
+        readonly settings?: {
+          readonly reasoningEffort?: string | null
+          readonly textVerbosity?: "low" | "medium" | "high" | null
+          readonly parallelToolCalls?: boolean | null
+          readonly encoding?: ("zstd" | "gzip" | "none") | null
+          readonly timeout?: number | false | null
+          readonly headerTimeout?: number | false | null
+          readonly chunkTimeout?: number | false | null
+        }
+        readonly compatibility?: {
+          readonly reasoningField?: string | null
+          readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
+          readonly requireReasoning?: boolean | null
+          readonly requireFinishReason?: boolean | null
+          readonly requireAssistantAfterTool?: boolean | null
+          readonly supportsPromptCacheKey?: boolean | null
+          readonly streamUsage?: boolean | null
+          readonly cacheFormat?: ("anthropic" | "alibaba") | null
+        }
+        readonly models?: {
+          readonly [x: string]: {
+            readonly name?: string | null
+            readonly modelID?: string | null
+            readonly context?: number | null
+            readonly input?: number | null
+            readonly output?: number | null
+            readonly tools?: boolean | null
+            readonly image?: boolean | null
+            readonly settings?: {
+              readonly reasoningEffort?: string | null
+              readonly textVerbosity?: "low" | "medium" | "high" | null
+              readonly parallelToolCalls?: boolean | null
+              readonly encoding?: ("zstd" | "gzip" | "none") | null
+            }
+            readonly compatibility?: {
+              readonly reasoningField?: string | null
+              readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
+              readonly requireReasoning?: boolean | null
+              readonly requireFinishReason?: boolean | null
+              readonly requireAssistantAfterTool?: boolean | null
+              readonly supportsPromptCacheKey?: boolean | null
+              readonly streamUsage?: boolean | null
+              readonly cacheFormat?: ("anthropic" | "alibaba") | null
+            }
+            readonly cost?: {
+              readonly [x: string]: {
+                readonly input?: number
+                readonly output?: number
+                readonly cacheRead?: number | null
+                readonly cacheWrite?: number | null
+                readonly tierSize?: number | null
+              } | null
+            }
+            readonly variants?: {
+              readonly [x: string]: {
+                readonly settings?: {
+                  readonly reasoningEffort?: string | null
+                  readonly textVerbosity?: "low" | "medium" | "high" | null
+                  readonly parallelToolCalls?: boolean | null
+                  readonly encoding?: ("zstd" | "gzip" | "none") | null
+                }
+              } | null
+            }
+          } | null
+        }
+      }
+    | undefined
+  readonly credential?: { readonly id: string; readonly key: string } | undefined
+}
+
+export type ExperimentalConfigProvidersUpdateOutput = CustomProviderSaved
+
+export type ExperimentalConfigProvidersDiscoverInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target:
+    | { readonly mode: "saved"; readonly providerID: string; readonly revision: string }
+    | { readonly mode: "draft"; readonly baseURL: string; readonly key?: string }
+  readonly api?: "openai" | "ollama" | "lmstudio" | undefined
+  readonly metadata?: ReadonlyArray<string> | undefined
+}
+
+export type ExperimentalConfigProvidersDiscoverOutput = CustomProviderDiscovery
+
+export type ExperimentalConfigProvidersTestInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly target: { readonly mode: "saved"; readonly providerID: string; readonly revision: string }
+  readonly modelID: string
+}
+
+export type ExperimentalConfigProvidersTestOutput = CustomProviderTextTest
+
 /** @deprecated Use `ExperimentalSessionStatsInput`. Removed in the next minor. */
 export type SessionStatsInput = ExperimentalSessionStatsInput
 
@@ -5096,3 +5341,27 @@ export type ConfigUpdateInput = ExperimentalConfigUpdateInput
 
 /** @deprecated Use `ExperimentalConfigUpdateOutput`. Removed in the next minor. */
 export type ConfigUpdateOutput = ExperimentalConfigUpdateOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersListInput`. Removed in the next minor. */
+export type ConfigProvidersListInput = ExperimentalConfigProvidersListInput
+
+/** @deprecated Use `ExperimentalConfigProvidersListOutput`. Removed in the next minor. */
+export type ConfigProvidersListOutput = ExperimentalConfigProvidersListOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateInput`. Removed in the next minor. */
+export type ConfigProvidersUpdateInput = ExperimentalConfigProvidersUpdateInput
+
+/** @deprecated Use `ExperimentalConfigProvidersUpdateOutput`. Removed in the next minor. */
+export type ConfigProvidersUpdateOutput = ExperimentalConfigProvidersUpdateOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverInput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverInput = ExperimentalConfigProvidersDiscoverInput
+
+/** @deprecated Use `ExperimentalConfigProvidersDiscoverOutput`. Removed in the next minor. */
+export type ConfigProvidersDiscoverOutput = ExperimentalConfigProvidersDiscoverOutput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestInput`. Removed in the next minor. */
+export type ConfigProvidersTestInput = ExperimentalConfigProvidersTestInput
+
+/** @deprecated Use `ExperimentalConfigProvidersTestOutput`. Removed in the next minor. */
+export type ConfigProvidersTestOutput = ExperimentalConfigProvidersTestOutput

@@ -1,3 +1,4 @@
+import { CustomProvider } from "@opencode/schema/custom-provider"
 import { Predicate, Schema, SchemaGetter } from "effect"
 import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
 import { PersistentPty } from "@opencode/schema/persistent-pty"
@@ -224,6 +225,31 @@ const Group = HttpApiGroup.make("mock")
       params: { projectID: Schema.String },
       payload: JsonPayload,
       success: Json,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.get("customProviders", "/api/experimental/config/providers", { success: Json, error: Unsupported }),
+  )
+  .add(
+    HttpApiEndpoint.patch("customProviderUpdate", "/api/experimental/config/providers/:providerID", {
+      params: { providerID: Schema.String },
+      payload: CustomProvider.Update,
+      success: Json,
+      error: Unsupported,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.post("customProviderTest", "/api/experimental/config/providers/test", {
+      payload: CustomProvider.TextTestRequest,
+      success: Json,
+      error: Unsupported,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.post("customProviderDiscover", "/api/experimental/config/providers/discover", {
+      payload: CustomProvider.DiscoveryRequest,
+      success: Json,
+      error: Unsupported,
     }),
   )
   .add(HttpApiEndpoint.get("configShells", "/api/config/shell", { success: Json }))

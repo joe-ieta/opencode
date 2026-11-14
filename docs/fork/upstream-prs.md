@@ -1,6 +1,6 @@
 # 上游 PR、Issue 与补丁跟踪
 
-#60867 更新于 2026-11-06，其他条目的历史快照记录于 2026-10-31，日期均为 Asia/Shanghai。历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。
+#60867 更新于 2026-11-06；自定义 provider 与本地模型条目更新于 2026-11-14（upstream/dev `f0089856c0`、V2 2.3.0）；其他条目的历史快照记录于 2026-10-31，日期均为 Asia/Shanghai。历史条目指向官方 [anomalyco/opencode](https://github.com/anomalyco/opencode)。
 
 > 当前仓库关系以顶层 [AGENTS.md](../../AGENTS.md) 为准：`origin` 是本仓库 GitHub，`upstream` 是官方 GitHub；同步及官方贡献使用官方对应分支。
 
@@ -25,9 +25,22 @@
 | [#60479](https://github.com/anomalyco/opencode/issues/60479)                                          | 本次 Windows V2 复现报告；机器人识别重复，当前已关闭。提交时申请 bug 标签，账号无权添加仓库标签                                             |
 | [#50726](https://github.com/anomalyco/opencode/issues/50726)                                          | 桌面端自定义模型缺失的相关现象，供根因关联                                                                                                  |
 | [#60241](https://github.com/anomalyco/opencode/issues/60241)                                          | **OPEN**；已更新为独立 Side bar 提案，#60867 为设计评审材料，保持官方模式与初始默认值；已发布人工测试邀请                                   |
-| [#33704 中的 V2 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) | 自定义提供商/模型配置界面：表单 CRUD、可选凭据、连接测试、全局/项目范围、导入并保留 JSONC。尚未实现；关联 #59603、#51527 和 TUI 流程 #49091 |
+| [#33704 中的 V2 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) | **OPEN**；自定义提供商/模型配置界面：表单 CRUD、可选凭据、连接测试、全局/项目范围、导入并保留 JSONC。上游仍无实现；fork 已在 `dev-my-models` 实现并在 Windows 测试版验证 |
+| [#59603](https://github.com/anomalyco/opencode/issues/59603) | **OPEN**；2.2.0 移除桌面自定义 provider 入口；官方仍建议编辑 `opencode.json` |
+| [#50650](https://github.com/anomalyco/opencode/issues/50650)、[#57325](https://github.com/anomalyco/opencode/issues/57325) | **OPEN**；旧桌面表单保存失败、不能设 limits/发现；旧表单已移除，问题未由上游解决 |
+| [#57997](https://github.com/anomalyco/opencode/pull/57997) | **OPEN**；恢复自定义 OpenAI-compatible provider 保存。仅机器人验证，无维护者批准/合并 |
+| [#57161](https://github.com/anomalyco/opencode/pull/57161) | **OPEN**；为配置的 OpenAI-compatible provider 自动发现模型，带 feature flag；仅机器人验证，未合并 |
+| [#59520](https://github.com/anomalyco/opencode/pull/59520) | **OPEN**；为自定义 OpenAI-compatible provider 发现 context limit；未合并 |
+| [#40524](https://github.com/anomalyco/opencode/issues/40524) | **OPEN**；V2 provider 目录与 `/models` 对账的主要跟踪 issue；无维护者结论 |
+| [#51527](https://github.com/anomalyco/opencode/issues/51527) | **OPEN**；配置已存在时可通过 `ConfigProviderPlugin` 的 key method 设置 Key；任意 ID 预注册仍不支持 |
+| [#62448](https://github.com/anomalyco/opencode/issues/62448)、[#61628](https://github.com/anomalyco/opencode/issues/61628) | **OPEN**；更广义的桌面 provider 管理、无需配置文件的产品需求 |
+| [#63710](https://github.com/anomalyco/opencode/pull/63710)、[#62743](https://github.com/anomalyco/opencode/pull/62743)、[#58066](https://github.com/anomalyco/opencode/pull/58066) | **Draft/OPEN/OPEN**；provider 模型通配符、Unix socket、原地轮换 Key；均未合并 |
 
 Side bar 的相关 V2 需求在 #60241 汇集，包括 #55446、#51759、#53851、#54922，以及 Inbox #59220、界面讨论 #60233。不要把“建议优先人工审核”或机器人转人工回复写成已经获得设计批准。
+
+自定义 provider 的上游状态同样不能用机器人评论推断批准：`opencode-agent` / `opencodejr` 的 COMMENTED review 只是验证或分诊。2.3.0 已合并的本地模型变化是 #63266（保存 Key 用于本地发现）、#63700（15 秒超时与端点隔离）、#63200/#56214/#63198（LM Studio decision/null context）和 #62240（部分 limit 保留）；#57161/#57997/#59520 仍未合并。
+
+2026-11-14 已在 #33704 提交实现范围评论，链接相关 issue/PR 并说明 fork 的模型选择器入口与范围边界：[comment](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6872183643)。
 
 本次重新检索的 Issue/PR、设计边界与人工测试入口见 [Side bar 独立模式记录](dev-my/sidebar-mode.md)。其中 #60581 为新增相关需求，#59220 仍在评审，#57896/#57895 关闭且未合并；不要将关联或关闭当成实现获批。
 

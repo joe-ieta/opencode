@@ -1,3 +1,4 @@
+import { createCustomProviderEditor } from "@/providers/custom/editor"
 import { Popover } from "@kobalte/core/popover"
 import {
   Component,
@@ -23,7 +24,6 @@ import { Button } from "@opencode/ui/button"
 import { Badge } from "@opencode/ui/badge"
 import { Dialog, DialogBody, DialogTitle } from "@opencode/ui/dialog"
 import { Icon } from "@opencode/ui/icon"
-import { IconButton } from "@opencode/ui/icon-button"
 import { Keybind } from "@opencode/ui/keybind"
 import { MenuScroll } from "@opencode/ui/menu-scroll"
 import { SearchHighlight, SearchList, type SearchListHandle, type SearchListRow } from "@opencode/ui/search-list"
@@ -314,6 +314,7 @@ export function ModelSelectorDrawer(props: {
 }) {
   const dialog = useDialog()
   const location = useWorkspaceLocation()
+  const custom = createCustomProviderEditor(() => location().directory, props.model)
 
   const controller = createModelSelectorController({
     model: props.model,
@@ -325,12 +326,7 @@ export function ModelSelectorDrawer(props: {
 
   const manage = async () => {
     const { DialogManageModels } = await import("./manage")
-    void dialog.show(() => <DialogManageModels />)
-  }
-
-  const connect = async () => {
-    const { DialogConnectProvider } = await import("@/providers/connect/dialog")
-    void dialog.show(() => <DialogConnectProvider directory={location().directory} selection={props.model} />)
+    void dialog.push(() => <DialogManageModels />)
   }
 
   return (
@@ -339,7 +335,7 @@ export function ModelSelectorDrawer(props: {
       onManage={manage}
       model={props.model}
       provider={props.provider}
-      onConnect={connect}
+      onCustom={custom.available() ? () => void custom.open() : undefined}
       chatgptPlan={chatgptPlan()}
       onClose={() => props.onClose?.()}
     />
@@ -353,7 +349,7 @@ function ModelDrawer(props: {
   chatgptPlan?: boolean
   onClose: () => void
   onManage: () => void
-  onConnect?: () => void
+  onCustom?: () => void
 }) {
   const language = useLanguage()
   const [drawer, setDrawer] = createSignal(createModelDrawerState())
@@ -374,7 +370,7 @@ function ModelDrawer(props: {
 
       if (effect.action === "manage") return props.onManage()
 
-      if (effect.action === "connect") return props.onConnect?.()
+      if (effect.action === "custom") return props.onCustom?.()
       queueMicrotask(props.onClose)
     })
   }
@@ -429,39 +425,26 @@ function ModelDrawer(props: {
                   onSelect={() => dispatch({ type: "action.selected", action: "select" })}
                 />
               </div>
-              <div data-slot="model-selector-actions" class="flex flex-col gap-2">
-                <Button
-                  variant="ghost"
-                  class="w-full !h-10 !justify-start"
-                  icon="outline-sliders"
-                  onClick={() => dispatch({ type: "action.selected", action: "manage" })}
-                >
-                  {language.t("dialog.model.manage")}
-                </Button>
-                <Show when={props.onConnect}>
-                  <Button
-                    variant="ghost"
-                    class="w-full !h-10 !justify-start"
-                    icon="plus"
-                    onClick={() => dispatch({ type: "action.selected", action: "connect" })}
+              <ModelPickerActions
+                mobile
+                onCustom={
+                  props.onCustom ? () => dispatch({ type: "action.selected", action: "custom" }) : undefined
+                }
+                onManage={() => dispatch({ type: "action.selected", action: "manage" })}
+              />
+              <Show when={props.chatgptPlan}>
+                <div class="flex min-h-10 items-center gap-2 border-t border-v2-border-border-muted px-3 py-2 text-[13px] leading-5 text-v2-text-text-base">
+                  <ProviderModelIcon provider={{ id: "openai", name: "OpenAI" }} class="shrink-0" />
+                  <span class="min-w-0 flex-1 truncate">{language.t("dialog.model.chatgptPlan")}</span>
+                  <ExternalLink
+                    href="https://chatgpt.com/settings/usage"
+                    class="flex shrink-0 items-center gap-1 rounded-sm text-v2-text-text-muted no-underline hover:text-v2-text-text-base focus-visible:outline focus-visible:outline-2"
                   >
-                    {language.t("command.provider.connect")}
-                  </Button>
-                </Show>
-                <Show when={props.chatgptPlan}>
-                  <div class="flex min-h-10 items-center gap-2 border-t border-v2-border-border-muted px-3 py-2 text-[13px] leading-5 text-v2-text-text-base">
-                    <ProviderModelIcon provider={{ id: "openai", name: "OpenAI" }} class="shrink-0" />
-                    <span class="min-w-0 flex-1 truncate">{language.t("dialog.model.chatgptPlan")}</span>
-                    <ExternalLink
-                      href="https://chatgpt.com/settings/usage"
-                      class="flex shrink-0 items-center gap-1 rounded-sm text-v2-text-text-muted no-underline hover:text-v2-text-text-base focus-visible:outline focus-visible:outline-2"
-                    >
-                      {language.t("dialog.model.chatgptManageUsage")}
-                      <Icon name="arrow-up-right" size="small" />
-                    </ExternalLink>
-                  </div>
-                </Show>
-              </div>
+                    {language.t("dialog.model.chatgptManageUsage")}
+                    <Icon name="arrow-up-right" size="small" />
+                  </ExternalLink>
+                </div>
+              </Show>
             </div>
           </MobilePanelDrawer>
         </Suspense>
@@ -626,6 +609,40 @@ function ChatgptPlanFooter() {
   )
 }
 
+function ModelPickerActions(props: {
+  onCustom?: () => void
+  onManage: () => void
+  mobile?: boolean
+}) {
+  const language = useLanguage()
+
+  return (
+    <div
+      data-slot={props.mobile ? "model-selector-actions" : "model-picker-actions"}
+      class={props.mobile ? "flex flex-col gap-2" : "flex items-center gap-1 border-t border-v2-border-border-muted p-2"}
+    >
+      <Show when={props.onCustom}>
+        <Button
+          variant="ghost"
+          class={props.mobile ? "w-full !h-10 !justify-start" : "flex-1 !justify-start"}
+          icon="outline-settings"
+          onClick={() => props.onCustom?.()}
+        >
+          {language.t("customProvider.title")}
+        </Button>
+      </Show>
+      <Button
+        variant="ghost"
+        class={props.mobile ? "w-full !h-10 !justify-start" : "flex-1 !justify-start"}
+        icon="outline-sliders"
+        onClick={() => props.onManage()}
+      >
+        {language.t("dialog.model.manage")}
+      </Button>
+    </div>
+  )
+}
+
 export function DialogSelectModel(props: { provider?: string; model?: ModelState }) {
   const dialog = useDialog()
   const language = useLanguage()
@@ -693,16 +710,11 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
 
   const manage = async () => {
     const { DialogManageModels } = await import("./manage")
-    void dialog.show(() => <DialogManageModels />)
+    void dialog.push(() => <DialogManageModels />)
   }
 
   const location = useWorkspaceLocation()
-
-  const connect = async () => {
-    const { DialogConnectProvider } = await import("@/providers/connect/dialog")
-    // The model chosen after connecting applies to this composer.
-    void dialog.show(() => <DialogConnectProvider directory={location().directory} selection={props.model} />)
-  }
+  const custom = createCustomProviderEditor(() => location().directory, props.model)
 
   const flyoutRect = () => (flyoutRef?.isConnected ? flyoutRef.getBoundingClientRect() : undefined)
 
@@ -1007,31 +1019,6 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
             query={query.search}
             onQuery={setSearch}
             placeholder={language.t("dialog.model.search.placeholder")}
-            trailing={
-              <>
-                <Tooltip
-                  placement="top"
-                  gutter={4}
-                  value={language.t("command.provider.connect")}
-                  ignoreSafeArea={false}
-                >
-                  <IconButton
-                    variant="ghost-muted"
-                    icon={<Icon name="plus" size="small" />}
-                    aria-label={language.t("command.provider.connect")}
-                    onClick={connect}
-                  />
-                </Tooltip>
-                <Tooltip placement="top" gutter={4} value={language.t("dialog.model.manage")} ignoreSafeArea={false}>
-                  <IconButton
-                    variant="ghost-muted"
-                    icon={<Icon name="outline-sliders" size="small" />}
-                    aria-label={language.t("dialog.model.manage")}
-                    onClick={manage}
-                  />
-                </Tooltip>
-              </>
-            }
             items={rows()}
             key={(row) => row.id}
             section={(row) => row.group.category}
@@ -1050,6 +1037,10 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
             {(row, attrs) => <Row model={row()} attrs={attrs} />}
           </SearchList>
         </div>
+        <ModelPickerActions
+          onCustom={custom.available() ? () => void custom.open() : undefined}
+          onManage={manage}
+        />
         <Show when={chatgptPlan()}>
           <ChatgptPlanFooter />
         </Show>

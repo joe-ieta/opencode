@@ -5,6 +5,7 @@
 跟随官方 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
 - 2026-11-14，源码基线已同步至 V2 2.3.0 的 `dev@f0089856c0`，合入 227 个上游提交，保留共享项目历史、独立 Side bar、Running、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
+- 2026-11-14，将 `dev-my` 合入 `dev-my-models` 后发布 Windows x64 测试预发行 [v2.3.0-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2)，构建源码 `4060cf9bab`。本版在模型选择器中实现 Custom Provider 管理：新增/编辑全局 OpenAI Compatible provider、凭据存储、主动 `/models` 导入、原生元数据、最小文本测试和类型化高级字段。完整检查、8/8 浏览器回归及安装包核验通过；人工安装验收待本地验证，Latest 仍为 `v2.2.6-my.1`。
 - 最新正式发行 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) 提供 Windows x64 NSIS 和 Linux amd64、arm64 的 AppImage 与 deb，构建源码 `231de37312`。Windows 与 Linux 本地验证均已通过。
 - 本版增加 Side bar 项目计数、固定区域下置与远程仓库提示，并合入官方会话已读菜单、侧面板恢复、Copilot Auto 和嵌入模型入口；继续复用共享项目缓存、会话索引与 Running 实现。
 - 正式发行已设为 GitHub Latest。构建和验收结果见 [发行记录](releases.md)。
@@ -50,6 +51,8 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 
 `%USERPROFILE%\.config\opencode\opencode.jsonc` 中的自定义模型可由后台读取。已修复的缺陷在界面日期转换：`released: 0` 被误转为 `1970-01-01`，进而隐藏。现在保留未知日期，使用现有默认可见规则；手动隐藏仍然优先。上游 #60496 已合并。
 
+`dev-my-models` 的 Custom Provider 入口位于模型选择器底部（桌面和移动抽屉），与 `Manage models` 并列；内置 provider 连接入口已从模型选择器移除。可新建/编辑/删除全局 OpenAI Compatible provider，Key 存凭据存储，用户主动拉取 `/models` 并勾选导入；支持 Ollama/LM Studio 原生元数据、最小文本测试、类型化超时/兼容/推理/计费/变体字段。表单采用标签 + 输入/选择框和紧凑网格，说明文字放在 placeholder/title 或可折叠 details；模型条目可单独删除。配置编辑保留未动 JSONC，使用 revision 冲突检查；V1、项目、托管和继承定义只读。内置 Ollama/LM Studio/vLLM 的自动发现不重复实现。设计与验证见 [Custom Provider 设计](custom-provider.md)。
+
 ## 桌面身份、服务与配置
 
 | 项目                | 约定                                                                                              |
@@ -81,7 +84,7 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 - #60496 的最终合并实现与测试已随本次同步吸收，继续保持自定义模型可见性回归覆盖。
 - dev-my 继续作为 Side bar 本地维护主线；sidebar-mode 仅同步 #60867 的上游贡献，保持官方 Side tabs 行为。按评审和人工测试反馈继续完善。
 - 跟踪 #56929、#60084 和其他未被官方等价实现的可靠性补丁。
-- 自定义模型配置界面仍为 [Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622)，尚未在本 fork 实现。
+- 自定义模型配置界面已按 [Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) 的方向在 `dev-my-models` 实现：模型选择器内新增/编辑全局 OpenAI Compatible provider，Key 进凭据存储，模型发现由用户主动触发；实现基于 V2 2.3.0 重验，Windows 测试发行待人工验证。设计与[源码评审记录](custom-provider-review.md)见 [Custom Provider 设计](custom-provider.md)。
 - 长会话全貌显示已形成设计草案：[Session Overview](session-overview.md)。建议先以低风险的时间线预设和只读侧栏插件验证，不改主时间线投影与默认体验。
 
 构建命令、提交与发布步骤见 [维护方法](../maintenance.md)，上游状态见 [PR 跟踪](../upstream-prs.md)。

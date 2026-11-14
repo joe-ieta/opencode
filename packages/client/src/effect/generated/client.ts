@@ -321,6 +321,14 @@ import type {
   ConfigShellsOutput,
   ExperimentalConfigUpdateInput,
   ExperimentalConfigUpdateOutput,
+  ExperimentalConfigProvidersListInput,
+  ExperimentalConfigProvidersListOutput,
+  ExperimentalConfigProvidersUpdateInput,
+  ExperimentalConfigProvidersUpdateOutput,
+  ExperimentalConfigProvidersDiscoverInput,
+  ExperimentalConfigProvidersDiscoverOutput,
+  ExperimentalConfigProvidersTestInput,
+  ExperimentalConfigProvidersTestOutput,
 } from "../api/api.js"
 import { ClientError } from "./client-error.js"
 
@@ -1977,8 +1985,53 @@ const EndpointExperimentalConfigUpdate = (raw: RawClient["server.config"]) => (i
     raw["config.update"]({ payload: { shell: input["shell"] } }).pipe(Effect.mapError(mapClientError)),
   )
 
+const EndpointExperimentalConfigProvidersList =
+  (raw: RawClient["server.config"]) => (input?: ExperimentalConfigProvidersListInput) =>
+    preserveEffect<ExperimentalConfigProvidersListOutput>()(
+      raw["config.providers.list"]({ query: { location: input?.["location"] } }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const EndpointExperimentalConfigProvidersUpdate =
+  (raw: RawClient["server.config"]) => (input: ExperimentalConfigProvidersUpdateInput) =>
+    preserveEffect<ExperimentalConfigProvidersUpdateOutput>()(
+      raw["config.providers.update"]({
+        params: { providerID: input["providerID"] },
+        query: { location: input["location"] },
+        payload: {
+          mode: input["mode"],
+          revision: input["revision"],
+          patch: input["patch"],
+          credential: input["credential"],
+        },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const EndpointExperimentalConfigProvidersDiscover =
+  (raw: RawClient["server.config"]) => (input: ExperimentalConfigProvidersDiscoverInput) =>
+    preserveEffect<ExperimentalConfigProvidersDiscoverOutput>()(
+      raw["config.providers.discover"]({
+        query: { location: input["location"] },
+        payload: { target: input["target"], api: input["api"], metadata: input["metadata"] },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
+const EndpointExperimentalConfigProvidersTest =
+  (raw: RawClient["server.config"]) => (input: ExperimentalConfigProvidersTestInput) =>
+    preserveEffect<ExperimentalConfigProvidersTestOutput>()(
+      raw["config.providers.test"]({
+        query: { location: input["location"] },
+        payload: { target: input["target"], modelID: input["modelID"] },
+      }).pipe(Effect.mapError(mapClientError)),
+    )
+
 const adaptGroupExperimentalConfig = (raw: RawClient["server.config"]) => ({
   update: EndpointExperimentalConfigUpdate(raw),
+  providers: {
+    list: EndpointExperimentalConfigProvidersList(raw),
+    update: EndpointExperimentalConfigProvidersUpdate(raw),
+    discover: EndpointExperimentalConfigProvidersDiscover(raw),
+    test: EndpointExperimentalConfigProvidersTest(raw),
+  },
 })
 
 const adaptClient = (raw: RawClient) => {
@@ -2120,6 +2173,17 @@ const adaptClient = (raw: RawClient) => {
       ...client.config,
       /** @deprecated Use `client.experimental.config.update`. Removed in the next minor. */
       update: client.experimental.config.update,
+      /** @deprecated Use `client.experimental.config.providers`. Removed in the next minor. */
+      providers: {
+        /** @deprecated Use `client.experimental.config.providers.list`. Removed in the next minor. */
+        list: client.experimental.config.providers.list,
+        /** @deprecated Use `client.experimental.config.providers.update`. Removed in the next minor. */
+        update: client.experimental.config.providers.update,
+        /** @deprecated Use `client.experimental.config.providers.discover`. Removed in the next minor. */
+        discover: client.experimental.config.providers.discover,
+        /** @deprecated Use `client.experimental.config.providers.test`. Removed in the next minor. */
+        test: client.experimental.config.providers.test,
+      },
     },
   }
 }

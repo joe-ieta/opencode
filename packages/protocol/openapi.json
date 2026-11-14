@@ -1424,6 +1424,58 @@
         "summary": "Export session"
       }
     },
+    "/api/experimental/session/activity": {
+      "get": {
+        "tags": ["session"],
+        "operationId": "experimental.session.activity",
+        "parameters": [],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SessionActivity.Info"
+                      }
+                    }
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Lists live tool and background work with Session ancestry. Execution ownership remains separate in session.active.",
+        "summary": "Observe session background activity"
+      }
+    },
     "/api/session/active": {
       "get": {
         "tags": ["session"],
@@ -10144,6 +10196,7 @@
                     "session.revert.staged",
                     "session.revert.cleared",
                     "session.revert.committed",
+                    "experimental.session.activity.changed",
                     "filesystem.changed",
                     "reference.updated",
                     "permission.asked",
@@ -10255,6 +10308,7 @@
                           "session.revert.staged",
                           "session.revert.cleared",
                           "session.revert.committed",
+                          "experimental.session.activity.changed",
                           "filesystem.changed",
                           "reference.updated",
                           "permission.asked",
@@ -14529,7 +14583,7 @@
             }
           }
         },
-        "description": "Get current and default branch information for the requested location.",
+        "description": "Get current and default branch information for the requested location. Configured remotes are returned under experimental.remotes (Experimental: may change without compatibility guarantees).",
         "summary": "VCS info"
       }
     },
@@ -15867,6 +15921,418 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Config.Patch"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/experimental/config/providers": {
+      "get": {
+        "tags": ["config"],
+        "operationId": "experimental.config.providers.list",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "directory": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "CustomProvider.Listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProvider.Listing"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Return editable global definitions, read-only sources and credential metadata without secrets.",
+        "summary": "List custom provider configuration"
+      }
+    },
+    "/api/experimental/config/providers/{providerID}": {
+      "patch": {
+        "tags": ["config"],
+        "operationId": "experimental.config.providers.update",
+        "parameters": [
+          {
+            "name": "providerID",
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/Provider.ID"
+            },
+            "required": true
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "directory": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "CustomProvider.Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProvider.Saved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ConflictError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Patch supported global provider fields and optionally store a credential. Report partial success separately from catalog readiness.",
+        "summary": "Save a custom provider",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProvider.Update"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/experimental/config/providers/discover": {
+      "post": {
+        "tags": ["config"],
+        "operationId": "experimental.config.providers.discover",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "directory": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "CustomProvider.Discovery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProvider.Discovery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ConflictError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Request a bounded model inventory from a saved provider or an explicit draft endpoint without saving configuration or credentials.",
+        "summary": "Discover custom provider models",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProvider.DiscoveryRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/experimental/config/providers/test": {
+      "post": {
+        "tags": ["config"],
+        "operationId": "experimental.config.providers.test",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "directory": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "CustomProvider.TextTest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProvider.TextTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ConflictError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorEncoded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "UnknownError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnknownErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Experimental: may change without compatibility guarantees. Explicitly send one minimal text request to a saved provider, limited to 32 output tokens and 30 seconds. May load a model or incur charges. Does not save configuration, create a Session or verify custom options, tools, images or token limits.",
+        "summary": "Test a custom provider text response",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProvider.TextTestRequest"
               }
             }
           },
@@ -17596,6 +18062,1075 @@
             "$ref": "#/components/schemas/Credential.External"
           }
         ]
+      },
+      "CustomProvider.Advanced.Compatibility": {
+        "type": "object",
+        "properties": {
+          "reasoningField": {
+            "type": "string"
+          },
+          "maxTokensField": {
+            "$ref": "#/components/schemas/Model.MaxTokensField"
+          },
+          "requireReasoning": {
+            "type": "boolean"
+          },
+          "requireFinishReason": {
+            "type": "boolean"
+          },
+          "requireAssistantAfterTool": {
+            "type": "boolean"
+          },
+          "supportsPromptCacheKey": {
+            "type": "boolean"
+          },
+          "streamUsage": {
+            "type": "boolean"
+          },
+          "cacheFormat": {
+            "$ref": "#/components/schemas/Model.CacheFormat"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CompatibilityPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningField": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxTokensField": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Model.MaxTokensField"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireReasoning": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireFinishReason": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requireAssistantAfterTool": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supportsPromptCacheKey": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "streamUsage": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheFormat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Model.CacheFormat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Cost": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "number"
+          },
+          "output": {
+            "type": "number"
+          },
+          "cacheRead": {
+            "type": "number"
+          },
+          "cacheWrite": {
+            "type": "number"
+          },
+          "tierSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["input", "output"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CostPatch": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "number",
+            "minimum": 0
+          },
+          "output": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cacheRead": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheWrite": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tierSize": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.CostsPatch": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.CostPatch"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "CustomProvider.Advanced.ProviderSettings": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "type": "string"
+          },
+          "textVerbosity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "parallelToolCalls": {
+            "type": "boolean"
+          },
+          "encoding": {
+            "$ref": "#/components/schemas/Provider.Encoding"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          },
+          "headerTimeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          },
+          "chunkTimeout": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.ProviderSettingsPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "textVerbosity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parallelToolCalls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider.Encoding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "headerTimeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chunkTimeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "boolean",
+                "enum": [false]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Settings": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "type": "string"
+          },
+          "textVerbosity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "parallelToolCalls": {
+            "type": "boolean"
+          },
+          "encoding": {
+            "$ref": "#/components/schemas/Provider.Encoding"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.SettingsPatch": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "textVerbosity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parallelToolCalls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider.Encoding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.Variant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Settings"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Advanced.VariantsPatch": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string",
+          "minLength": 1
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "settings": {
+                  "$ref": "#/components/schemas/CustomProvider.Advanced.SettingsPatch"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "CustomProvider.Candidate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": "integer",
+            "maximum": 9007199254740991,
+            "exclusiveMinimum": 0
+          },
+          "input": {
+            "type": "integer",
+            "maximum": 9007199254740991,
+            "exclusiveMinimum": 0
+          },
+          "output": {
+            "type": "integer",
+            "maximum": 9007199254740991,
+            "exclusiveMinimum": 0
+          },
+          "maxContext": {
+            "type": "integer",
+            "maximum": 9007199254740991,
+            "exclusiveMinimum": 0
+          },
+          "loaded": {
+            "type": "boolean"
+          },
+          "tools": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "boolean"
+          },
+          "metadataPending": {
+            "type": "boolean"
+          },
+          "sources": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id", "sources", "warnings"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Definition": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "modelID": {
+            "type": "string"
+          },
+          "context": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "input": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "output": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Settings"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Compatibility"
+          },
+          "cost": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.Cost"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomProvider.Advanced.Variant"
+            }
+          },
+          "variantsReadonly": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Discovery": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["success"]
+              },
+              "models": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CustomProvider.Candidate"
+                }
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["status", "models", "warnings"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["error"]
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "model-not-found",
+                  "invalid-url",
+                  "blocked-address",
+                  "authentication",
+                  "unsupported",
+                  "redirect",
+                  "http",
+                  "network",
+                  "timeout",
+                  "too-large",
+                  "invalid-response",
+                  "empty",
+                  "unsupported-auth"
+                ]
+              },
+              "httpStatus": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["status", "kind"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CustomProvider.DiscoveryInput": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["saved"]
+              },
+              "providerID": {
+                "$ref": "#/components/schemas/Provider.ID"
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": ["mode", "providerID", "revision"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["draft"]
+              },
+              "baseURL": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": ["mode", "baseURL"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CustomProvider.DiscoveryRequest": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/CustomProvider.DiscoveryInput"
+          },
+          "api": {
+            "type": "string",
+            "enum": ["openai", "ollama", "lmstudio"]
+          },
+          "metadata": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 20
+          }
+        },
+        "required": ["target"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Entry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Provider.ID"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "baseURL": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.ProviderSettings"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.Compatibility"
+          },
+          "keyReadonly": {
+            "type": "boolean"
+          },
+          "keySources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "credentials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/Credential.ID"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["id", "label", "active"],
+              "additionalProperties": false
+            }
+          },
+          "models": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CustomProvider.Definition"
+            }
+          }
+        },
+        "required": ["id", "name", "sources", "keyReadonly", "keySources", "credentials", "models"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Listing": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomProvider.Entry"
+            }
+          }
+        },
+        "required": ["revision", "target", "providers"],
+        "additionalProperties": false
+      },
+      "CustomProvider.ModelPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "modelID": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "input": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "output": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.SettingsPatch"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CompatibilityPatch"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CostsPatch"
+          },
+          "variants": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.VariantsPatch"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Patch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseURL": {
+            "type": "string",
+            "minLength": 1
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.ProviderSettingsPatch"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/CustomProvider.Advanced.CompatibilityPatch"
+          },
+          "models": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CustomProvider.ModelPatch"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomProvider.Saved": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string",
+            "enum": ["saved", "deleted"]
+          },
+          "credential": {
+            "type": "string",
+            "enum": ["unchanged", "saved", "failed", "deleted"]
+          },
+          "catalog": {
+            "type": "string",
+            "enum": ["ready", "pending"]
+          }
+        },
+        "required": ["revision", "config", "credential", "catalog"],
+        "additionalProperties": false
+      },
+      "CustomProvider.TextTest": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["success"]
+              }
+            },
+            "required": ["status"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["error"]
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "model-not-found",
+                  "invalid-url",
+                  "blocked-address",
+                  "authentication",
+                  "unsupported",
+                  "redirect",
+                  "http",
+                  "network",
+                  "timeout",
+                  "too-large",
+                  "invalid-response",
+                  "empty",
+                  "unsupported-auth",
+                  "no-text"
+                ]
+              },
+              "httpStatus": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["status", "kind"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CustomProvider.TextTestRequest": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["saved"]
+              },
+              "providerID": {
+                "$ref": "#/components/schemas/Provider.ID"
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": ["mode", "providerID", "revision"],
+            "additionalProperties": false
+          },
+          "modelID": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "required": ["target", "modelID"],
+        "additionalProperties": false
+      },
+      "CustomProvider.Update": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["create", "edit", "delete"]
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "patch": {
+            "$ref": "#/components/schemas/CustomProvider.Patch"
+          },
+          "credential": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Credential.ID"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": ["id", "key"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["mode", "revision"],
+        "additionalProperties": false
       },
       "Event.ID": {
         "type": "string",
@@ -24469,6 +26004,35 @@
         "required": ["type"],
         "additionalProperties": false
       },
+      "SessionActivity.Info": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sessionID": {
+            "$ref": "#/components/schemas/Session.ID"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["shell", "subagent", "image", "job"]
+          },
+          "title": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "number"
+          },
+          "ancestors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Session.ID"
+            }
+          }
+        },
+        "required": ["id", "sessionID", "kind", "startedAt", "ancestors"],
+        "additionalProperties": false
+      },
       "SessionBusyErrorEncoded": {
         "type": "object",
         "properties": {
@@ -25597,6 +27161,9 @@
             "$ref": "#/components/schemas/session.revert.committed"
           },
           {
+            "$ref": "#/components/schemas/experimental.session.activity.changed"
+          },
+          {
             "$ref": "#/components/schemas/filesystem.changed"
           },
           {
@@ -25864,6 +27431,19 @@
           },
           "branch": {
             "$ref": "#/components/schemas/Vcs.Branch"
+          },
+          "experimental": {
+            "type": "object",
+            "properties": {
+              "remotes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Vcs.Remote"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "description": "Experimental: may change without compatibility guarantees."
           }
         },
         "required": ["branch"],
@@ -25872,6 +27452,19 @@
       "Vcs.Mode": {
         "type": "string",
         "enum": ["working", "branch", "committed"]
+      },
+      "Vcs.Remote": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "url"],
+        "additionalProperties": false
       },
       "Vcs.Untracked": {
         "type": "string",
@@ -26483,6 +28076,34 @@
             },
             "required": ["id", "server", "name", "eventId", "timestamp", "data", "cursor"],
             "additionalProperties": false
+          }
+        },
+        "required": ["id", "created", "type", "data"],
+        "additionalProperties": false
+      },
+      "experimental.session.activity.changed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Event.ID"
+          },
+          "created": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["experimental.session.activity.changed"]
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location.Ref"
+          },
+          "data": {
+            "not": {
+              "type": "null"
+            }
           }
         },
         "required": ["id", "created", "type", "data"],

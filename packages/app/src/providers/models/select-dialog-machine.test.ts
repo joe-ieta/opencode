@@ -277,6 +277,27 @@ describe("mobile model drawer", () => {
     expect(transitionModelDrawer(reopened.state, { type: "close.timed-out", attempt: 2 }).state).toBe(reopened.state)
   })
 
+  test("carries custom and edit actions through the close transition", () => {
+    const custom = drawerReplay(createModelDrawerState(), [
+      { type: "opened" },
+      { type: "action.selected", action: "custom" },
+      { type: "hidden" },
+    ])
+
+    expect(custom.effects).toEqual([{ type: "cancel-close-timeout" }, { type: "run-action", action: "custom" }])
+
+    const edit = drawerReplay(createModelDrawerState(), [
+      { type: "opened" },
+      { type: "action.selected", action: "edit", target: "private-gateway" },
+      { type: "hidden" },
+    ])
+
+    expect(edit.effects).toEqual([
+      { type: "cancel-close-timeout" },
+      { type: "run-action", action: "edit", target: "private-gateway" },
+    ])
+  })
+
   test("disposal cancels the timeout without running the action", () => {
     const closing = drawerReplay(createModelDrawerState(), [
       { type: "opened" },
