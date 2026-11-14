@@ -2,7 +2,7 @@
 
 > 2026-11-04；评审对象 `origin/dev-my-models@168ee33882`。
 > 本记录描述设计缺口，不表示这些新接口已存在或线上存在对应漏洞。
-> 修订建议已合入 [设计 v0.2](custom-provider.md)，仍为待实施方案。
+> 修订建议已合入 [设计 v0.2](custom-provider.md)。2026-11-14，实现分支 `models-design-review` 已合并入 `dev-my-models` 并基于 V2 2.3.0 重验；本文保留当时的评审证据与范围，不再表示“待实施”。
 
 ## 结论
 
@@ -80,4 +80,4 @@
 - 检查另提示无本地 turbo、使用全局同版本 2.10.2，以及既有 ast-grep unused-suppression；本轮未为纯文档改动安装依赖或修理无关代码。
 - 主工作区仍干净，HEAD=`168ee33882`，本地 `dev-my`=`ce6f5362fd`；独立工作树仅修改本设计、此评审记录及 README。
 - 未运行实际模型服务/GUI/接口测试，因为本轮没有实现新功能；没有生成客户端。
-- 文档留在 `models-design-review` 工作树供审阅，尚未 commit 或 push。
+- 上述为 2026-11-04 评审当时状态；文档随后提交到 `models-design-review`，该分支已于 2026-11-14 合并入 `dev-my-models` 并删除。

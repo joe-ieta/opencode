@@ -82,7 +82,7 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 - #60496 的最终合并实现与测试已随本次同步吸收，继续保持自定义模型可见性回归覆盖。
 - dev-my 继续作为 Side bar 本地维护主线；sidebar-mode 仅同步 #60867 的上游贡献，保持官方 Side tabs 行为。按评审和人工测试反馈继续完善。
 - 跟踪 #56929、#60084 和其他未被官方等价实现的可靠性补丁。
-- 自定义模型配置界面仍为 [Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622)，尚未在本 fork 实现；本 fork 的落地设计见 [Custom Provider 设计](custom-provider.md)（v0.2 建议稿：先完成手动编辑与凭据闭环，再加入模型导入；[源码与上游评审记录](custom-provider-review.md)）。
+- 自定义模型配置界面已按 [Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) 的方向在 `dev-my-models` 实现：模型选择器内新增/编辑全局 OpenAI Compatible provider，Key 进凭据存储，模型发现由用户主动触发；实现基于 V2 2.3.0 重验，Windows 测试发行待人工验证。设计与[源码评审记录](custom-provider-review.md)见 [Custom Provider 设计](custom-provider.md)。
 - 长会话全貌显示已形成设计草案：[Session Overview](session-overview.md)。建议先以低风险的时间线预设和只读侧栏插件验证，不改主时间线投影与默认体验。
 
 构建命令、提交与发布步骤见 [维护方法](../maintenance.md)，上游状态见 [PR 跟踪](../upstream-prs.md)。

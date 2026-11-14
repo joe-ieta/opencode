@@ -1,10 +1,10 @@
 # dev-my 自定义 Provider（本地模型）设计 v0.2
 
-> 状态：P0 手动管理、P1 主动发现、P2 原生元数据、显式最小文本测试与类型化高级字段编辑已在独立工作树实现；headers/body 任意值编辑保持源文件方式，完整推理能力和真实引擎兼容矩阵仍待后续推进。验证记录见第 10–14 节。
-> 日期：2026-11-05（Asia/Shanghai）
-> 原稿：`origin/dev-my-models@168ee33882`；维护基线：`origin/dev-my@ce6f5362fd`。
-> 评审工作树：`.cache/models-design-review`，临时分支 `models-design-review`。
-> 本轮核对 upstream/dev：`55276f2108`。详细发现、证据与验证范围见 [评审记录](custom-provider-review.md)。
+> 状态：已并入 `dev-my-models`（2026-11-14），基于 V2 2.3.0 重放并重验；P0 手动管理、P1 主动发现、P2 原生元数据、显式最小文本测试与类型化高级字段编辑均已实现。headers/body 任意值编辑仍保持源文件方式；完整推理能力、真实引擎兼容矩阵和人工验收待后续推进。验证记录见第 10–15 节。
+> 日期：2026-11-05（设计），2026-11-14（2.3.0 合并与重验）。
+> 原稿：`origin/dev-my-models@168ee33882`；合并前实现分支：`models-design-review`；当前维护基线：`dev-my-models` 合并后的 2.3.0。
+> 评审工作树：`.cache/models-design-review`（已合并，随后删除）；合并后不再作为开发分支。
+> 本轮核对 upstream/dev：`f0089856c0`（V2 2.3.0）。详细发现、证据与验证范围见 [评审记录](custom-provider-review.md)。
 
 ## 1. 需求与范围
 
@@ -22,7 +22,7 @@
 | P1 | 用户主动调用通用 `/models`，预览后勾选导入 | 无发现接口、离线或鉴权失败仍可手动保存 |
 | P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据、最小文本测试和类型化高级字段已实现；工具/图像推理与真实引擎验收待后续推进 |
 
-P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Studio/vLLM 已有官方发现插件；不再为它们建立后台轮询系统。原稿将六种引擎适配、凭据历史管理与 UI 一次交付的 10–13 日估算缺少验证依据，取消硬性工期。
+P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Studio/vLLM 已有官方发现插件；2.3.0 又补齐了已保存 Key、15 秒发现超时、按端点隔离和 LM Studio decision 模型。本案因此把这三个内置引擎排除出“重复发现”范围：自定义表单只面向 llama.cpp、SGLang、LiteLLM、私有网关等尚无官方发现的 OpenAI Compatible 端点，以及已有 V2 provider 的编辑。原稿将六种引擎适配、凭据历史管理与 UI 一次交付的 10–13 日估算缺少验证依据，取消硬性工期。
 
 ### 1.2 明确不做
 
@@ -46,6 +46,8 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 | `select-dialog.tsx` / `provider-group.tsx` / `unpaid.tsx` | 入口和编辑按钮；另提供不依赖可见模型分组的管理列表 |
 
 关键行为在评审基线与上述 upstream/dev 中一致：配置读取/写入、配置 provider 插件、凭据删除、provider 配置 schema、模型选择器目录。没有把上游未合并 PR 当成本地能力。
+
+2.3.0 的插件加载是异步的，保存接口返回的 `catalog: "pending"` 是正常状态：服务端不等待插件激活，也不重试到模型出现；客户端应继续消费 `provider.updated` / `model.updated` 事件并有界回读。目录已就绪时返回 `ready`，两者都表示配置和凭据阶段已完成。
 
 ## 3. 用户流程
 
@@ -95,7 +97,7 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 - 定义位于当前服务端标准全局 `opencode.json` 或 `opencode.jsonc`；
 - 原始条目是 V2，且只有一个配置来源参与该 provider；
 - 显式 package 为 `@opencode/ai/providers/openai-compatible`，无 canonical；
-- 不是内置或自动发现 provider，即使全局文件存在同名 override；
+- 不是内置或自动发现 provider，即使全局文件存在同名 override；保留 ID 包括 models.dev 目录以及 `ollama`、`lmstudio`、`vllm`；
 - 模型没有不同 package/endpoint 等本表单不能准确描述的覆盖；
 - 来源文本可解析且支持写入，管理策略允许该操作。
 
@@ -114,7 +116,7 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 - 保留未编辑区域。修改/删除节点附近的逗号、缩进、注释归属可能变化，不承诺所有非目标字节都恒等；用有代表性的 JSONC 样本验证。
 - 保存带服务端生成的 revision，锁内重读并核对；外部修改后返回 409，提示重新加载，不覆盖手工改动。
 - 所有此编辑器的写操作走同一全局写入服务并复用配置写入锁，不能在每个 Location 新建互不关联的锁。revision 针对目标原文和来源判定；不承诺对任意外部编辑器提供跨进程事务。
-- 写入采用临时文件成功落盘后替换原文件；替换失败保持原文件。现有 `writeWithDirs` 不等于“写入失败必回滚”，实施时验证实际文件系统能力。
+- 写入采用同目录临时文件成功落盘后 `rename` 替换原文件；替换失败保留原文件。实现使用全局 `ConfigWrite.lock`，与既有 shell writer 共用同一把锁；测试覆盖真实文件系统写入失败与重试。
 
 ## 5. 凭据与保存结果
 
@@ -133,8 +135,8 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 1. 预检来源、revision、字段和策略；Key 是写入操作，发现不自动保存 Key。
 2. 在配置写入锁内保存 JSONC，记录本次写入 revision。
 3. 若明确设置/替换 Key，创建并激活凭据；未提供 Key 不改凭据。无需等待 integration 注册。
-4. 请求并观察本次配置对应的重载，再刷新当前 Location 的 provider/model。优先使用服务端完成信号；兼容旧接口时才有界回读。
-5. 返回配置、Key、目录三个阶段的状态，不返回笼统 connected=true。
+4. 请求并观察本次配置对应的重载，再刷新当前 Location 的 provider/model。2.3.0 的插件加载是异步的：服务端不等待插件激活，也不重试到模型出现；`catalog: "pending"` 是合法结果，客户端继续消费 `provider.updated` / `model.updated` 并有界回读。
+5. 返回配置、Key、目录三个阶段的状态，不返回笼统 connected=true。目录已就绪为 `ready`，未就绪为 `pending`，两者都表示配置和凭据阶段已完成。
 
 重试使用稳定 credential ID（现有 CreateInput 支持 id）：同一保存操作重试时先核对该 ID 属于目标 integration，成功则复用，不再创建历史凭据；不同内容的明确替换使用新 ID。前端保持同一在途操作，避免重复提交。这是针对 #57997 已报告的普通重试问题，不增加持久任务队列。
 
@@ -232,6 +234,8 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 | M3 | 手动 `/models` 导入 | URL 前缀、鉴权一致性、限额语义、错误恢复 |
 | M4 | 移动端、i18n、已有设置回归和实机矩阵 | 四类状态：可见、隐藏、disabled、目录加载失败均可管理 |
 
+M0–M4 已在 `models-design-review` 完成并合并入 `dev-my-models`；2.3.0 重放后的验证结果见第 15 节。真实引擎兼容矩阵、工具/图像推理和人工验收仍为后续项。
+
 最低测试矩阵：
 
 - JSON/JSONC 单一全局、同 ID 双全局、项目覆盖、managed、integration、V1/V2 混合、未知/非法原文、内置 ID、canonical/模型 endpoint 覆盖。
@@ -246,6 +250,8 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 手工验收只在隔离测试服务中进行；本轮不连接、重启或修改用户正在运行的背景服务/配置/凭据。
 
 ## 10. P0 实施记录
+
+> 以下第 10–14 节是 2026-11-05 在独立工作树中的实施记录，保留当时基线与验证口径；2026-11-14 合并到 `dev-my-models` 后的 2.3.0 重验见第 15 节。
 
 实现位于 `.cache/models-design-review` 的 `models-design-review` 分支，基于 `dev-my-models@168ee33882`；主工作区及 `dev-my@ce6f5362fd` 保持原值。按用户指示在该临时分支提交，不推送。
 
@@ -355,3 +361,58 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 - 全量 `typecheck:e2e` 仍为此前同一组 13 项已有诊断，新增用例与夹具未新增诊断。
 
 额外诊断发现，含 `settings.constructor` 的端到端样本会触发现有配置链失败，本轮未扩展其兼容范围；白名单函数自身已独立确认只投影声明字段，不读取原型属性。该额外样本不计入上述端到端验收。真实 Ollama/LM Studio 引擎、工具/图像推理及跨版本兼容矩阵仍不在本次自动化验收范围。
+
+## 15. 2.3.0 合并与重验
+
+2026-11-14，`models-design-review` 合并入 `dev-my-models`（合并提交 `1749671c3d`），随后删除临时分支。合并基线为 `dev@f0089856c0`（V2 2.3.0）。合并本身只解决上游模型选择器状态机、免费模型布局和 composer 测试的冲突；生成客户端按仓库要求重新执行 `bun run generate`，没有手改生成文件。
+
+### 15.1 上游 2.3.0 的相关变化
+
+| 变化 | PR | 对本案的影响 |
+| --- | --- | --- |
+| 本地发现使用已保存凭据，保留 key connection | [#63266](https://github.com/anomalyco/opencode/pull/63266) | Ollama/LM Studio/vLLM 的 `/connect` Key 可用于发现；不代表任意自定义 provider 自动获得凭据 |
+| 发现超时 1s → 15s，按 endpoint 隔离，后台刷新，失败只告警一次 | [#63700](https://github.com/anomalyco/opencode/pull/63700) | 远程/隧道本地端点更可用；仅覆盖官方三个内置引擎 |
+| LM Studio decision 模型、null context | [#63200](https://github.com/anomalyco/opencode/pull/63200)、[#56214](https://github.com/anomalyco/opencode/pull/56214)、[#63198](https://github.com/anomalyco/opencode/pull/63198) | 官方内置目录更完整，不改变自定义 provider 的手动模型列表 |
+| 自定义 provider 只写部分 `limit` 时保留 | [#62240](https://github.com/anomalyco/opencode/pull/62240) | V1 迁移兼容性修复 |
+| freeform tool input、provider mTLS | [#61703](https://github.com/anomalyco/opencode/pull/61703)、[#61832](https://github.com/anomalyco/opencode/pull/61832) | 请求能力增强，不提供接入入口 |
+
+官方文档在 2.3.0 仍要求非内置 OpenAI Compatible 服务“显式列出模型”，并说明 OpenCode 无法检测自定义模型 fallback 是否准确（`services/site/src/docs/content/providers.mdx`、`models.mdx`）。
+
+### 15.2 上游需求状态快照
+
+| 项目 | 2026-11-14 状态 | 判断 |
+| --- | --- | --- |
+| [#33704](https://github.com/anomalyco/opencode/issues/33704) GUI 编辑自定义 provider | open | 需求同源；无已合并实现 |
+| [#59603](https://github.com/anomalyco/opencode/issues/59603) 入口消失 | open | 官方仍建议改配置文件 |
+| [#50650](https://github.com/anomalyco/opencode/issues/50650)、[#57325](https://github.com/anomalyco/opencode/issues/57325) 旧表单问题 | open | 旧表单已移除，问题未由上游解决 |
+| [#57997](https://github.com/anomalyco/opencode/pull/57997) 恢复自定义 provider 保存 | open | 仅机器人验证；无维护者批准/合并 |
+| [#57161](https://github.com/anomalyco/opencode/pull/57161) 配置的 OpenAI-compatible provider 发现 | open | feature flag；仅机器人验证；不能作为已交付能力 |
+| [#59520](https://github.com/anomalyco/opencode/pull/59520) 自定义 provider context 发现 | open | 未合并 |
+| [#40524](https://github.com/anomalyco/opencode/issues/40524) provider 目录与 `/models` 对账 | open | 仍是通用发现的主要跟踪 issue |
+| [#51527](https://github.com/anomalyco/opencode/issues/51527) 自定义 provider 凭据路径 | open | 配置已存在时可走 key method；任意 ID 预注册仍不支持 |
+| [#62448](https://github.com/anomalyco/opencode/issues/62448)、[#61628](https://github.com/anomalyco/opencode/issues/61628) 桌面 provider 管理 | open | 更广义的产品需求 |
+| [#63710](https://github.com/anomalyco/opencode/pull/63710)、[#62743](https://github.com/anomalyco/opencode/pull/62743)、[#58066](https://github.com/anomalyco/opencode/pull/58066) | draft/open/open | 通配符、Unix socket、原地轮换 Key；均未合并 |
+
+`opencode-agent` / `opencodejr` 的评论是机器人验证或分诊，不等于维护者设计批准。
+
+### 15.3 合并后的实现调整
+
+- 移动端模型抽屉改接到上游 `ModelDrawer` 状态机；新增 `custom` / `edit` 动作及 target，关闭动画结束后再打开自定义 provider 对话框，避免与 `open` / `close.timed-out` 竞争。
+- 免费模型弹窗保留上游 `MenuScroll` 结构，只增加 Custom providers 入口，不再用原型中的整段滚动容器替换。
+- 3 个冲突文件为 `composer.spec.ts`、`select-dialog.tsx`、`unpaid.tsx`；其余生成文件自动合并后重新生成。
+- 2.3.0 的插件加载为异步模型，保存响应可能返回 `catalog: "pending"`；服务端不等待插件激活，也不重试到模型出现，客户端继续消费 `provider.updated` / `model.updated` 并有界回读。自定义 provider 的服务端测试相应接受 `ready` 或 `pending`，并以实际 `/api/experimental/generate/text` 请求验证模型可用。
+- 发现超时测试使用 15 秒 per-test 预算，覆盖真实的 5 秒发现超时，避免默认 5 秒测试预算先触发。
+
+### 15.4 重验记录
+
+- `bun run typecheck`：35/35 任务通过。
+- 移动模型抽屉状态机测试：18/18 通过。
+- 自定义 provider 服务端 5 个测试文件：13/13 通过（含配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段）。
+- 根目录 `bun run check` 与 Windows 测试发行验证在后续提交/发行记录中补充。
+
+### 15.5 仍待完成
+
+- 真实 llama.cpp、SGLang、LiteLLM、私有网关的版本兼容与 prompt/tool/image 推理验收。
+- 真实 Ollama/LM Studio 的发现、加载状态和上下文元数据人工验收。
+- headers/body 任意值编辑、provider 删除/重命名、项目级写入仍不做；需要时另立设计。
+- 内置 Ollama/LM Studio/vLLM 不纳入自定义 provider 的重复发现；只保留“非默认地址/远程主机”的配置入口讨论。
