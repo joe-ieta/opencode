@@ -6,7 +6,7 @@
 
 - 2026-11-14，源码基线已同步至 V2 2.3.0 的 `dev@f0089856c0`，合入 227 个上游提交，保留共享项目历史、独立 Side bar、Running、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
 - 2026-11-14，`dev-my-models` 已合入 `dev-my`，自定义 Provider 与模型管理成为桌面主线的一部分；后续功能不再在临时分支开发。与官方 `dev` 的产品、设计和实现差异汇总见 [dev-my 与官方 dev 的差异](differences.md)。
-- 2026-11-14，在合入 `dev-my-models` 后的 `dev-my` 上发布 Windows x64 测试预发行 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3)，构建源码 `b43dac8767`。本版把 Custom Provider 管理带回桌面主线：模型选择器底部入口、新增/编辑/删除全局 OpenAI Compatible provider、凭据存储、主动 `/models` 导入、原生元数据、最小文本测试、类型化高级字段，以及保留的独立 Side bar。完整检查、服务端 14/14、浏览器回归 10/10 及安装包核验通过；人工安装验收待本地验证，Latest 仍为 `v2.2.6-my.1`。
+- 2026-11-14，在合入 `dev-my-models` 后的 `dev-my` 上发布 Windows x64 测试预发行 [v2.3.0-my.4](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.4)，构建源码 `09fc39f73b`。本版增加语言系统跟随与简繁中文 Provider 弹框，并允许删除只读锁定的 V1 历史模型配置；保留 Custom Provider 管理、独立 Side bar 与 Running sessions。完整检查、服务端 15/15、浏览器回归 10/10 及安装包核验通过；人工安装验收待本地验证，Latest 仍为 `v2.2.6-my.1`。
 - 最新正式发行 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) 提供 Windows x64 NSIS 和 Linux amd64、arm64 的 AppImage 与 deb，构建源码 `231de37312`。Windows 与 Linux 本地验证均已通过。
 - 本版增加 Side bar 项目计数、固定区域下置与远程仓库提示，并合入官方会话已读菜单、侧面板恢复、Copilot Auto 和嵌入模型入口；继续复用共享项目缓存、会话索引与 Running 实现。
 - 正式发行已设为 GitHub Latest。构建和验收结果见 [发行记录](releases.md)。

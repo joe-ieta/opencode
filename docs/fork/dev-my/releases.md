@@ -8,11 +8,22 @@
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
 | Windows | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 | Linux | `v2.2.6-my.1` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
-| Windows 测试（`dev-my`） | `v2.3.0-my.3` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) |
+| Windows 测试（`dev-my`） | `v2.3.0-my.4` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.4) |
+| Windows 测试（历史，`dev-my`） | `v2.3.0-my.3` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) |
 | Windows 测试（历史，`dev-my-models`） | `v2.3.0-my.2` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2) |
-| Windows 测试（历史） | `v2.3.0-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1) |
 
 `v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.3.0-my.4 Windows x64 测试预发行（dev-my）
+
+- 2026-11-14 19:51:16（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`、`latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.4)
+- 构建源码为 `09fc39f73b5f0bb534f521e4f2470d723e50431c`：在合入 `dev-my-models` 的 `dev-my` 上增加语言系统跟随、自定义 Provider 弹框简繁中文和 V1 历史模型清理；官方基线仍为 V2 2.3.0 的 `upstream/dev@f0089856c0`。
+- 语言设置新增 `Follow system` 并作为首次安装默认值；系统语言变化时跟随切换，手动选择具体语言后保存该选择，旧版本已保存的 locale 按手动选择保留。
+- 模型选择器与自定义 Provider 弹框全部使用 `customProvider.*` 词条，简繁中文已补齐；V1 配置保持只读锁定，但可从列表/表单删除并清理对应凭据，多来源、项目/托管来源和内置 Provider 仍拒绝删除。
+- 验证通过：根目录 `bun run check` 35/35、lint 0 errors；App/core/server 的 `typecheck:tsc`；自定义 Provider 服务端 15/15；自定义 Provider 浏览器回归 10/10；语言设置回归 3/3；根语言单元测试 18/18。
+- Bun 1.4.4 构建；发布脚本比较模型目录（7,855 个模型），执行 CLI 服务发现、V1 升级确认和历史迁移冒烟。实际 ASAR 含 Custom Provider 资源、`config.providers.*` 调用及简繁中文词条，内置 CLI 版本为 `opencode v2.3.0-my.4`。
+- 安装包 `opencode-desktop-win-x64.exe` 为 282,075,750 字节，SHA256 为 `3b20de53bbc5ea38f4336bd6dff11726bfe8a4da0bff6805bf5561ebb88ef40c`；`latest.yml` SHA512 为 `kcXsNh94Zgpmjx0emz9cJ/W0v+iQLR5k2GGiL0jYOl3mXt4wNi70dnPQ83CUbPJO/fDygmA3HAmggj6FVgzjfA==`。本地路径为 `dist/releases/v2.3.0-my.4/`。
+- 四个 GitHub 资产的服务端大小及 SHA256 与本地一致；完整公开下载安装包与 `latest.yml` 的哈希一致。Latest 仍为 `v2.2.6-my.1`；安装包未签名，Windows 安装后人工验收待本地验证。
 
 ## v2.3.0-my.3 Windows x64 测试预发行（dev-my）
 
