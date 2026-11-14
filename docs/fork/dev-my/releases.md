@@ -8,9 +8,22 @@
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
 | Windows | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 | Linux | `v2.2.6-my.1` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
-| Windows 测试（`dev-my-models`） | `v2.3.0-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1) |
+| Windows 测试（`dev-my-models`） | `v2.3.0-my.2` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2) |
+| Windows 测试（历史） | `v2.3.0-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.1) |
 
 `v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## v2.3.0-my.2 Windows x64 测试预发行（dev-my-models）
+
+- 2026-11-14 13:25:51（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`、`latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2)
+- 构建源码为 `4060cf9babc3d61df7ce28077838c194425b384a`：在 `dev-my-models` 上合并 Custom Provider 实现（合并提交 `1749671c3d`），官方基线为 V2 2.3.0 的 `upstream/dev@f0089856c0`；未改变 `dev-my` 桌面主线。
+- 本版在模型选择器中新增/编辑全局 OpenAI Compatible provider：Key 存凭据存储，用户主动拉取 `/models` 并选择导入，支持 Ollama/LM Studio 原生元数据、最小文本测试、类型化高级字段（超时、兼容、推理选项、计费与变体），并保留未编辑 JSONC、revision 冲突检查和 V1/项目/托管只读边界。内置 Ollama/LM Studio/vLLM 发现不重复实现。
+- 范围限制：provider 删除/重命名、项目级写入、任意 headers/body 编辑不做；真实 llama.cpp/SGLang/LiteLLM/私有网关与工具/图像推理仍待人工验收。
+- 合并冲突为 `composer.spec.ts`、`select-dialog.tsx`、`unpaid.tsx`；移动抽屉已接入上游 `ModelDrawer` 状态机，生成客户端按仓库要求重新执行 `bun run generate`。
+- 验证通过：根目录 `bun run check` 35/35 类型检查、lint 0 errors；App/core/server 的 `typecheck:tsc`；自定义 provider 服务端 5 个测试文件 13/13；移动抽屉状态机 19/19；自定义 provider 生产 Chromium 回归 8/8（串行及 2 workers 复跑）。
+- Bun 1.4.4 构建，模型目录比较覆盖 7,855 个模型；CLI 服务发现、V1 升级确认与历史迁移冒烟通过。实际 ASAR 含 Custom Provider 资源与 `config.providers.*` 调用，内置 CLI 版本为 `opencode v2.3.0-my.2`。
+- 安装包 `opencode-desktop-win-x64.exe` 为 282,083,431 字节，SHA256 为 `85f47e43f0bd9e09bb89b3eabc439e15af22bc48c32924c9d4f467b967816c03`；`latest.yml` SHA512 为 `fbmdkbI0y/UC/g6DgY3qVatUfY+a1YhZW5JhDKAAvEKrYsbsZdnCK4SnVESqLj84/b6K1oGdQ43BU9tmProktg==`。本地路径为 `dist/releases/v2.3.0-my.2/`。
+- 四个 GitHub 资产的服务端大小及 SHA256 与本地一致；公开下载 HEAD 均返回 200，安装器、清单、校验文件和 `build.json` 大小匹配。Latest 仍为 `v2.2.6-my.1`；安装包未签名，Windows 安装后人工验收待本地验证。
 
 ## v2.3.0-my.1 Windows x64 测试预发行（dev-my-models）
 

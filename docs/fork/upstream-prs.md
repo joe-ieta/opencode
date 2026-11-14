@@ -40,6 +40,8 @@ Side bar 的相关 V2 需求在 #60241 汇集，包括 #55446、#51759、#53851�
 
 自定义 provider 的上游状态同样不能用机器人评论推断批准：`opencode-agent` / `opencodejr` 的 COMMENTED review 只是验证或分诊。2.3.0 已合并的本地模型变化是 #63266（保存 Key 用于本地发现）、#63700（15 秒超时与端点隔离）、#63200/#56214/#63198（LM Studio decision/null context）和 #62240（部分 limit 保留）；#57161/#57997/#59520 仍未合并。
 
+2026-11-14 已在 #33704 提交实现范围评论，链接相关 issue/PR 并说明 fork 的模型选择器入口与范围边界：[comment](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6872183643)。
+
 本次重新检索的 Issue/PR、设计边界与人工测试入口见 [Side bar 独立模式记录](dev-my/sidebar-mode.md)。其中 #60581 为新增相关需求，#59220 仍在评审，#57896/#57895 关闭且未合并；不要将关联或关闭当成实现获批。
 
 ## 历史关闭的贡献

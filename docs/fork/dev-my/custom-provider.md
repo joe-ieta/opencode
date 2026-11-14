@@ -405,10 +405,12 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 
 ### 15.4 重验记录
 
-- `bun run typecheck`：35/35 任务通过。
-- 移动模型抽屉状态机测试：18/18 通过。
+- `bun run check`：35/35 类型检查任务通过，lint 0 errors；已知 warnings 保留。
+- App、core、server 的 `typecheck:tsc` 均通过。
+- 移动模型抽屉状态机测试：19/19 通过。
 - 自定义 provider 服务端 5 个测试文件：13/13 通过（含配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段）。
-- 根目录 `bun run check` 与 Windows 测试发行验证在后续提交/发行记录中补充。
+- 自定义 provider 浏览器回归：串行 8/8 通过；2 workers 复跑 8/8 通过。首次冷启动的 WebServer 就绪波动未复现为功能失败。
+- Windows x64 测试版 [v2.3.0-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2) 已发布，构建源码 `4060cf9bab`；细节见 [发行记录](releases.md)。
 
 ### 15.5 仍待完成
 
