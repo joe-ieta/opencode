@@ -101,6 +101,7 @@ const StoredLocaleSchema = Schema.Struct({
       encode: SchemaGetter.transform((locale) => locale),
     }),
   ),
+  system: Schema.optional(Schema.Boolean),
 })
 
 const INTL = DESKTOP_NATIVE_LOCALE_TAGS
@@ -210,9 +211,10 @@ export function normalizeLocale(value: string): Locale {
 
 export const languageSchema = Persistence.struct({
   locale: StoredLocaleSchema.fields.locale,
+  system: Schema.Boolean,
 })
 
-function readStoredLocale() {
+function readStoredLanguage() {
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- probing for a browser global
   if (typeof localStorage !== "object") return
 
@@ -224,13 +226,24 @@ function readStoredLocale() {
 
     if (Option.isNone(next)) return
 
-    return next.value.locale
+    return { locale: next.value.locale, system: next.value.system ?? false }
   } catch {
     return
   }
 }
 
-const warm = readStoredLocale() ?? detectLocale()
+export function resolveLanguagePreference(
+  stored: { locale: Locale; system?: boolean } | undefined,
+  detected: Locale,
+): { locale: Locale; system: boolean } {
+  if (!stored) return { locale: detected, system: true }
+  if (stored.system) return { locale: detected, system: true }
+  return { locale: stored.locale, system: false }
+}
+
+const storedLanguage = readStoredLanguage()
+// Existing installations without the system flag keep their chosen language. A fresh install follows the system.
+const warm = resolveLanguagePreference(storedLanguage, detectLocale()).locale
 
 const initialLocale =
   warm === "en"
@@ -248,8 +261,12 @@ export const { use: useLanguage, provider: LanguageProvider } = createSimpleCont
   name: "Language",
   gate: false,
   init: (props: { locale?: Locale; onNativeTranslations?: (bundle: DesktopNativeBundle) => void }) => {
-    const initial = props.locale ?? readStoredLocale() ?? detectLocale()
-    const [store, setStore, _, ready] = persisted(Persist.global("language"), languageSchema, { locale: initial })
+    const preference = resolveLanguagePreference(readStoredLanguage(), detectLocale())
+    const initial = props.locale ?? preference.locale
+    const [store, setStore, _, ready] = persisted(Persist.global("language"), languageSchema, {
+      locale: initial,
+      system: preference.system,
+    })
 
     const stored = untrack(() => store.locale)
 
@@ -407,14 +424,30 @@ export const { use: useLanguage, provider: LanguageProvider } = createSimpleCont
       )
     })
 
-    // Storage hydrating after mount, or another window picking a language.
+    // Storage hydrating after mount, another window picking a language, or the OS language changing while following it.
+    const syncPreference = (nextLocale: Locale, system: boolean) => {
+      const target = system ? detectLocale() : nextLocale
+      dispatch({ type: "locale.synced", locale: target, cached: dicts.get(target) })
+    }
+
     createEffect(
       on(
-        () => store.locale,
-        (next) => dispatch({ type: "locale.synced", locale: next, cached: dicts.get(next) }),
+        () => [store.locale, store.system] as const,
+        ([nextLocale, system]) => syncPreference(nextLocale, system),
         { defer: true },
       ),
     )
+
+    const onLanguageChange = () => {
+      if (!untrack(() => store.system)) return
+      syncPreference(untrack(() => store.locale), true)
+    }
+
+    // oxlint-disable-next-line anti-slop/no-runtime-typeof -- probing for a browser global
+    if (typeof window === "object") {
+      window.addEventListener("languagechange", onLanguageChange)
+      onCleanup(() => window.removeEventListener("languagechange", onLanguageChange))
+    }
 
     onCleanup(() => dispatch({ type: "disposed" }))
     boot.effects.forEach(run)
@@ -422,6 +455,7 @@ export const { use: useLanguage, provider: LanguageProvider } = createSimpleCont
     return {
       ready,
       locale,
+      system: () => store.system,
       intl,
       direction,
       layoutLocale,
@@ -437,7 +471,17 @@ export const { use: useLanguage, provider: LanguageProvider } = createSimpleCont
       list,
       setLocale(next: Locale) {
         const target = normalizeLocale(next)
-        dispatch({ type: "locale.requested", locale: target, cached: dicts.get(target) })
+        batch(() => {
+          setStore({ locale: target, system: false })
+          dispatch({ type: "locale.requested", locale: target, cached: dicts.get(target) })
+        })
+      },
+      setSystem() {
+        const target = detectLocale()
+        batch(() => {
+          setStore({ locale: target, system: true })
+          dispatch({ type: "locale.synced", locale: target, cached: dicts.get(target) })
+        })
       },
       setDirection(next: Direction) {
         setLayout("direction", next === localeDirection(locale()) ? undefined : next)

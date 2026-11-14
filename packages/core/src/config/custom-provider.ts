@@ -40,17 +40,26 @@ export const update = Effect.fn("ConfigCustomProvider.update")(
   function* (id: string, input: CustomProvider.Update) {
     const state = yield* read()
     const existing = state.listing.providers.find((item) => item.id === id)
-    const reason = state.listing.reason ?? existing?.reason
-    if (reason) return yield* new Error({ kind: "conflict", message: reason })
-    if (state.reserved.has(id)) return yield* new Error({ kind: "conflict", message: "built-in-provider" })
-    if (state.listing.revision !== input.revision)
-      return yield* new Error({ kind: "conflict", message: "config-changed" })
     if (input.mode === "delete") {
       if (!existing) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
+      if (state.listing.reason) return yield* new Error({ kind: "conflict", message: state.listing.reason })
+      if (state.listing.revision !== input.revision)
+        return yield* new Error({ kind: "conflict", message: "config-changed" })
+      if (state.reserved.has(id)) return yield* new Error({ kind: "conflict", message: "built-in-provider" })
+      if (existing.sources.length !== 1)
+        return yield* new Error({ kind: "conflict", message: "multiple-sources" })
       const file = existing.sources[0]
+      if (!state.globals.includes(file))
+        return yield* new Error({ kind: "conflict", message: "readonly-source" })
+      const document = state.documents.find((item) => item.path === file)?.document
+      const legacy = !!document?.provider && Object.hasOwn(document.provider, id)
+      const current = !!document?.providers && Object.hasOwn(document.providers, id)
+      if (legacy === current) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
+      // V1 entries are read-only, but deleting one must remain possible so a V2 user can clean up history.
+      if (!legacy && existing.reason) return yield* new Error({ kind: "conflict", message: existing.reason })
       const original = state.documents.find((item) => item.path === file)?.text ?? "{}\n"
       const text = yield* Effect.try({
-        try: () => editProvider(original, id),
+        try: () => editProvider(original, id, legacy),
         catch: () => new Error({ kind: "invalid", message: "invalid-provider" }),
       })
       if (text === original) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
@@ -82,6 +91,11 @@ export const update = Effect.fn("ConfigCustomProvider.update")(
         catalog: (yield* models.available()).some((model) => model.providerID === id) ? ("pending" as const) : ("ready" as const),
       }
     }
+    const reason = state.listing.reason ?? existing?.reason
+    if (reason) return yield* new Error({ kind: "conflict", message: reason })
+    if (state.reserved.has(id)) return yield* new Error({ kind: "conflict", message: "built-in-provider" })
+    if (state.listing.revision !== input.revision)
+      return yield* new Error({ kind: "conflict", message: "config-changed" })
     if (!input.patch) return yield* new Error({ kind: "invalid", message: "invalid-provider" })
     const patch = input.patch
     if (input.mode === "create" && (existing || !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(id)))
@@ -287,6 +301,7 @@ const read = Effect.fn("ConfigCustomProvider.read")(function* () {
   return {
     configurations,
     documents: files,
+    globals,
     reserved,
     listing: {
       revision,
@@ -348,10 +363,10 @@ export function safeURL(value: unknown) {
 
 type EditInput = CustomProvider.Update & { patch: NonNullable<CustomProvider.Update["patch"]> }
 
-function editProvider(text: string, id: string) {
+function editProvider(text: string, id: string, legacy: boolean) {
   const result = applyEdits(
     text,
-    modify(text, ["providers", id], undefined, {
+    modify(text, [legacy ? "provider" : "providers", id], undefined, {
       formattingOptions: { tabSize: 2, insertSpaces: true },
     }),
   )

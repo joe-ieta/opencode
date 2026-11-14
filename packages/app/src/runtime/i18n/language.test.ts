@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { DESKTOP_NATIVE_LOCALES } from "./desktop-native"
-import { localizedListParts, richTemplateParts } from "./language"
+import { localizedListParts, resolveLanguagePreference, richTemplateParts } from "./language"
 
 describe("rich translations", () => {
   test("lets the translated phrase position a rich slot", () => {
@@ -31,5 +31,31 @@ describe("dictionaries", () => {
     )
 
     expect(nested).toEqual([])
+  })
+
+  test("the custom provider dialog is translated in both Chinese locales", async () => {
+    const [en, zh, zht] = await Promise.all([import("./en"), import("./zh"), import("./zht")])
+    const keys = Object.keys(en.dict).filter((key) => key.startsWith("customProvider."))
+
+    expect(keys.filter((key) => !(key in zh.dict))).toEqual([])
+    expect(keys.filter((key) => !(key in zht.dict))).toEqual([])
+  })
+})
+
+describe("language preference", () => {
+  test("a fresh install follows the detected system language", () => {
+    expect(resolveLanguagePreference(undefined, "zh")).toEqual({ locale: "zh", system: true })
+  })
+
+  test("a stored pre-system choice stays manual", () => {
+    expect(resolveLanguagePreference({ locale: "de" }, "zh")).toEqual({ locale: "de", system: false })
+  })
+
+  test("following the system resolves the detected language on each launch", () => {
+    expect(resolveLanguagePreference({ locale: "de", system: true }, "zh")).toEqual({ locale: "zh", system: true })
+  })
+
+  test("a manual choice replaces system following", () => {
+    expect(resolveLanguagePreference({ locale: "de", system: false }, "zh")).toEqual({ locale: "de", system: false })
   })
 })

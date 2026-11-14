@@ -117,7 +117,7 @@ Running sessions 的区域：
 
 - 新建/编辑 Provider：显示名、Provider ID、Base URL、可选 Key，以及至少一个聊天模型。Provider ID 创建后不可重命名。
 - 模型字段：模型 key、请求 `modelID`、显示名、context/input/output 限额、tools/image 三态；支持类型化高级字段。
-- 删除：Provider 需要二次确认，删除全局 JSONC 定义并清空该 integration 的已存凭据；模型删除只删除全局定义，不删除底层服务模型文件。
+- 删除：Provider 需要二次确认，删除全局 JSONC 定义并清空该 integration 的已存凭据；V2 定义可编辑，V1 历史定义只读锁定但可删除；模型删除只删除全局定义，不删除底层服务模型文件。
 - Key：写入现有 Credential 存储，不回显 secret；Key 的保存/替换是独立操作，配置模板或 env 提供的 Key 只显示来源。
 - 发现：用户主动触发通用 `/models`、Ollama 原生或 LM Studio 原生读取；预览后勾选导入，默认不全选，不覆盖手填值。
 - 测试：已保存模型可发起固定提示词的最小文本请求，验证地址、凭据和请求 modelID 能完成一次文本响应；不自动重试，不创建 Session，不改变当前选模。
@@ -125,7 +125,7 @@ Running sessions 的区域：
 
 ### 4.3 设计与安全边界
 
-- 配置来源：服务端按真实优先级和原始 JSONC 枚举来源。只允许编辑当前服务端标准全局 `opencode.json`/`opencode.jsonc` 中唯一的 V2 定义；项目、托管、继承链、内置 Provider 和自动发现 Provider 只读。新建写入现有最高优先级全局文件，默认 `opencode.jsonc`。
+- 配置来源：服务端按真实优先级和原始 JSONC 枚举来源。只允许编辑当前服务端标准全局 `opencode.json`/`opencode.jsonc` 中唯一的 V2 定义；项目、托管、继承链、内置 Provider 和自动发现 Provider 只读。V1 `provider` 定义保持只读锁定，但允许从同一全局文件删除并以同一流程清理凭据。新建写入现有最高优先级全局文件，默认 `opencode.jsonc`。
 - 写入：使用字段白名单 patch，从原始 JSONC 应用编辑，保留未编辑字段和注释；共享全局写入锁，服务端生成 revision，锁内重读并核对冲突；同目录临时文件成功落盘后 rename 替换。拒绝任意 `Schema.Json`、provider 根替换和模型/变体越权字段。
 - 凭据：复用 `Credential` 和现有连接策略；稳定 credential ID 支持幂等重试；保存失败保留配置并返回部分成功，避免重复创建历史凭据。
 - 发现：saved 与 draft 目标严格互斥。saved 复用已保存 URL/凭据/headers，draft 只用本次显式 Key，不把已保存 Key 发往草稿地址。只允许 http/https，拒绝内嵌凭据、link-local 和云元数据地址，保留 loopback/私网；默认不跟随重定向，5 秒超时、2 MiB 响应上限、最多 1,000 条。
@@ -149,7 +149,7 @@ Running sessions 的区域：
 
 ### 4.5 验证、限制与上游状态
 
-- 自定义 Provider 服务端测试 14/14、生产 Chromium 回归 10/10；覆盖配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段、底部入口、返回导航、Provider 删除和模型删除。根检查 35/35，App/core/server 的 `typecheck:tsc` 通过。
+- 自定义 Provider 服务端测试 15/15、生产 Chromium 回归 10/10；覆盖配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段、底部入口、返回导航、Provider 删除、V1 只读删除和模型删除。根检查 35/35，App/core/server 的 `typecheck:tsc` 通过。
 - 尚未完成真实 llama.cpp、SGLang、LiteLLM、私有网关及真实 Ollama/LM Studio 的版本兼容、工具/图像推理人工验收。
 - Provider ID 重命名、项目级写入、任意 headers/body 编辑不做；真实引擎兼容矩阵另立验证。
 - 上游需求 [#33704](https://github.com/anomalyco/opencode/issues/33704) 仍 open，已在该 issue 记录实现范围评论；#57161、#57997、#59520 等仍未合并，不能把 Draft/机器人验证写成上游已交付。
@@ -189,9 +189,16 @@ Running sessions 的区域：
 
 ### 5.4 本地化、RTL 与可访问性
 
+- 模型选择器和自定义 Provider 弹框全部使用 `customProvider.*` 词条；简繁中文已补齐，其他语言沿用英文回退；只读原因也使用类型化词条，不直接显示内部 reason。
 - Side bar 使用逻辑方向属性，标题对齐跟随布局方向，文字本身保留 `dir="auto"`；RTL 短标题不会落入关闭按钮渐隐区。
 - 新词条按应用现有英文回退和独立翻译评审流程处理；非英语覆盖不完整时不伪造已完成翻译。
 - 关闭标签、隐藏历史行和删除会话保持不同语义；键盘操作按实际展示顺序导航。
+
+### 5.5 语言默认值
+
+- 首次安装保存 `system: true`，启动时按 `navigator.languages` 解析系统语言并加载对应词典；系统语言变化时，跟随模式监听 `languagechange` 并切换到新语言。
+- 在 Settings → General → Language 中手动选择具体语言后，保存 `system: false` 和所选 locale；后续系统语言变化不再覆盖该选择。
+- 选择 `Follow system` 会重新打开系统跟随；旧版本已保存的 `{ locale }` 记录按手动选择处理，不会在升级时突然切换语言。
 
 ## 6. 兼容性与维护边界
 
@@ -208,7 +215,8 @@ Running sessions 的区域：
 
 - Windows x64 测试预发行 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已发布；安装包、`latest.yml`、`SHA256SUMS`、`build.json` 四个资产的服务端大小/SHA256 与本地一致，公开下载可用，Latest 仍为 `v2.2.6-my.1`。
 - 根目录 `bun run check` 35/35，lint 0 errors；App/core/server 的 `typecheck:tsc` 通过。
-- 自定义 Provider 服务端 14/14、生产 Chromium 回归 10/10；覆盖入口、返回、删除、模型编辑、发现、文本测试和高级字段。
+- 自定义 Provider 服务端 15/15、生产 Chromium 回归 10/10；覆盖入口、返回、V1 只读删除、Provider/模型删除、发现、文本测试和高级字段。
+- 语言默认值：单元测试覆盖首次安装跟随系统、旧记录保持手动选择、系统跟随与手动替换；浏览器回归覆盖 `Follow system` 默认值、语言切换和词典加载失败。
 - 2.3.0 同步轮次应用单元测试 2,723 项、核心相关测试 94 项、生产 Chromium Home/标签/Side bar 回归 113 项；Side bar 共享索引和排序用例有重复回归。
 - 历史 Side bar 专项包含四模式、RTL、深层子智能体、重载恢复、Running 与项目整组收起；这些结果属于对应源码版本，不冒充新构建的二进制验收。
 

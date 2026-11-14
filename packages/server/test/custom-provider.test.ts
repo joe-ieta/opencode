@@ -418,3 +418,82 @@ it.live("deletes a custom provider and its stored credentials", () =>
     })
   }),
 )
+
+it.live("keeps V1 providers read-only while allowing deletion", () =>
+  Effect.gen(function* () {
+    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("custom-provider-v1-delete-")))
+    const global = path.join(tmp.path, "global")
+    const project = path.join(tmp.path, "project")
+    const file = path.join(global, "opencode.jsonc")
+    yield* Effect.promise(async () => {
+      await fs.mkdir(global)
+      await fs.mkdir(project)
+      await fs.writeFile(
+        file,
+        `{
+  // keep my shell
+  "shell": "bash",
+  "provider": {
+    "legacy-me": {
+      "name": "Legacy me",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": { "baseURL": "http://127.0.0.1:8080/v1" },
+      "models": { "legacy": {} }
+    }
+  }
+}
+`,
+      )
+    })
+    const server = yield* startServer(global)
+    yield* Effect.promise(async () => {
+      const request = (id?: string, body?: unknown) => {
+        const url = new URL(`/api/experimental/config/providers${id ? `/${id}` : ""}`, server.base)
+        url.searchParams.set("location[directory]", project)
+        return fetch(url, {
+          method: id ? "PATCH" : "GET",
+          headers: { ...server.headers, "content-type": "application/json" },
+          body: body ? JSON.stringify(body) : undefined,
+        })
+      }
+      const list = async () =>
+        Schema.decodeUnknownSync(CustomProvider.Listing)(
+          await (await request()).json(),
+        )
+      const credential = await fetch(new URL("/api/credential", server.base), {
+        method: "POST",
+        headers: { ...server.headers, "content-type": "application/json" },
+        body: JSON.stringify({
+          id: "cred_legacy",
+          integrationID: "legacy-me",
+          value: { type: "key", key: "legacy-secret" },
+        }),
+      })
+      expect(credential.status).toBe(200)
+      const before = await list()
+      expect(before.providers.find((item) => item.id === "legacy-me")).toMatchObject({
+        reason: "legacy-provider",
+        name: "Legacy me",
+      })
+      const edit = await request("legacy-me", {
+        mode: "edit",
+        revision: before.revision,
+        patch: { name: "Renamed legacy" },
+      })
+      expect(edit.status).toBe(409)
+      expect(await fs.readFile(file, "utf8")).toContain('"name": "Legacy me"')
+      const deleted = await request("legacy-me", { mode: "delete", revision: before.revision })
+      const saved = Schema.decodeUnknownSync(CustomProvider.Saved)(await deleted.json())
+      expect(saved).toMatchObject({ config: "deleted", credential: "deleted" })
+      expect((await list()).providers).toEqual([])
+      expect(
+        await (
+          await fetch(new URL("/api/credential", server.base), { headers: server.headers })
+        ).json(),
+      ).toMatchObject({ data: [] })
+      const text = await fs.readFile(file, "utf8")
+      expect(text).toContain("// keep my shell")
+      expect(text).not.toContain("legacy-me")
+    })
+  }),
+)

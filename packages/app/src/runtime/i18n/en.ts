@@ -173,6 +173,13 @@ export const dict = {
     "Provider saved. Model refresh is still pending; reopen the model picker to check availability.",
   "customProvider.keyFailed": "Configuration saved, but the key was not saved. Retry to save the credential.",
   "customProvider.readonly": "Read-only configuration: {{reason}}",
+  "customProvider.readonlyLegacy": "This V1 configuration is locked. Delete it to clean up legacy model settings.",
+  "customProvider.reason.invalidConfig": "invalid configuration file",
+  "customProvider.reason.multipleSources": "multiple configuration sources",
+  "customProvider.reason.legacyProvider": "V1 configuration",
+  "customProvider.reason.readonlySource": "read-only source",
+  "customProvider.reason.builtInProvider": "built-in provider",
+  "customProvider.reason.unsupportedProvider": "unsupported provider configuration",
   "customProvider.deleteHelp":
     "Deleting the active credential can activate a previous credential or fall back to an environment/configuration key. This does not disconnect the provider.",
   "customProvider.deleteKey": "Delete this credential",
@@ -1353,7 +1360,8 @@ export const dict = {
   "settings.timeline.category.commentary": "Commentary",
 
   "settings.general.row.language.title": "Language",
-  "settings.general.row.language.description": "Change the display language for OpenCode",
+  "settings.general.row.language.description": "Follow the system language, or choose a display language",
+  "settings.general.row.language.system": "Follow system",
   "settings.general.row.shell.title": "Terminal shell",
   "settings.general.row.shell.description": "Shell used by the terminal and agent tools",
   "settings.general.row.shell.autoDefault": "Auto (Default)",

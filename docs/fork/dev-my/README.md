@@ -52,7 +52,11 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 
 `%USERPROFILE%\.config\opencode\opencode.jsonc` 中的自定义模型可由后台读取。已修复的缺陷在界面日期转换：`released: 0` 被误转为 `1970-01-01`，进而隐藏。现在保留未知日期，使用现有默认可见规则；手动隐藏仍然优先。上游 #60496 已合并。
 
-Custom Provider 入口位于模型选择器底部（桌面和移动抽屉），与 `Manage models` 并列；内置 provider 连接入口已从模型选择器移除。该能力已随 `dev-my-models` 合入 `dev-my`。可新建/编辑/删除全局 OpenAI Compatible provider，Key 存凭据存储，用户主动拉取 `/models` 并勾选导入；支持 Ollama/LM Studio 原生元数据、最小文本测试、类型化超时/兼容/推理/计费/变体字段。表单采用标签 + 输入/选择框和紧凑网格，说明文字放在 placeholder/title 或可折叠 details；模型条目可单独删除。配置编辑保留未动 JSONC，使用 revision 冲突检查；V1、项目、托管和继承定义只读。内置 Ollama/LM Studio/vLLM 的自动发现不重复实现。设计与验证见 [Custom Provider 设计](custom-provider.md)。
+Custom Provider 入口位于模型选择器底部（桌面和移动抽屉），与 `Manage models` 并列；内置 provider 连接入口已从模型选择器移除。该能力已随 `dev-my-models` 合入 `dev-my`。可新建/编辑/删除全局 OpenAI Compatible provider，Key 存凭据存储，用户主动拉取 `/models` 并勾选导入；支持 Ollama/LM Studio 原生元数据、最小文本测试、类型化超时/兼容/推理/计费/变体字段。表单采用标签 + 输入/选择框和紧凑网格，说明文字放在 placeholder/title 或可折叠 details；模型条目可单独删除。配置编辑保留未动 JSONC，使用 revision 冲突检查；项目、托管和继承定义只读。V1 `provider` 定义只读锁定，但可从列表删除并清理对应凭据，便于 V2 用户清理历史配置。全部弹框文案使用 `customProvider.*` 词条，简繁中文已补齐，其他语言沿用英文回退。内置 Ollama/LM Studio/vLLM 的自动发现不重复实现。设计与验证见 [Custom Provider 设计](custom-provider.md)。
+
+### 语言
+
+Settings → General → Language 默认提供 `Follow system`。首次安装保存系统跟随状态，启动和系统语言变化时按系统语言加载词典；手动选择具体语言后保存该选择，系统语言变化不再覆盖。旧版本已保存的 locale 按手动选择处理，不会在升级时突然切换。
 
 ## 桌面身份、服务与配置
 

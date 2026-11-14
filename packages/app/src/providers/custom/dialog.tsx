@@ -55,6 +55,28 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
   const dialog = useDialog()
   const local = useLocal()
 
+  const reasonKeys = {
+    "invalid-config": "customProvider.reason.invalidConfig",
+    "multiple-sources": "customProvider.reason.multipleSources",
+    "legacy-provider": "customProvider.reason.legacyProvider",
+    "readonly-source": "customProvider.reason.readonlySource",
+    "built-in-provider": "customProvider.reason.builtInProvider",
+    "unsupported-provider": "customProvider.reason.unsupportedProvider",
+  } as const
+
+  const readonlyReason = (reason: string) => {
+    const key = reasonKeys[reason as keyof typeof reasonKeys]
+
+    return key ? language.t(key) : reason
+  }
+
+  const readonlyMessage = (reason: string) =>
+    reason === "legacy-provider"
+      ? language.t("customProvider.readonlyLegacy")
+      : language.t("customProvider.readonly", { reason: readonlyReason(reason) })
+
+  const canDelete = (entry?: CustomProviderEntry) => !!entry && (!entry.reason || entry.reason === "legacy-provider")
+
   const [store, setStore] = createStore<{
     listing?: CustomProviderListing
     original?: CustomProviderEntry
@@ -577,7 +599,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                 <fieldset disabled={store.busy || !!store.original?.reason} class="flex flex-col gap-3">
                   <Show when={store.original?.reason}>
                     <p role="alert" class="custom-provider-alert">
-                      {language.t("customProvider.readonly", { reason: store.original?.reason ?? "" })}
+                      {readonlyMessage(store.original?.reason ?? "")}
                     </p>
                   </Show>
 
@@ -996,7 +1018,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
             <div class="custom-provider-section">
               <Show when={store.listing?.reason}>
                 <p role="alert" class="custom-provider-alert">
-                  {language.t("customProvider.readonly", { reason: store.listing?.reason ?? "" })}
+                  {readonlyMessage(store.listing?.reason ?? "")}
                 </p>
               </Show>
               <Show
@@ -1012,12 +1034,12 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                           <p class="custom-provider-provider-id">{entry.id}</p>
                           <Show when={entry.reason}>
                             <p class="custom-provider-hint">
-                              {language.t("customProvider.readonly", { reason: entry.reason ?? "" })}
+                              {readonlyMessage(entry.reason ?? "")}
                             </p>
                           </Show>
                         </div>
                         <div class="flex shrink-0 items-center gap-1">
-                          <Show when={!entry.reason}>
+                          <Show when={canDelete(entry)}>
                             <Button
                               variant="ghost"
                               onClick={() => {
@@ -1059,7 +1081,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                         <Button
                           type="button"
                           variant="ghost"
-                          disabled={store.busy || !!store.original?.reason}
+                          disabled={store.busy || !canDelete(store.original)}
                           onClick={() => setStore("confirmDelete", true)}
                         >
                           {language.t("customProvider.delete")}

@@ -410,7 +410,7 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 - 移动模型抽屉状态机测试：19/19 通过。
 - 自定义 provider 服务端 5 个测试文件：13/13 通过（含配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段）。
 - 自定义 provider 浏览器回归：串行 8/8 通过；2 workers 复跑 8/8 通过。首次冷启动的 WebServer 就绪波动未复现为功能失败。
-- Windows x64 测试版 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已从合入后的 `dev-my` 发布，构建源码 `b43dac8767`；该版包含底部入口、紧凑表单和 Provider/模型删除，服务端 14/14、浏览器 10/10。细节见 [发行记录](releases.md)。
+- Windows x64 测试版 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已从合入后的 `dev-my` 发布，构建源码 `b43dac8767`；该版包含底部入口、紧凑表单和 Provider/模型删除，服务端 14/14、浏览器 10/10。后续 V1 清理与多语言迭代将随下一个测试版发布。
 
 ### 15.5 仍待完成
 
@@ -440,7 +440,22 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 ### 16.3 Provider 与模型删除
 
 - `CustomProvider.Update` 增加 `mode: "delete"`，`patch` 变为可选；`GET/PATCH /api/experimental/config/providers/:id` 仍复用同一端点。
-- 删除前校验 revision、来源、只读状态和内置 ID；仅允许删除单一全局 V2 定义。删除 JSONC 中对应 provider，并清空该 integration 的已存储凭据；凭据清理失败返回部分成功状态。
+- 删除前校验 revision、来源、仅读状态和内置 ID；可删除单一全局 V2 定义，以及单一全局 V1 历史定义。删除 JSONC 中对应 provider，并清空该 integration 的已存储凭据；凭据清理失败返回部分成功状态。
 - 删除响应为 `config: "deleted"`，`credential` 可为 `deleted` / `failed` / `unchanged`；UI 只有第二次确认后才调用删除，成功后回到列表并刷新目录。
 - 已有模型的 `Remove model` 仍生成模型级 `null` patch，保存后从全局定义中移除；不会删除底层推理服务上的模型文件。
 - E2E 覆盖：底部入口与返回、provider 删除确认与请求体、列表清空、模型删除/编辑回归。
+
+### 16.4 V1 历史模型的只读锁定与清理
+
+- `provider`（V1）定义继续显示在配置列表中，并保持完整只读：表单 fieldset 禁用，保存与凭据操作不可用，编辑请求返回 409。
+- 为方便 V2 用户清理历史配置，允许删除单一全局 V1 定义；服务端从原始 JSONC 的 `provider.<id>` 删除，并用同一流程清理该 integration 的已存凭据。
+- 仍拒绝删除多来源、项目/托管/只读来源、内置 ID 和全局配置解析失败时的条目；不会为了让清理通过而改写无权限来源。
+- UI 列表和表单 Footer 对 `legacy-provider` 显示删除入口；确认文案与 V2 删除一致，成功后刷新列表和模型目录。
+- 验证：服务端新增 V1 删除用例，覆盖只读编辑 409、V1 定义删除、凭据清理和 SHA/注释保留；浏览器新增 V1 只读与删除回归。
+
+### 16.5 多语言
+
+- 模型选择器、自定义 Provider 列表、表单、发现、测试、错误和删除确认全部使用 `customProvider.*` 词条，不再依赖硬编码可见英文。
+- 简体中文和繁体中文已补齐全部 `customProvider.*` 词条；其他语言沿用项目现有回退机制，缺失词条显示英文。
+- 只读原因使用类型化词条（V1、内置、只读来源、多来源等），避免直接显示内部 reason 字符串。
+- `language.test.ts` 校验简繁中文覆盖全部自定义 Provider 词条，防止后续新增文案只落在英文。

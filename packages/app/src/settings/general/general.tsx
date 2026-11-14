@@ -3,7 +3,7 @@ import { createMediaQuery } from "@solid-primitives/media"
 import { Select } from "@opencode/ui/select"
 import { Switch } from "@opencode/ui/switch"
 import { TimelineDetailControl } from "@/settings/timeline-detail"
-import { useLanguage } from "@/runtime/i18n/language"
+import { useLanguage, type Locale } from "@/runtime/i18n/language"
 import { usePlatform } from "@/runtime/platform/platform"
 import { PluginSettingsSections } from "@/runtime/plugin/settings-page-view"
 import {
@@ -198,11 +198,18 @@ const TimelineWidthSetting = () => {
 const LanguageSetting = () => {
   const language = useLanguage()
 
-  const options = createMemo(() =>
-    language.locales.map((locale) => ({
+  const options = createMemo((): { value: "system" | Locale; label: string }[] => [
+    { value: "system", label: language.t("settings.general.row.language.system") },
+    ...language.locales.map((locale) => ({
       value: locale,
       label: language.label(locale),
     })),
+  ])
+
+  const current = createMemo(() =>
+    language.system()
+      ? options()[0]
+      : options().find((option) => option.value === language.locale()),
   )
 
   return (
@@ -215,10 +222,20 @@ const LanguageSetting = () => {
         options={options()}
         placement="bottom-end"
         gutter={6}
-        current={options().find((option) => option.value === language.locale())}
+        current={current()}
         value={(option) => option.value}
         label={(option) => option.label}
-        onSelect={(option) => option && language.setLocale(option.value)}
+        onSelect={(option) => {
+          if (!option) return
+
+          if (option.value === "system") {
+            language.setSystem()
+
+            return
+          }
+
+          language.setLocale(option.value)
+        }}
       />
     </SettingsRow>
   )

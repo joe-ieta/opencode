@@ -108,6 +108,16 @@ async function pickArabic(page: Page) {
   return settings
 }
 
+test("the language setting follows the system until a manual choice replaces it", async ({ page }) => {
+  const { settings } = await open(page)
+  const control = settings.locator('[data-action="settings-language"]')
+
+  await expect(control).toContainText("Follow system")
+  await control.click()
+  await page.getByRole("listbox").getByRole("option", { name: "English", exact: true }).click()
+  await expect(control).toContainText("English")
+})
+
 test("a language switch keeps settings on screen and flips direction only with the new strings", async ({ page }) => {
   const chunks = await holdRoute(page, arabic)
   const html = page.locator("html")

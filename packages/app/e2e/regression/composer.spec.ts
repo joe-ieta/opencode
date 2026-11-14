@@ -1,4 +1,5 @@
 import type { CustomProvider } from "@opencode/schema/custom-provider"
+import { Provider } from "@opencode/schema/provider"
 import { customProviderFixture, advancedProviderFixture } from "../utils/custom-provider"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 import { NO_PROVIDER, SERVER, T0, expectPath, holdRoute, pageMessagesFrom, provider, sessionHref } from "../utils/app"
@@ -2306,4 +2307,43 @@ test("deletes a custom provider from the edit screen and returns to the list", a
   await expect(dialog.getByText("Private gateway", { exact: true })).toHaveCount(0)
   await dialog.getByRole("button", { name: "Back to model selection", exact: true }).click()
   await expect(picker).toBeVisible()
+})
+
+test("locks a V1 provider but still allows deleting it", async ({ page }) => {
+  const fixture = customProviderFixture()
+  const requests: { id: string; body: CustomProvider.Update }[] = []
+  const legacy = {
+    ...fixture.entry,
+    id: Provider.ID.make("legacy-provider"),
+    name: "Legacy provider",
+    sources: ["C:/fixture/opencode.json"],
+    reason: "legacy-provider",
+  }
+
+  await openSession(page, {
+    name: "DeleteLegacyProvider",
+    ...fixture.config,
+    customProviders: () => ({
+      revision: "legacy-0",
+      target: "C:/fixture/opencode.jsonc",
+      providers: requests.some((request) => request.body.mode === "delete") ? [] : [legacy],
+    }),
+    onCustomProviderUpdate: (id, body) => {
+      requests.push({ id, body })
+
+      return { revision: `legacy-${requests.length}`, config: "deleted", credential: "unchanged", catalog: "ready" }
+    },
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await expect(dialog.getByText("This V1 configuration is locked. Delete it to clean up legacy model settings.")).toBeVisible()
+  await dialog.getByRole("button", { name: "Delete provider", exact: true }).click()
+  await expect(dialog.getByRole("textbox", { name: "Provider display name", exact: true })).toBeDisabled()
+  await dialog.getByRole("button", { name: "Delete provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toHaveText("Provider deleted.")
+  expect(requests.at(-1)?.body).toMatchObject({ mode: "delete", revision: "legacy-0" })
 })

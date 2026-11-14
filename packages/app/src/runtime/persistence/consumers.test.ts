@@ -157,11 +157,11 @@ describe("persisted consumer schemas", () => {
   })
 
   test("language preserves runtime defaults and normalizes unsupported locales to English", () => {
-    const decode = Schema.decodeUnknownSync(Persistence.withInitial(languageSchema, { locale: "fr" }))
-    expect(decode({})).toEqual({ locale: "fr" })
-    expect(decode({ locale: undefined })).toEqual({ locale: "fr" })
-    expect(decode({ locale: 42 })).toEqual({ locale: "fr" })
-    expect(decode({ locale: "unsupported" })).toEqual({ locale: "en" })
-    expect(decode({ locale: "ar" })).toEqual({ locale: "ar" })
+    const decode = Schema.decodeUnknownSync(Persistence.withInitial(languageSchema, { locale: "fr", system: false }))
+    expect(decode({})).toEqual({ locale: "fr", system: false })
+    expect(decode({ locale: undefined })).toEqual({ locale: "fr", system: false })
+    expect(decode({ locale: 42 })).toEqual({ locale: "fr", system: false })
+    expect(decode({ locale: "unsupported" })).toEqual({ locale: "en", system: false })
+    expect(decode({ locale: "ar" })).toEqual({ locale: "ar", system: false })
   })
 })
