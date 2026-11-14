@@ -18,9 +18,9 @@ A desktop AI coding workspace for everyday development. Built on OpenCode, it re
 
 自 Windows 测试版 `v2.2.3-dev-my.4` 起，任务概览独立为第四种 Side bar；官方 Side tabs 保持原行为。[设计与验证记录](docs/fork/dev-my/sidebar-mode.md)。
 
-最新 Windows x64 测试预发行 [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) 将活动快照等待接入上游 Inbox 首屏状态机，快照延迟时保持加载，超时后展示已有内容。安装包未签名，自动检查和公开下载校验已通过，安装后人工验收待完成。Linux amd64/arm64 的 AppImage 和 deb 测试版见 [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)。详见[发行记录](docs/fork/dev-my/releases.md)。
+最新 Windows x64 测试预发行 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已从合入 `dev-my-models` 后的 `dev-my` 构建。本版在模型选择器底部提供 `Custom providers` 与 `Manage models`：可新增、编辑、删除全局 OpenAI Compatible provider，Key 存入凭据存储，支持主动发现、Ollama/LM Studio 原生元数据、最小文本测试和类型化高级字段；同时保留独立 Side bar 与 Running sessions。安装包未签名，自动检查和公开下载校验已通过，安装后人工验收待完成。详见[发行记录](docs/fork/dev-my/releases.md)与[与官方差异](docs/fork/dev-my/differences.md)。Linux amd64/arm64 的 AppImage 和 deb 正式版仍为 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)。
 
-`dev-my` 已吸收上游 V2 2.2.5 `dev@1009033569`，保留项目整组收起、分组排序、深层子智能体状态与标题方向修复。Side bar 开发统一在 `dev-my`。
+`dev-my` 已吸收上游 V2 2.3.0 `dev@f0089856c0`，保留项目整组收起、分组排序、深层子智能体状态、Running sessions 与标题方向修复。Side bar 和自定义 Provider 开发统一在 `dev-my`。
 
 ### 项目定位
 
@@ -41,6 +41,7 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 本地模型沿用 OpenCode provider 体系，不另造一套接口，配置和切换更直接：
 
 - 统一走 OpenAI 兼容配置与本地模型发现，Ollama、LM Studio、vLLM、llama.cpp 等本地服务可按同一方式接入。
+- 模型选择器底部的 `Custom providers` 可直接新增、编辑或删除全局 OpenAI Compatible provider，Key 存入凭据存储，不用手写 JSONC；支持主动模型发现、原生元数据、最小文本测试和类型化高级字段。
 - 本地模型与云端模型共用模型选择、会话和工具流程，不为本地运行单独维护客户端。
 - 修复自定义/本地模型因发布日期未知而被误判为旧模型并隐藏的问题；手动隐藏仍然优先。
 - 不强制登录云端服务，模型地址、凭据和自定义模型配置留在本机，适合离线或内网开发，后续会针对主流开源模型提供更简洁的本地接入模式。
@@ -57,9 +58,9 @@ OpenCode My 在 [joe-ieta/opencode](https://github.com/joe-ieta/opencode) 维护
 
 Since the Windows test release `v2.2.3-dev-my.4`, the task overview has been available as a fourth, independent **Side bar** mode. The official Side tabs mode keeps its original behavior. See the [design and validation notes](docs/fork/dev-my/sidebar-mode.md).
 
-The Windows x64 test prerelease [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) integrates activity snapshot readiness into the upstream Inbox first-load state machine. The installer is unsigned. Automated checks and public download verification passed. Post-install manual acceptance is pending. The Linux amd64/arm64 AppImage and deb test release is available at [v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2). See the [release records](docs/fork/dev-my/releases.md).
+The Windows x64 test prerelease [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) is built from `dev-my` after merging `dev-my-models`. It adds `Custom providers` and `Manage models` actions to the model picker: create, edit, and delete global OpenAI-compatible providers, keep API keys in the credential store, fetch models on demand, read Ollama/LM Studio native metadata, run a minimal text test, and edit typed advanced fields. The independent Side bar and Running sessions are retained. The installer is unsigned. Automated checks and public download verification passed; post-install manual acceptance is pending. See the [release records](docs/fork/dev-my/releases.md) and [upstream differences](docs/fork/dev-my/differences.md). Linux amd64/arm64 AppImage and deb remain at the stable [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1).
 
-`dev-my` includes upstream V2 2.2.5 at `dev@1009033569`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, and text-direction fixes for titles. All Side bar development takes place in `dev-my`.
+`dev-my` includes upstream V2 2.3.0 at `dev@f0089856c0`, retaining collapsible project groups, group sorting, activity tracking for deeply nested subagents, Running sessions, and text-direction fixes for titles. Side bar and custom provider development now takes place in `dev-my`.
 
 ### Project focus
 
@@ -80,6 +81,7 @@ OpenCode My is maintained in [joe-ieta/opencode](https://github.com/joe-ieta/ope
 Local models use OpenCode's existing provider system for straightforward configuration and switching:
 
 - Connect local services such as Ollama, LM Studio, vLLM, and llama.cpp through OpenAI-compatible configuration and local model discovery.
+- `Custom providers` in the model picker creates, edits, and deletes global OpenAI-compatible providers without hand-editing JSONC. API keys go to the credential store; model discovery, native metadata, a minimal text test, and typed advanced fields are built in.
 - Local and cloud models share model selection, sessions, and tool workflows, with no separate client for local inference.
 - Custom and local models with unknown release dates are no longer incorrectly treated as old models and hidden. Explicit manual hiding still takes precedence.
 - Cloud sign-in is optional. Model endpoints, credentials, and custom model configuration stay on your machine, supporting offline or intranet development. We plan to simplify local setup for popular open-source models.

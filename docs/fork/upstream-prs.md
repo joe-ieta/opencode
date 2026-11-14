@@ -25,7 +25,7 @@
 | [#60479](https://github.com/anomalyco/opencode/issues/60479)                                          | 本次 Windows V2 复现报告；机器人识别重复，当前已关闭。提交时申请 bug 标签，账号无权添加仓库标签                                             |
 | [#50726](https://github.com/anomalyco/opencode/issues/50726)                                          | 桌面端自定义模型缺失的相关现象，供根因关联                                                                                                  |
 | [#60241](https://github.com/anomalyco/opencode/issues/60241)                                          | **OPEN**；已更新为独立 Side bar 提案，#60867 为设计评审材料，保持官方模式与初始默认值；已发布人工测试邀请                                   |
-| [#33704 中的 V2 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) | **OPEN**；自定义提供商/模型配置界面：表单 CRUD、可选凭据、连接测试、全局/项目范围、导入并保留 JSONC。上游仍无实现；fork 已在 `dev-my-models` 实现并在 Windows 测试版验证 |
+| [#33704 中的 V2 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622) | **OPEN**；自定义提供商/模型配置界面：表单 CRUD、可选凭据、连接测试、全局/项目范围、导入并保留 JSONC。上游仍无实现；fork 已合入 `dev-my` 并在 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) Windows 测试版验证 |
 | [#59603](https://github.com/anomalyco/opencode/issues/59603) | **OPEN**；2.2.0 移除桌面自定义 provider 入口；官方仍建议编辑 `opencode.json` |
 | [#50650](https://github.com/anomalyco/opencode/issues/50650)、[#57325](https://github.com/anomalyco/opencode/issues/57325) | **OPEN**；旧桌面表单保存失败、不能设 limits/发现；旧表单已移除，问题未由上游解决 |
 | [#57997](https://github.com/anomalyco/opencode/pull/57997) | **OPEN**；恢复自定义 OpenAI-compatible provider 保存。仅机器人验证，无维护者批准/合并 |

@@ -69,7 +69,7 @@ Live 连接组件已实连安装包原进程并读到相同的 17 个工程、56
 
 ## 当前状态
 
-- 当前 Windows x64 测试版为 [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5)，源码 `02457d62e2`。四个发布文件已通过本地、服务端及公开下载核验。安装后人工验收待完成。详见[发行记录](releases.md)。
+- 当前 Windows x64 测试版为 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3)，源码 `b43dac8767`；`dev-my-models` 已合入 `dev-my`，自定义 Provider 与模型管理随本版进入桌面主线，Side bar 行为保持不变。四个发布文件已通过本地、服务端及公开下载核验。安装后人工验收待完成。详见[发行记录](releases.md)与[与官方差异](differences.md)。
 
 - 本版验证 Inbox 状态机在活动快照延迟时等待，并复测底部 Running、后台 Shell 和折叠提示。贡献稿 [#60867](https://github.com/anomalyco/opencode/pull/60867) 当前 head 为 `2de04af2cd`，保持 Draft。
 

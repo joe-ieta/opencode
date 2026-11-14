@@ -1,6 +1,6 @@
 # dev-my 与官方 dev 的差异：Side bar、模型管理与桌面发行
 
-> 对照基线：官方 `upstream/dev@f0089856c0`（V2 2.3.0）。`dev-my` 于 2026-11-14 合入 `dev-my-models` 的自定义 Provider 工作（合并提交 `4005a3aecd`，UI 收口提交 `abc5450959`）。本文描述 V2 桌面应用的产品、设计与实现差异；`oc-headless`、`qt-headless` 不在范围内。
+> 对照基线：官方 `upstream/dev@f0089856c0`（V2 2.3.0）。`dev-my` 于 2026-11-14 合入 `dev-my-models` 的自定义 Provider 工作（合并提交 `4005a3aecd`，UI 收口提交 `abc5450959`），并从合入后的 `dev-my` 发布 Windows 测试版 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3)（构建源码 `b43dac8767`）。本文描述 V2 桌面应用的产品、设计与实现差异；`oc-headless`、`qt-headless` 不在范围内。
 >
 > 本文是差异总览。Side bar 的完整需求、评审和测试记录见 [Side bar 独立模式](sidebar-mode.md)，自定义 Provider 的字段、协议和实施记录见 [Custom Provider 设计](custom-provider.md)，发行与源码同步见 [发行记录](releases.md)。
 
@@ -206,6 +206,7 @@ Running sessions 的区域：
 
 当前已验证：
 
+- Windows x64 测试预发行 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已发布；安装包、`latest.yml`、`SHA256SUMS`、`build.json` 四个资产的服务端大小/SHA256 与本地一致，公开下载可用，Latest 仍为 `v2.2.6-my.1`。
 - 根目录 `bun run check` 35/35，lint 0 errors；App/core/server 的 `typecheck:tsc` 通过。
 - 自定义 Provider 服务端 14/14、生产 Chromium 回归 10/10；覆盖入口、返回、删除、模型编辑、发现、文本测试和高级字段。
 - 2.3.0 同步轮次应用单元测试 2,723 项、核心相关测试 94 项、生产 Chromium Home/标签/Side bar 回归 113 项；Side bar 共享索引和排序用例有重复回归。

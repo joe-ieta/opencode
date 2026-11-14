@@ -410,7 +410,7 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 - 移动模型抽屉状态机测试：19/19 通过。
 - 自定义 provider 服务端 5 个测试文件：13/13 通过（含配置/JSONC、凭据失败重试、发现、原生元数据、文本测试、高级字段）。
 - 自定义 provider 浏览器回归：串行 8/8 通过；2 workers 复跑 8/8 通过。首次冷启动的 WebServer 就绪波动未复现为功能失败。
-- Windows x64 测试版 [v2.3.0-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2) 已发布，构建源码 `4060cf9bab`；细节见 [发行记录](releases.md)。
+- Windows x64 测试版 [v2.3.0-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.3) 已从合入后的 `dev-my` 发布，构建源码 `b43dac8767`；该版包含底部入口、紧凑表单和 Provider/模型删除，服务端 14/14、浏览器 10/10。细节见 [发行记录](releases.md)。
 
 ### 15.5 仍待完成
 
