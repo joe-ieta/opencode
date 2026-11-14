@@ -46,6 +46,7 @@ export const dict = {
   "customProvider.advanced.invalid":
     "Check advanced options: timeouts must be positive whole milliseconds or false; prices must be non-negative numbers with input and output set; tier sizes must be distinct positive whole tokens; variant IDs must be unique, non-empty, contain no # and cannot be default.",
   "customProvider.testText": "Test text response",
+  "customProvider.testHint": "May load the model or incur charges when testing.",
   "customProvider.cancelTest": "Cancel text test",
   "customProvider.testHelp":
     "Save the address, key and model ID before testing. Sends one minimal text request to the saved endpoint, with up to 32 output tokens and a 30-second timeout. May load the model or incur charges. Custom generation options, tools, images and token limits are not tested.",
@@ -97,6 +98,7 @@ export const dict = {
   "customProvider.discovered": "Discovered models",
   "customProvider.import": "Import selected models",
   "customProvider.imported": "Selected models added to the form. Review and save to apply them.",
+  "customProvider.discoveryHint": "Fetch from this server; manual entry always works.",
   "customProvider.discoveryHelp":
     "Fetch models from this server and select what to import. Your entries take priority. After changing the URL, enter the key again; saved credentials are only used for the saved address.",
   "customProvider.discoveredLimits":
@@ -137,6 +139,8 @@ export const dict = {
   "customProvider.url": "Base URL",
   "customProvider.localhost": "This address is accessed from the connected server. Localhost refers to that machine.",
   "customProvider.key": "API key",
+  "customProvider.keyPlaceholder": "Leave blank to keep the existing key",
+  "customProvider.auto": "Auto",
   "customProvider.keyHelp":
     "Leave blank to keep the existing credential. Keys are stored separately from configuration.",
   "customProvider.keyReadonly": "Authentication is defined in configuration. Edit its source file to change it.",
@@ -154,6 +158,7 @@ export const dict = {
   "customProvider.no": "Not supported",
   "customProvider.defaults":
     "Empty limits inherit runtime defaults. New models assume a 200k context and 32k output limit; these are not detected limits. Tool support is unverified. New models use text input unless image input is enabled.",
+  "customProvider.defaultsShort": "Empty fields inherit defaults; limits are not detected.",
   "customProvider.noTools": "Without tool support, this model cannot complete coding tasks that require tools.",
   "customProvider.addModel": "Add model",
   "customProvider.removeModel": "Remove model",
@@ -175,6 +180,18 @@ export const dict = {
   "customProvider.inactive": "Inactive",
   "customProvider.useModel": "Use first model",
   "customProvider.back": "Back to providers",
+  "customProvider.backToPicker": "Back to model selection",
+  "customProvider.section.provider": "Provider",
+  "customProvider.section.models": "Models",
+  "customProvider.section.discovery": "Import models from server",
+  "customProvider.section.credentials": "Stored credentials",
+  "customProvider.optional": "Optional",
+  "customProvider.empty": "No custom providers yet.",
+  "customProvider.delete": "Delete provider",
+  "customProvider.deleteConfirm": "Delete this provider and its stored credentials? This cannot be undone.",
+  "customProvider.deleteConfirmAction": "Delete provider",
+  "customProvider.deleted": "Provider deleted.",
+  "customProvider.deletedKeyFailed": "Provider deleted, but some stored credentials could not be removed.",
   "migration.v1.title": "One-way upgrade to OpenCode V2",
   "migration.v1.description":
     "Back up your OpenCode data and configuration, then stop all V1 processes. This upgrade applies to every project sharing this environment, not just the current project. Use V2 from now on: later V1 changes will not be imported, and V2 changes cannot be sent back to V1. Uninstalling or reinstalling V2 does not restore the V1 environment.",

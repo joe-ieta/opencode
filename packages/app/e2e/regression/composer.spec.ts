@@ -1739,7 +1739,7 @@ for (const paid of [true, false]) {
     })
     await dialog.getByRole("button", { name: "Close", exact: true }).click()
     await expect(trigger).toHaveText("Existing Model")
-    await trigger.click()
+    await expect(picker).toBeVisible()
     await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
     await dialog.getByRole("button", { name: "Edit provider", exact: true }).click()
     await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("16000")
@@ -2259,4 +2259,51 @@ test("LM Studio native import uses instance context and never pins an unloaded m
     "loaded-alias": { name: "Loaded model", context: 4096, tools: true, image: false },
     "org/unloaded": {},
   })
+})
+
+test("model picker bottom actions open custom providers and model management with back navigation", async ({ page }) => {
+  await openSession(page, { name: "ModelPickerActions", ...customProviderFixture().config })
+  await page.locator('[data-action="composer-model"]').click()
+  const picker = page.getByRole("dialog", { name: "Select model", exact: true })
+
+  await picker.getByRole("button", { name: "Manage models", exact: true }).click()
+  const manage = page.getByRole("dialog", { name: "Manage models", exact: true })
+  await expect(manage).toBeVisible()
+  await manage.getByRole("button", { name: "Back to model selection", exact: true }).click()
+  await expect(picker).toBeVisible()
+
+  await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
+  const custom = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await expect(custom).toBeVisible()
+  await custom.getByRole("button", { name: "Back to model selection", exact: true }).click()
+  await expect(picker).toBeVisible()
+})
+
+test("deletes a custom provider from the edit screen and returns to the list", async ({ page }) => {
+  const fixture = customProviderFixture()
+  fixture.requests.push({
+    id: "private-gateway",
+    body: {
+      mode: "create",
+      revision: "seed",
+      patch: {
+        name: "Private gateway",
+        baseURL: "http://localhost:8080/v1",
+        models: { alias: { modelID: "remote-model" } },
+      },
+    },
+  })
+  await openSession(page, { name: "DeleteCustomProvider", ...fixture.config })
+  await page.locator('[data-action="composer-model"]').click()
+  const picker = page.getByRole("dialog", { name: "Select model", exact: true })
+  await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Delete provider", exact: true }).click()
+  await expect(dialog.getByText("Delete this provider and its stored credentials?", { exact: false })).toBeVisible()
+  await dialog.getByRole("button", { name: "Delete provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toHaveText("Provider deleted.")
+  expect(fixture.requests.at(-1)?.body).toEqual({ mode: "delete", revision: "revision-1" })
+  await expect(dialog.getByText("Private gateway", { exact: true })).toHaveCount(0)
+  await dialog.getByRole("button", { name: "Back to model selection", exact: true }).click()
+  await expect(picker).toBeVisible()
 })

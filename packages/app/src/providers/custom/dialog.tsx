@@ -9,7 +9,7 @@ import { createStore } from "solid-js/store"
 import { For, Show, onCleanup, onMount } from "solid-js"
 import { Button } from "@opencode/ui/button"
 import { TextField } from "@opencode/ui/text-field"
-import { Dialog, DialogBody, DialogHeader, DialogTitle } from "@opencode/ui/dialog"
+import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@opencode/ui/dialog"
 import { useDialog } from "@opencode/ui/context/dialog"
 import { useLanguage } from "@/runtime/i18n/language"
 import { useServerSDK } from "@/runtime/server/client"
@@ -28,6 +28,7 @@ import {
   variantPatch,
   VariantFields,
 } from "./advanced"
+import "./custom.css"
 
 function row(id = "", model: CustomProviderEntry["models"][string] = {}) {
   return {
@@ -79,6 +80,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     testToken: string
     testResult: string
     testError: string
+    confirmDelete: boolean
   }>({
     view: "list",
     id: "",
@@ -102,6 +104,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
     testToken: "",
     testResult: "",
     testError: "",
+    confirmDelete: false,
   })
 
   let discovery: AbortController | undefined
@@ -209,6 +212,7 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       error: "",
       result: "",
       ready: false,
+      confirmDelete: false,
       rows: entry ? Object.entries(entry.models).map(([id, model]) => row(id, model)) : [row()],
     })
   }
@@ -401,7 +405,8 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       return
     }
 
-    const models: NonNullable<ExperimentalConfigProvidersUpdateInput["patch"]["models"]> = Object.fromEntries([
+    const models: NonNullable<NonNullable<ExperimentalConfigProvidersUpdateInput["patch"]>["models"]> =
+      Object.fromEntries([
       ...Object.keys(store.original?.models ?? {})
         .filter((key) => !keys.includes(key))
         .map((key) => [key, null]),
@@ -479,6 +484,38 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       .finally(() => setStore("busy", false))
   }
 
+  const removeProvider = async () => {
+    if (store.busy || !store.listing || !store.original) return
+    clearTest()
+    clearDiscovery()
+    setStore({ busy: true, error: "", result: "" })
+    await sdk.api.experimental.config.providers
+      .update({
+        providerID: store.id,
+        location: location(),
+        mode: "delete",
+        revision: store.listing.revision,
+      })
+      .then(async (saved) => {
+        if (saved.config !== "deleted") return
+        setStore({
+          view: "list",
+          confirmDelete: false,
+          original: undefined,
+          key: "",
+          result: language.t(
+            saved.credential === "failed"
+              ? "customProvider.deletedKeyFailed"
+              : "customProvider.deleted",
+          ),
+        })
+        await load()
+        await refresh()
+      })
+      .catch((error) => setStore("error", formatServerError(error, language.t)))
+      .finally(() => setStore("busy", false))
+  }
+
   const removeCredential = async (id: string) => {
     if (store.busy) return
     clearTest()
@@ -498,143 +535,202 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
       .finally(() => setStore("busy", false))
   }
 
+  const backToList = () => {
+    clearTest()
+    clearDiscovery()
+    setStore({ view: "list", key: "", result: "", error: "", confirmDelete: false })
+    void load()
+  }
+
   return (
-    <Dialog fit containerClass="!w-[min(calc(100vw_-_24px),760px)]">
+    <Dialog fit class="custom-provider-dialog" containerClass="!w-[min(calc(100vw_-_24px),720px)]">
       <DialogHeader closeLabel={language.t("common.close")}>
         <DialogTitle>{language.t("customProvider.title")}</DialogTitle>
+        <Show when={store.view !== "list"}>
+          <Button type="button" variant="ghost" onClick={() => dialog.close()}>
+            {language.t("customProvider.backToPicker")}
+          </Button>
+        </Show>
       </DialogHeader>
-      <DialogBody class="flex min-h-0 flex-col gap-4 max-h-[80dvh] overflow-y-auto" data-scrollable>
-        <p class="text-13 leading-5 text-v2-text-text-muted">
-          {language.t("customProvider.scope", { server: sdk.url })}
-        </p>
+      <DialogBody class="custom-provider-body max-h-[min(78dvh,760px)]">
         <Show when={store.error}>
-          <p role="alert">{store.error}</p>
+          <p role="alert" class="custom-provider-alert">
+            {store.error}
+          </p>
         </Show>
         <Show when={store.result}>
-          <p role="status">{store.result}</p>
+          <p role="status" class="custom-provider-status">
+            {store.result}
+          </p>
         </Show>
-        <Show when={store.listing} fallback={<p>{language.t("customProvider.loading")}</p>}>
+        <Show when={store.listing} fallback={<p class="custom-provider-empty">{language.t("customProvider.loading")}</p>}>
           <Show
             when={store.view === "list"}
             fallback={
-              <form onSubmit={save} onInput={clearTest} onChange={clearTest} class="flex flex-col gap-4">
-                <fieldset disabled={store.busy || !!store.original?.reason} class="flex flex-col gap-4">
+              <form
+                id="custom-provider-form"
+                onSubmit={save}
+                onInput={clearTest}
+                onChange={clearTest}
+                class="custom-provider-section"
+              >
+                <fieldset disabled={store.busy || !!store.original?.reason} class="flex flex-col gap-3">
                   <Show when={store.original?.reason}>
-                    <p>{language.t("customProvider.readonly", { reason: store.original?.reason ?? "" })}</p>
-                  </Show>
-                  <TextField
-                    label={language.t("customProvider.id")}
-                    value={store.id}
-                    required
-                    readOnly={store.view === "edit"}
-                    onChange={(value) => setStore("id", value)}
-                  />
-                  <TextField
-                    label={language.t("customProvider.name")}
-                    value={store.name}
-                    onChange={(value) => setStore("name", value)}
-                  />
-                  <TextField
-                    label={language.t("customProvider.url")}
-                    value={store.baseURL}
-                    required
-                    placeholder="http://127.0.0.1:8080/v1"
-                    onChange={(value) => {
-                      clearDiscovery()
-                      setStore({ baseURL: value, key: "", credentialID: `cred_${uuid()}` })
-                    }}
-                  />
-                  <p>{language.t("customProvider.localhost")}</p>
-                  <TextField
-                    label={language.t("customProvider.key")}
-                    type="password"
-                    autocomplete="new-password"
-                    disabled={store.original?.keyReadonly}
-                    value={store.key}
-                    onChange={(value) => {
-                      clearDiscovery()
-                      setStore({ key: value, credentialID: `cred_${uuid()}` })
-                    }}
-                    description={language.t(
-                      store.original?.keyReadonly ? "customProvider.keyReadonly" : "customProvider.keyHelp",
-                    )}
-                  />
-                  <Show when={store.original?.keySources.length}>
-                    <p>
-                      {language.t("customProvider.keySources", {
-                        sources: store.original?.keySources.join(", ") ?? "",
-                      })}
+                    <p role="alert" class="custom-provider-alert">
+                      {language.t("customProvider.readonly", { reason: store.original?.reason ?? "" })}
                     </p>
                   </Show>
-                  <div class="flex flex-col gap-2">
-                    <label class="flex flex-col gap-2">
-                      {language.t("customProvider.discoveryAPI")}
-                      <select
-                        value={store.api}
-                        disabled={store.discovering}
-                        onChange={(event) => {
-                          clearDiscovery()
 
-                          const api = (["openai", "ollama", "lmstudio"] as const).find(
-                            (api) => api === event.currentTarget.value,
-                          )
+                  <section class="custom-provider-section">
+                    <div class="custom-provider-section-head">
+                      <h3 class="custom-provider-section-title">{language.t("customProvider.section.provider")}</h3>
+                      <span class="custom-provider-hint">
+                        {language.t("customProvider.scope", { server: sdk.url })}
+                      </span>
+                    </div>
+                    <div class="custom-provider-grid">
+                      <TextField
+                        label={language.t("customProvider.id")}
+                        value={store.id}
+                        required
+                        readOnly={store.view === "edit"}
+                        placeholder="local-vllm"
+                        onChange={(value) => setStore("id", value)}
+                      />
+                      <TextField
+                        label={language.t("customProvider.name")}
+                        value={store.name}
+                        placeholder={language.t("customProvider.optional")}
+                        onChange={(value) => setStore("name", value)}
+                      />
+                      <div class="span-2">
+                        <TextField
+                          label={language.t("customProvider.url")}
+                          value={store.baseURL}
+                          required
+                          placeholder="http://127.0.0.1:8080/v1"
+                          title={language.t("customProvider.localhost")}
+                          onChange={(value) => {
+                            clearDiscovery()
+                            setStore({ baseURL: value, key: "", credentialID: `cred_${uuid()}` })
+                          }}
+                        />
+                      </div>
+                      <div class="span-2">
+                        <TextField
+                          label={language.t("customProvider.key")}
+                          type="password"
+                          autocomplete="new-password"
+                          disabled={store.original?.keyReadonly}
+                          value={store.key}
+                          placeholder={language.t(
+                            store.original?.keyReadonly
+                              ? "customProvider.keyReadonly"
+                              : "customProvider.keyPlaceholder",
+                          )}
+                          onChange={(value) => {
+                            clearDiscovery()
+                            setStore({ key: value, credentialID: `cred_${uuid()}` })
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <Show when={store.original?.keySources.length}>
+                      <p class="custom-provider-hint">
+                        {language.t("customProvider.keySources", {
+                          sources: store.original?.keySources.join(", ") ?? "",
+                        })}
+                      </p>
+                    </Show>
+                  </section>
 
-                          if (api) setStore("api", api)
-                        }}
-                        class="rounded border border-v2-border-border-base p-2 bg-v2-surface-surface-base"
-                      >
-                        <option value="openai">{language.t("customProvider.api.openai")}</option>
-                        <option value="ollama">{language.t("customProvider.api.ollama")}</option>
-                        <option value="lmstudio">{language.t("customProvider.api.lmstudio")}</option>
-                      </select>
-                    </label>
-                    <p>{language.t("customProvider.discoveryHelp")}</p>
-                    <Show when={store.api !== "openai"}>
-                      <p>{language.t("customProvider.nativeHelp")}</p>
-                    </Show>
-                    <Show
-                      when={store.discovering}
-                      fallback={
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={!store.baseURL.trim()}
-                          onClick={() => void discoverModels()}
-                        >
-                          {language.t("customProvider.discover")}
-                        </Button>
-                      }
-                    >
-                      <Button type="button" variant="ghost" onClick={cancelDiscovery}>
-                        {language.t("customProvider.cancelDiscovery")}
-                      </Button>
-                    </Show>
-                    <Show when={store.discoveryError}>
-                      <p role="alert">{store.discoveryError}</p>
-                    </Show>
-                    <Show when={store.api === "ollama" && store.candidates.length}>
-                      <p>{language.t("customProvider.metadataHelp")}</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={store.discovering || !store.selected.length || store.selected.length > 20}
-                        onClick={() => void discoverModels(true)}
-                      >
-                        {language.t("customProvider.readMetadata")}
-                      </Button>
-                    </Show>
-                    <For each={store.discoveryWarnings}>
-                      {(warning) => <p>{language.t(`customProvider.warning.${warning}`)}</p>}
-                    </For>
-                    <Show when={store.candidates.length}>
-                      <fieldset class="max-h-64 overflow-y-auto rounded border border-v2-border-border-base p-3 flex flex-col gap-3">
-                        <legend>{language.t("customProvider.discovered")}</legend>
-                        <For each={store.candidates}>
-                          {(item) => (
-                            <div>
-                              <label class="flex gap-2 items-center">
+                  <section class="custom-provider-section">
+                    <div class="custom-provider-section-head">
+                      <h3 class="custom-provider-section-title">{language.t("customProvider.section.discovery")}</h3>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div class="custom-provider-grid">
+                        <label class="flex flex-col gap-1.5 text-[12px] font-[440] leading-[18px] text-v2-text-text-muted">
+                          {language.t("customProvider.discoveryAPI")}
+                          <select
+                            value={store.api}
+                            disabled={store.discovering}
+                            title={
+                              store.api === "openai"
+                                ? language.t("customProvider.discoveryHelp")
+                                : language.t("customProvider.nativeHelp")
+                            }
+                            onChange={(event) => {
+                              clearDiscovery()
+
+                              const api = (["openai", "ollama", "lmstudio"] as const).find(
+                                (api) => api === event.currentTarget.value,
+                              )
+
+                              if (api) setStore("api", api)
+                            }}
+                            class="h-8 rounded border border-v2-border-border-base bg-v2-surface-surface-base px-2 text-[13px] text-v2-text-text-base"
+                          >
+                            <option value="openai">{language.t("customProvider.api.openai")}</option>
+                            <option value="ollama">{language.t("customProvider.api.ollama")}</option>
+                            <option value="lmstudio">{language.t("customProvider.api.lmstudio")}</option>
+                          </select>
+                        </label>
+                        <div class="flex items-end">
+                          <Show
+                            when={store.discovering}
+                            fallback={
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!store.baseURL.trim()}
+                                onClick={() => void discoverModels()}
+                              >
+                                {language.t("customProvider.discover")}
+                              </Button>
+                            }
+                          >
+                            <Button type="button" variant="ghost" onClick={cancelDiscovery}>
+                              {language.t("customProvider.cancelDiscovery")}
+                            </Button>
+                          </Show>
+                        </div>
+                      </div>
+                      <p class="custom-provider-hint">{language.t("customProvider.discoveryHint")}</p>
+                      <Show when={store.discoveryError}>
+                        <p role="alert" class="custom-provider-alert">
+                          {store.discoveryError}
+                        </p>
+                      </Show>
+                      <Show when={store.api === "ollama" && store.candidates.length}>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <p class="custom-provider-hint">{language.t("customProvider.metadataHelp")}</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={store.discovering || !store.selected.length || store.selected.length > 20}
+                            onClick={() => void discoverModels(true)}
+                          >
+                            {language.t("customProvider.readMetadata")}
+                          </Button>
+                        </div>
+                      </Show>
+                      <For each={store.discoveryWarnings}>
+                        {(warning) => (
+                          <p class="custom-provider-hint">{language.t(`customProvider.warning.${warning}`)}</p>
+                        )}
+                      </For>
+                      <Show when={store.candidates.length}>
+                        <fieldset class="flex max-h-56 flex-col gap-2 overflow-y-auto rounded-md border border-v2-border-border-base p-3">
+                          <legend class="px-1 text-[12px] text-v2-text-text-muted">
+                            {language.t("customProvider.discovered")}
+                          </legend>
+                          <For each={store.candidates}>
+                            {(item) => (
+                              <label class="flex items-start gap-2 text-[13px] leading-5">
                                 <input
                                   type="checkbox"
+                                  class="mt-1"
                                   aria-label={item.id}
                                   checked={store.selected.includes(item.id)}
                                   onChange={(event) =>
@@ -646,284 +742,370 @@ export function DialogCustomProviders(props: { directory?: string; providerID?: 
                                     )
                                   }
                                 />
-                                {item.id}
-                              </label>
-                              <Show when={item.name}>
-                                <p>{item.name}</p>
-                              </Show>
-                              <p
-                                title={Object.entries(item.sources)
-                                  .map(([field, source]) => `${field}: ${source}`)
-                                  .join("; ")}
-                              >
-                                {language.t("customProvider.discoveredLimits", {
-                                  context: item.context ?? "?",
-                                  input: item.input ?? "?",
-                                  output: item.output ?? "?",
-                                })}
-                              </p>
-                              <Show when={item.maxContext !== undefined}>
-                                <p>
-                                  {language.t("customProvider.maximumContext", { context: item.maxContext ?? "?" })}
-                                </p>
-                              </Show>
-                              <Show when={item.loaded !== undefined}>
-                                <p>{language.t(item.loaded ? "customProvider.loaded" : "customProvider.notLoaded")}</p>
-                              </Show>
-                              <Show when={item.tools !== undefined || item.image !== undefined}>
-                                <p>
-                                  {language.t("customProvider.declaredCapabilities", {
-                                    tools: language.t(
-                                      item.tools === undefined
-                                        ? "customProvider.unknown"
-                                        : item.tools
-                                          ? "customProvider.yes"
-                                          : "customProvider.no",
-                                    ),
-                                    image: language.t(
-                                      item.image === undefined
-                                        ? "customProvider.unknown"
-                                        : item.image
-                                          ? "customProvider.yes"
-                                          : "customProvider.no",
-                                    ),
-                                  })}
-                                </p>
-                              </Show>
-                              <Show when={item.metadataPending}>
-                                <p>{language.t("customProvider.metadataPending")}</p>
-                              </Show>
-                              <For each={item.warnings}>
-                                {(warning) => <p>{language.t(`customProvider.warning.${warning}`)}</p>}
-                              </For>
-                            </div>
-                          )}
-                        </For>
-                      </fieldset>
-                      <Button type="button" variant="outline" disabled={!store.selected.length} onClick={importModels}>
-                        {language.t("customProvider.import")}
-                      </Button>
-                    </Show>
-                  </div>
-                  <p>{language.t("customProvider.defaults")}</p>
-                  <details class="flex flex-col gap-3">
-                    <summary>{language.t("customProvider.advanced.provider")}</summary>
-                    <p>{language.t("customProvider.advanced.help")}</p>
-                    <AdvancedFields
-                      provider
-                      value={store.advanced}
-                      onChange={(key, value) => setStore("advanced", key, value)}
-                    />
-                  </details>
-                  <p>{language.t("customProvider.testHelp")}</p>
-                  <For each={store.rows}>
-                    {(item, index) => (
-                      <fieldset class="flex flex-col gap-3 rounded-md border border-v2-border-border-base p-3">
-                        <legend>{language.t("customProvider.model", { index: index() + 1 })}</legend>
-                        <div class="grid gap-3 sm:grid-cols-2">
-                          <TextField
-                            label={language.t("customProvider.modelKey")}
-                            value={item.id}
-                            required
-                            readOnly={!!item.original}
-                            onChange={(value) => setStore("rows", index(), "id", value)}
-                          />
-                          <TextField
-                            label={language.t("customProvider.modelID")}
-                            value={item.modelID}
-                            onChange={(value) => setStore("rows", index(), "modelID", value)}
-                          />
-                          <TextField
-                            label={language.t("customProvider.modelName")}
-                            value={item.name}
-                            onChange={(value) => setStore("rows", index(), "name", value)}
-                          />
-                          <For each={["context", "input", "output"] as const}>
-                            {(field) => (
-                              <TextField
-                                label={language.t(`customProvider.${field}`)}
-                                inputmode="numeric"
-                                value={item[field]}
-                                onChange={(value) => setStore("rows", index(), field, value)}
-                              />
-                            )}
-                          </For>
-                          <For each={["tools", "image"] as const}>
-                            {(field) => (
-                              <label class="flex flex-col gap-2">
-                                {language.t(`customProvider.${field}`)}
-                                <select
-                                  value={item[field]}
-                                  onChange={(event) => setStore("rows", index(), field, event.currentTarget.value)}
-                                  class="rounded border border-v2-border-border-base p-2 bg-v2-surface-surface-base"
-                                >
-                                  <option value="inherit">{language.t("customProvider.inherit")}</option>
-                                  <option value="true">{language.t("customProvider.yes")}</option>
-                                  <option value="false">{language.t("customProvider.no")}</option>
-                                </select>
+                                <span class="min-w-0">
+                                  <span class="block truncate">{item.id}</span>
+                                  <span class="custom-provider-hint">
+                                    {language.t("customProvider.discoveredLimits", {
+                                      context: item.context ?? "?",
+                                      input: item.input ?? "?",
+                                      output: item.output ?? "?",
+                                    })}
+                                  </span>
+                                </span>
                               </label>
                             )}
                           </For>
-                        </div>
-                        <Show when={item.tools === "false"}>
-                          <p>{language.t("customProvider.noTools")}</p>
-                        </Show>
-                        <details class="flex flex-col gap-3">
-                          <summary>{language.t("customProvider.advanced.model")}</summary>
-                          <fieldset class="flex flex-col gap-3">
-                            <legend>{language.t("customProvider.advanced.modelRequest")}</legend>
-                            <AdvancedFields
-                              value={item.advanced}
-                              onChange={(key, value) => setStore("rows", index(), "advanced", key, value)}
-                            />
-                          </fieldset>
-                          <PriceFields
-                            rows={item.costs}
-                            onChange={(rows) => setStore("rows", index(), "costs", rows)}
-                          />
-                          <VariantFields
-                            rows={item.variants}
-                            readonly={store.original?.models[item.id]?.variantsReadonly}
-                            onChange={(rows) => setStore("rows", index(), "variants", rows)}
-                          />
-                        </details>
+                        </fieldset>
                         <Button
                           type="button"
                           variant="outline"
-                          disabled={store.testing || !canTest(item)}
-                          onClick={() => void testModel(item)}
+                          disabled={!store.selected.length}
+                          onClick={importModels}
                         >
-                          {language.t("customProvider.testText")}
+                          {language.t("customProvider.import")}
                         </Button>
-                        <Show when={store.testToken === item.token}>
-                          <Show when={store.testing}>
-                            <Button type="button" variant="ghost" onClick={clearTest}>
-                              {language.t("customProvider.cancelTest")}
+                      </Show>
+                    </div>
+                  </section>
+
+                  <section class="custom-provider-section">
+                    <div class="custom-provider-section-head">
+                      <h3 class="custom-provider-section-title">{language.t("customProvider.section.models")}</h3>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        icon="plus"
+                        onClick={() => {
+                          clearTest()
+                          setStore("rows", [...store.rows, row()])
+                        }}
+                      >
+                        {language.t("customProvider.addModel")}
+                      </Button>
+                    </div>
+                    <p class="custom-provider-hint">{language.t("customProvider.defaultsShort")}</p>
+                    <p class="custom-provider-hint">{language.t("customProvider.testHint")}</p>
+                    <For each={store.rows}>
+                      {(item, index) => (
+                        <fieldset class="custom-provider-model">
+                          <legend class="sr-only">
+                            {language.t("customProvider.model", { index: index() + 1 })}
+                          </legend>
+                          <div class="custom-provider-model-head">
+                            <span class="custom-provider-model-title">
+                              {language.t("customProvider.model", { index: index() + 1 })}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => {
+                                clearTest()
+                                setStore(
+                                  "rows",
+                                  store.rows.filter((entry) => entry.token !== item.token),
+                                )
+                              }}
+                            >
+                              {language.t("customProvider.removeModel")}
                             </Button>
+                          </div>
+                          <div class="custom-provider-grid">
+                            <TextField
+                              label={language.t("customProvider.modelKey")}
+                              value={item.id}
+                              required
+                              readOnly={!!item.original}
+                              placeholder="model-name"
+                              onChange={(value) => setStore("rows", index(), "id", value)}
+                            />
+                            <TextField
+                              label={language.t("customProvider.modelID")}
+                              value={item.modelID}
+                              placeholder={language.t("customProvider.optional")}
+                              onChange={(value) => setStore("rows", index(), "modelID", value)}
+                            />
+                            <TextField
+                              label={language.t("customProvider.modelName")}
+                              value={item.name}
+                              placeholder={language.t("customProvider.optional")}
+                              onChange={(value) => setStore("rows", index(), "name", value)}
+                            />
+                            <For each={["context", "input", "output"] as const}>
+                              {(field) => (
+                                <TextField
+                                  label={language.t(`customProvider.${field}`)}
+                                  inputmode="numeric"
+                                  value={item[field]}
+                                  placeholder={language.t("customProvider.auto")}
+                                  onChange={(value) => setStore("rows", index(), field, value)}
+                                />
+                              )}
+                            </For>
+                            <For each={["tools", "image"] as const}>
+                              {(field) => (
+                                <label class="flex flex-col gap-1.5 text-[12px] font-[440] leading-[18px] text-v2-text-text-muted">
+                                  {language.t(`customProvider.${field}`)}
+                                  <select
+                                    value={item[field]}
+                                    onChange={(event) => setStore("rows", index(), field, event.currentTarget.value)}
+                                    class="h-8 rounded border border-v2-border-border-base bg-v2-surface-surface-base px-2 text-[13px] text-v2-text-text-base"
+                                  >
+                                    <option value="inherit">{language.t("customProvider.inherit")}</option>
+                                    <option value="true">{language.t("customProvider.yes")}</option>
+                                    <option value="false">{language.t("customProvider.no")}</option>
+                                  </select>
+                                </label>
+                              )}
+                            </For>
+                          </div>
+                          <Show when={item.tools === "false"}>
+                            <p class="custom-provider-hint">{language.t("customProvider.noTools")}</p>
                           </Show>
-                          <Show when={store.testResult}>
-                            <p role="status">{store.testResult}</p>
-                          </Show>
-                          <Show when={store.testError}>
-                            <p role="alert">{store.testError}</p>
-                          </Show>
-                        </Show>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => {
-                            clearTest()
-                            setStore(
-                              "rows",
-                              store.rows.filter((entry) => entry.token !== item.token),
-                            )
-                          }}
-                        >
-                          {language.t("customProvider.removeModel")}
-                        </Button>
-                      </fieldset>
-                    )}
-                  </For>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      clearTest()
-                      setStore("rows", [...store.rows, row()])
-                    }}
-                  >
-                    {language.t("customProvider.addModel")}
-                  </Button>
-                  <p>
+                          <div class="custom-provider-model-actions">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={store.testing || !canTest(item)}
+                              title={language.t("customProvider.testHelp")}
+                              onClick={() => void testModel(item)}
+                            >
+                              {language.t("customProvider.testText")}
+                            </Button>
+                            <Show when={store.testToken === item.token}>
+                              <Show when={store.testing}>
+                                <Button type="button" variant="ghost" onClick={clearTest}>
+                                  {language.t("customProvider.cancelTest")}
+                                </Button>
+                              </Show>
+                              <Show when={store.testResult}>
+                                <span role="status" class="custom-provider-hint">
+                                  {store.testResult}
+                                </span>
+                              </Show>
+                              <Show when={store.testError}>
+                                <span role="alert" class="custom-provider-hint">
+                                  {store.testError}
+                                </span>
+                              </Show>
+                            </Show>
+                          </div>
+                          <details class="custom-provider-disclosure">
+                            <summary>{language.t("customProvider.advanced.model")}</summary>
+                            <div class="mt-2 flex flex-col gap-3">
+                              <fieldset class="flex flex-col gap-3">
+                                <legend class="custom-provider-hint">
+                                  {language.t("customProvider.advanced.modelRequest")}
+                                </legend>
+                                <AdvancedFields
+                                  value={item.advanced}
+                                  onChange={(key, value) => setStore("rows", index(), "advanced", key, value)}
+                                />
+                              </fieldset>
+                              <PriceFields
+                                rows={item.costs}
+                                onChange={(rows) => setStore("rows", index(), "costs", rows)}
+                              />
+                              <VariantFields
+                                rows={item.variants}
+                                readonly={store.original?.models[item.id]?.variantsReadonly}
+                                onChange={(rows) => setStore("rows", index(), "variants", rows)}
+                              />
+                            </div>
+                          </details>
+                        </fieldset>
+                      )}
+                    </For>
+                  </section>
+
+                  <details class="custom-provider-disclosure">
+                    <summary>{language.t("customProvider.advanced.provider")}</summary>
+                    <div class="mt-2 flex flex-col gap-2">
+                      <p class="custom-provider-hint">{language.t("customProvider.advanced.help")}</p>
+                      <AdvancedFields
+                        provider
+                        value={store.advanced}
+                        onChange={(key, value) => setStore("advanced", key, value)}
+                      />
+                    </div>
+                  </details>
+
+                  <Show when={store.original?.credentials.length}>
+                    <details class="custom-provider-disclosure">
+                      <summary>{language.t("customProvider.section.credentials")}</summary>
+                      <div class="mt-2 flex flex-col gap-2">
+                        <p class="custom-provider-hint">{language.t("customProvider.deleteHelp")}</p>
+                        <For each={store.original?.credentials}>
+                          {(credential) => (
+                            <div class="flex items-center justify-between gap-3 text-[13px]">
+                              <span>
+                                {credential.label} ·{" "}
+                                {language.t(
+                                  credential.active ? "customProvider.active" : "customProvider.inactive",
+                                )}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={store.busy || !!store.original?.reason}
+                                onClick={() => void removeCredential(credential.id)}
+                              >
+                                {language.t("customProvider.deleteKey")}
+                              </Button>
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </details>
+                  </Show>
+
+                  <p class="custom-provider-hint">
                     {language.t("customProvider.target", {
                       path: store.original?.sources[0] ?? store.listing?.target ?? "",
                     })}
                   </p>
                   <Show when={store.original && store.baseURL !== store.original.baseURL}>
-                    <p>{language.t("customProvider.urlChange")}</p>
+                    <p class="custom-provider-hint">{language.t("customProvider.urlChange")}</p>
                   </Show>
-                  <Button type="submit" disabled={!store.id.trim() || !store.baseURL.trim() || !store.rows.length}>
-                    {language.t(store.busy ? "customProvider.saving" : "customProvider.save")}
-                  </Button>
+                  <Show when={store.ready && usable()}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const model = usable()
+
+                        if (!model) return
+                        ;(props.selection ?? local.model).set(
+                          { providerID: store.id, modelID: model.id },
+                          { recent: true },
+                        )
+                        dialog.close()
+                      }}
+                    >
+                      {language.t("customProvider.useModel")}
+                    </Button>
+                  </Show>
+                  <Show when={store.confirmDelete}>
+                    <p role="alert" class="custom-provider-alert">
+                      {language.t("customProvider.deleteConfirm")}
+                    </p>
+                  </Show>
                 </fieldset>
-                <Show when={store.original?.credentials.length}>
-                  <p>{language.t("customProvider.deleteHelp")}</p>
-                  <For each={store.original?.credentials}>
-                    {(credential) => (
-                      <div class="flex items-center justify-between gap-3">
-                        <span>
-                          {credential.label} ·{" "}
-                          {language.t(credential.active ? "customProvider.active" : "customProvider.inactive")}
-                        </span>
+              </form>
+            }
+          >
+            <div class="custom-provider-section">
+              <Show when={store.listing?.reason}>
+                <p role="alert" class="custom-provider-alert">
+                  {language.t("customProvider.readonly", { reason: store.listing?.reason ?? "" })}
+                </p>
+              </Show>
+              <Show
+                when={store.listing?.providers.length}
+                fallback={<p class="custom-provider-empty">{language.t("customProvider.empty")}</p>}
+              >
+                <div class="custom-provider-list">
+                  <For each={store.listing?.providers}>
+                    {(entry) => (
+                      <div class="custom-provider-provider">
+                        <div class="min-w-0">
+                          <p class="custom-provider-provider-name">{entry.name}</p>
+                          <p class="custom-provider-provider-id">{entry.id}</p>
+                          <Show when={entry.reason}>
+                            <p class="custom-provider-hint">
+                              {language.t("customProvider.readonly", { reason: entry.reason ?? "" })}
+                            </p>
+                          </Show>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1">
+                          <Show when={!entry.reason}>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                select(entry)
+                                setStore("confirmDelete", true)
+                              }}
+                            >
+                              {language.t("customProvider.delete")}
+                            </Button>
+                          </Show>
+                          <Button variant="outline" onClick={() => select(entry)}>
+                            {language.t(entry.reason ? "customProvider.view" : "customProvider.edit")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </Show>
+        </Show>
+      </DialogBody>
+      <DialogFooter>
+        <div class="custom-provider-footer">
+          <Show
+            when={store.view === "list"}
+            fallback={
+              <>
+                <Button type="button" variant="ghost" onClick={backToList}>
+                  {language.t("customProvider.back")}
+                </Button>
+                <div class="custom-provider-footer-grow" />
+                <Show
+                  when={store.confirmDelete}
+                  fallback={
+                    <>
+                      <Show when={store.original}>
                         <Button
                           type="button"
                           variant="ghost"
                           disabled={store.busy || !!store.original?.reason}
-                          onClick={() => void removeCredential(credential.id)}
+                          onClick={() => setStore("confirmDelete", true)}
                         >
-                          {language.t("customProvider.deleteKey")}
+                          {language.t("customProvider.delete")}
                         </Button>
-                      </div>
-                    )}
-                  </For>
-                </Show>
-                <Show when={store.ready && usable()}>
+                      </Show>
+                      <Button
+                        type="submit"
+                        form="custom-provider-form"
+                        disabled={
+                          store.busy ||
+                          !!store.original?.reason ||
+                          !store.id.trim() ||
+                          !store.baseURL.trim() ||
+                          !store.rows.length
+                        }
+                      >
+                        {language.t(store.busy ? "customProvider.saving" : "customProvider.save")}
+                      </Button>
+                    </>
+                  }
+                >
                   <Button
                     type="button"
-                    onClick={() => {
-                      const model = usable()
-
-                      if (!model) return
-                      ;(props.selection ?? local.model).set(
-                        { providerID: store.id, modelID: model.id },
-                        { recent: true },
-                      )
-                      dialog.close()
-                    }}
+                    variant="ghost"
+                    disabled={store.busy}
+                    onClick={() => void removeProvider()}
                   >
-                    {language.t("customProvider.useModel")}
+                    {language.t("customProvider.deleteConfirmAction")}
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setStore("confirmDelete", false)}>
+                    {language.t("common.cancel")}
                   </Button>
                 </Show>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={store.busy}
-                  onClick={() => {
-                    clearTest()
-                    setStore({ view: "list", key: "", result: "", error: "" })
-                    void load()
-                  }}
-                >
-                  {language.t("customProvider.back")}
-                </Button>
-              </form>
+              </>
             }
           >
-            <Show when={store.listing?.reason}>
-              <p role="alert">{language.t("customProvider.readonly", { reason: store.listing?.reason ?? "" })}</p>
-            </Show>
-            <Button disabled={!!store.listing?.reason} onClick={() => select()}>
+            <Button type="button" variant="ghost" onClick={() => dialog.close()}>
+              {language.t("customProvider.backToPicker")}
+            </Button>
+            <div class="custom-provider-footer-grow" />
+            <Button type="button" disabled={!store.listing || !!store.listing.reason} onClick={() => select()}>
               {language.t("customProvider.add")}
             </Button>
-            <For each={store.listing?.providers}>
-              {(entry) => (
-                <div class="flex items-center justify-between gap-3 rounded border border-v2-border-border-base p-3">
-                  <div>
-                    <p>{entry.name}</p>
-                    <p class="text-v2-text-text-muted">{entry.id}</p>
-                    <Show when={entry.reason}>
-                      <p>{language.t("customProvider.readonly", { reason: entry.reason ?? "" })}</p>
-                    </Show>
-                  </div>
-                  <Button variant="outline" onClick={() => select(entry)}>
-                    {language.t(entry.reason ? "customProvider.view" : "customProvider.edit")}
-                  </Button>
-                </div>
-              )}
-            </For>
           </Show>
-        </Show>
-      </DialogBody>
+        </div>
+      </DialogFooter>
     </Dialog>
   )
 }

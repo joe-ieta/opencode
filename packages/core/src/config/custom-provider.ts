@@ -45,6 +45,45 @@ export const update = Effect.fn("ConfigCustomProvider.update")(
     if (state.reserved.has(id)) return yield* new Error({ kind: "conflict", message: "built-in-provider" })
     if (state.listing.revision !== input.revision)
       return yield* new Error({ kind: "conflict", message: "config-changed" })
+    if (input.mode === "delete") {
+      if (!existing) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
+      const file = existing.sources[0]
+      const original = state.documents.find((item) => item.path === file)?.text ?? "{}\n"
+      const text = yield* Effect.try({
+        try: () => editProvider(original, id),
+        catch: () => new Error({ kind: "invalid", message: "invalid-provider" }),
+      })
+      if (text === original) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
+      yield* ConfigWrite.atomic(file, text)
+      const credentials = yield* Credential.Service
+      const stored = yield* credentials.list(Integration.ID.make(id))
+      const removed = yield* Effect.forEach(
+        stored,
+        (credential) =>
+          credentials.remove(credential.id).pipe(
+            Effect.as(true),
+            Effect.catchCause(() => Effect.succeed(false)),
+          ),
+        { concurrency: 1 },
+      )
+      const config = yield* Config.Service
+      const integration = yield* Integration.Service
+      const providers = yield* Provider.Service
+      const models = yield* Model.Service
+      if (config.refresh) yield* config.refresh()
+      yield* integration.reload()
+      yield* providers.reload()
+      yield* models.reload()
+      const next = yield* read()
+      return {
+        revision: next.listing.revision,
+        config: "deleted" as const,
+        credential: stored.length ? (removed.every(Boolean) ? "deleted" as const : "failed" as const) : ("unchanged" as const),
+        catalog: (yield* models.available()).some((model) => model.providerID === id) ? ("pending" as const) : ("ready" as const),
+      }
+    }
+    if (!input.patch) return yield* new Error({ kind: "invalid", message: "invalid-provider" })
+    const patch = input.patch
     if (input.mode === "create" && (existing || !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(id)))
       return yield* new Error({ kind: "conflict", message: "provider-id-conflict" })
     if (input.mode === "edit" && !existing) return yield* new Error({ kind: "conflict", message: "provider-not-found" })
@@ -60,7 +99,7 @@ export const update = Effect.fn("ConfigCustomProvider.update")(
     const file = existing?.sources[0] ?? state.listing.target
     const original = state.documents.find((item) => item.path === file)?.text ?? "{}\n"
     const text = yield* Effect.try({
-      try: () => edit(original, id, input),
+      try: () => edit(original, id, { ...input, patch }),
       catch: () => new Error({ kind: "invalid", message: "invalid-provider" }),
     })
     if (text !== original) yield* ConfigWrite.atomic(file, text)
@@ -70,7 +109,7 @@ export const update = Effect.fn("ConfigCustomProvider.update")(
             .create({
               id: input.credential.id,
               integrationID: Integration.ID.make(id),
-              label: input.patch.name || existing?.name || id,
+              label: patch.name || existing?.name || id,
               value: { type: "key", key: input.credential.key },
               activate: true,
             })
@@ -307,7 +346,20 @@ export function safeURL(value: unknown) {
   return value
 }
 
-function edit(text: string, id: string, input: CustomProvider.Update) {
+type EditInput = CustomProvider.Update & { patch: NonNullable<CustomProvider.Update["patch"]> }
+
+function editProvider(text: string, id: string) {
+  const result = applyEdits(
+    text,
+    modify(text, ["providers", id], undefined, {
+      formattingOptions: { tabSize: 2, insertSpaces: true },
+    }),
+  )
+  if (!decode(result)) throw new Error({ kind: "invalid", message: "invalid-provider" })
+  return result.endsWith("\n") ? result : `${result}\n`
+}
+
+function edit(text: string, id: string, input: EditInput) {
   const info = Option.getOrUndefined(Schema.decodeUnknownOption(ConfigProvider.Info)(decode(text)?.providers?.[id]))
   const changes: { path: (string | number)[]; value: Schema.Json | undefined }[] = []
   if (input.mode === "create") changes.push({ path: ["package"], value: packageName })

@@ -23,9 +23,12 @@ export function customProviderFixture(paid = true) {
     models: { alias: { modelID: "remote-model", context: 16000, input: 12000, output: 4000, tools: true } },
   }
 
+  const deleted = () => requests.some((request) => request.body.mode === "delete")
+  const hasProvider = () => !deleted() && requests.some((request) => request.body.mode !== "delete")
+
   const config = {
     provider: () =>
-      requests.length
+      hasProvider()
         ? {
             ...original,
             all: [
@@ -47,28 +50,39 @@ export function customProviderFixture(paid = true) {
             connected: ["opencode", "private-gateway"],
           }
         : original,
-    customProviders: (): CustomProvider.Listing => ({
-      revision: `revision-${requests.length}`,
-      target: "C:/fixture/opencode.jsonc",
-      providers: requests.length
-        ? [
-            {
-              ...entry,
-              credentials:
-                requests.length > 1
-                  ? [{ id: requests[1]!.body.credential!.id, label: "Private gateway", active: true }]
+    customProviders: (): CustomProvider.Listing => {
+      const credential = requests.find((request) => request.body.mode !== "delete" && request.body.credential)
+
+      return {
+        revision: `revision-${requests.length}`,
+        target: "C:/fixture/opencode.jsonc",
+        providers: hasProvider()
+          ? [
+              {
+                ...entry,
+                credentials: credential
+                  ? [{ id: credential.body.credential!.id, label: "Private gateway", active: true }]
                   : [],
-            },
-          ]
-        : [],
-    }),
+              },
+            ]
+          : [],
+      }
+    },
     onCustomProviderUpdate: (id: string, body: CustomProvider.Update): CustomProvider.Saved => {
       requests.push({ id, body })
+
+      if (body.mode === "delete")
+        return {
+          revision: `revision-${requests.length}`,
+          config: "deleted",
+          credential: "deleted",
+          catalog: "ready",
+        }
 
       return {
         revision: `revision-${requests.length}`,
         config: "saved",
-        credential: requests.length === 1 ? "failed" : "saved",
+        credential: body.credential ? (requests.length === 1 ? "failed" : "saved") : "unchanged",
         catalog: "ready",
       }
     },

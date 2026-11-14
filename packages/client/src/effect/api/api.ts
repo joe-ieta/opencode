@@ -2864,9 +2864,9 @@ export type ExperimentalConfigProvidersListOperation<E = never> = (
 export type ExperimentalConfigProvidersUpdateInput = {
   readonly providerID: Provider.ID
   readonly location?: { readonly directory?: string | undefined } | undefined
-  readonly mode: "create" | "edit"
+  readonly mode: "create" | "edit" | "delete"
   readonly revision: string
-  readonly patch: CustomProvider.Patch
+  readonly patch?: CustomProvider.Patch | undefined
   readonly credential?: { readonly id: Credential.ID; readonly key: string } | undefined
 }
 export type ExperimentalConfigProvidersUpdateOutput = CustomProvider.Saved

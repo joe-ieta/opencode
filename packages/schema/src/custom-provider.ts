@@ -35,12 +35,12 @@ export const Patch = Schema.Struct({
 export interface Patch extends Schema.Schema.Type<typeof Patch> {}
 
 export const Update = Schema.Struct({
-  mode: Schema.Literals(["create", "edit"]),
+  mode: Schema.Literals(["create", "edit", "delete"]),
   revision: Text,
-  patch: Patch,
+  patch: Patch.pipe(optional),
   credential: Schema.Struct({ id: Credential.ID, key: Text }).pipe(optional),
 }).annotate({ identifier: "CustomProvider.Update" })
-export interface Update extends Schema.Schema.Type<typeof Update> {}
+export type Update = typeof Update.Type
 
 // Existing hand-written definitions may contain empty names or non-positive limits.
 // Return those values for correction without weakening validation of new patches.
@@ -84,8 +84,8 @@ export interface Listing extends Schema.Schema.Type<typeof Listing> {}
 
 export const Saved = Schema.Struct({
   revision: Schema.String,
-  config: Schema.Literal("saved"),
-  credential: Schema.Literals(["unchanged", "saved", "failed"]),
+  config: Schema.Literals(["saved", "deleted"]),
+  credential: Schema.Literals(["unchanged", "saved", "failed", "deleted"]),
   catalog: Schema.Literals(["ready", "pending"]),
 }).annotate({ identifier: "CustomProvider.Saved" })
 export interface Saved extends Schema.Schema.Type<typeof Saved> {}

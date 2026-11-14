@@ -394,8 +394,8 @@ export type CustomProviderAdvancedCost = {
 
 export type CustomProviderSaved = {
   revision: string
-  config: "saved"
-  credential: "unchanged" | "saved" | "failed"
+  config: "saved" | "deleted"
+  credential: "unchanged" | "saved" | "failed" | "deleted"
   catalog: "ready" | "pending"
 }
 
@@ -5086,44 +5086,20 @@ export type ExperimentalConfigProvidersListOutput = CustomProviderListing
 export type ExperimentalConfigProvidersUpdateInput = {
   readonly providerID: string
   readonly location?: { readonly directory?: string | undefined } | undefined
-  readonly mode: "create" | "edit"
+  readonly mode: "create" | "edit" | "delete"
   readonly revision: string
-  readonly patch: {
-    readonly name?: string | null
-    readonly baseURL?: string
-    readonly settings?: {
-      readonly reasoningEffort?: string | null
-      readonly textVerbosity?: "low" | "medium" | "high" | null
-      readonly parallelToolCalls?: boolean | null
-      readonly encoding?: ("zstd" | "gzip" | "none") | null
-      readonly timeout?: number | false | null
-      readonly headerTimeout?: number | false | null
-      readonly chunkTimeout?: number | false | null
-    }
-    readonly compatibility?: {
-      readonly reasoningField?: string | null
-      readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
-      readonly requireReasoning?: boolean | null
-      readonly requireFinishReason?: boolean | null
-      readonly requireAssistantAfterTool?: boolean | null
-      readonly supportsPromptCacheKey?: boolean | null
-      readonly streamUsage?: boolean | null
-      readonly cacheFormat?: ("anthropic" | "alibaba") | null
-    }
-    readonly models?: {
-      readonly [x: string]: {
+  readonly patch?:
+    | {
         readonly name?: string | null
-        readonly modelID?: string | null
-        readonly context?: number | null
-        readonly input?: number | null
-        readonly output?: number | null
-        readonly tools?: boolean | null
-        readonly image?: boolean | null
+        readonly baseURL?: string
         readonly settings?: {
           readonly reasoningEffort?: string | null
           readonly textVerbosity?: "low" | "medium" | "high" | null
           readonly parallelToolCalls?: boolean | null
           readonly encoding?: ("zstd" | "gzip" | "none") | null
+          readonly timeout?: number | false | null
+          readonly headerTimeout?: number | false | null
+          readonly chunkTimeout?: number | false | null
         }
         readonly compatibility?: {
           readonly reasoningField?: string | null
@@ -5135,28 +5111,54 @@ export type ExperimentalConfigProvidersUpdateInput = {
           readonly streamUsage?: boolean | null
           readonly cacheFormat?: ("anthropic" | "alibaba") | null
         }
-        readonly cost?: {
+        readonly models?: {
           readonly [x: string]: {
-            readonly input?: number
-            readonly output?: number
-            readonly cacheRead?: number | null
-            readonly cacheWrite?: number | null
-            readonly tierSize?: number | null
-          } | null
-        }
-        readonly variants?: {
-          readonly [x: string]: {
+            readonly name?: string | null
+            readonly modelID?: string | null
+            readonly context?: number | null
+            readonly input?: number | null
+            readonly output?: number | null
+            readonly tools?: boolean | null
+            readonly image?: boolean | null
             readonly settings?: {
               readonly reasoningEffort?: string | null
               readonly textVerbosity?: "low" | "medium" | "high" | null
               readonly parallelToolCalls?: boolean | null
               readonly encoding?: ("zstd" | "gzip" | "none") | null
             }
+            readonly compatibility?: {
+              readonly reasoningField?: string | null
+              readonly maxTokensField?: ("max_completion_tokens" | "max_tokens") | null
+              readonly requireReasoning?: boolean | null
+              readonly requireFinishReason?: boolean | null
+              readonly requireAssistantAfterTool?: boolean | null
+              readonly supportsPromptCacheKey?: boolean | null
+              readonly streamUsage?: boolean | null
+              readonly cacheFormat?: ("anthropic" | "alibaba") | null
+            }
+            readonly cost?: {
+              readonly [x: string]: {
+                readonly input?: number
+                readonly output?: number
+                readonly cacheRead?: number | null
+                readonly cacheWrite?: number | null
+                readonly tierSize?: number | null
+              } | null
+            }
+            readonly variants?: {
+              readonly [x: string]: {
+                readonly settings?: {
+                  readonly reasoningEffort?: string | null
+                  readonly textVerbosity?: "low" | "medium" | "high" | null
+                  readonly parallelToolCalls?: boolean | null
+                  readonly encoding?: ("zstd" | "gzip" | "none") | null
+                }
+              } | null
+            }
           } | null
         }
-      } | null
-    }
-  }
+      }
+    | undefined
   readonly credential?: { readonly id: string; readonly key: string } | undefined
 }
 

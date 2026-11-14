@@ -10,7 +10,7 @@
 
 为运行中的模型选择器补齐自定义 OpenAI Compatible 服务的新增、编辑和模型导入能力。用户无需手写 JSONC 即可接入本机、局域网或私有网关；配置写到**当前连接的服务端**，Key 进入现有凭据存储。
 
-原方案的核心方向保留：使用官方 V2 `providers` 格式、从模型选择器进入、不改 Settings → Models / Providers、不迁移 V1、不写项目级配置、不删除或重命名 provider。
+原方案的核心方向保留：使用官方 V2 `providers` 格式、从模型选择器进入、不改 Settings → Models / Providers、不迁移 V1、不写项目级配置。provider 支持删除，但不支持 ID 重命名。
 
 用户真正需要的是“配置可保存、模型可见、请求可用、以后可编辑”的闭环。拉取列表只是辅助输入，不能证明模型能聊天、支持工具或给出了准确限额。[官方 Models 文档](https://opencode.ai/v2/docs/models/)说明模型选择取决于当前项目的 provider 可用性及启用状态；模型列表不是配置来源列表。
 
@@ -18,7 +18,7 @@
 
 | 优先级 | 范围 | 验收结果 |
 | --- | --- | --- |
-| P0 | 手动新增、编辑单一全局 V2 自定义 provider，模型增删改，Key 设置/替换，安全写入和刷新 | 不编辑文件即可保存、选用、重开后编辑；真实本地服务可完成 prompt |
+| P0 | 手动新增、编辑、删除单一全局 V2 自定义 provider，模型增删改，Key 设置/替换，安全写入和刷新 | 不编辑文件即可保存、选用、重开后编辑或删除；真实本地服务可完成 prompt |
 | P1 | 用户主动调用通用 `/models`，预览后勾选导入 | 无发现接口、离线或鉴权失败仍可手动保存 |
 | P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据、最小文本测试和类型化高级字段已实现；工具/图像推理与真实引擎验收待后续推进 |
 
@@ -26,7 +26,7 @@ P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Stu
 
 ### 1.2 明确不做
 
-- provider 删除/ID 重命名、V1 自动迁移、项目/托管/远程来源写入、TUI/CLI 表单。
+- provider ID 重命名、V1 自动迁移、项目/托管/远程来源写入、TUI/CLI 表单。
 - 编辑内置 provider 或 `canonical` 继承链、切换非 OpenAI Compatible package。
 - 自动发推理请求、自动选中所有发现模型、自动清理历史凭据。
 - 新建配置存储、浏览器持久化 Key、为引擎名称修改通用推理 adapter。
@@ -416,5 +416,31 @@ P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶�
 
 - 真实 llama.cpp、SGLang、LiteLLM、私有网关的版本兼容与 prompt/tool/image 推理验收。
 - 真实 Ollama/LM Studio 的发现、加载状态和上下文元数据人工验收。
-- headers/body 任意值编辑、provider 删除/重命名、项目级写入仍不做；需要时另立设计。
+- headers/body 任意值编辑、provider ID 重命名、项目级写入仍不做；需要时另立设计。
 - 内置 Ollama/LM Studio/vLLM 不纳入自定义 provider 的重复发现；只保留“非默认地址/远程主机”的配置入口讨论。
+
+## 16. 入口、紧凑表单与删除（2026-11-14 后续迭代）
+
+### 16.1 模型选择器底部入口
+
+- 桌面模型选择器底部增加两个等宽按钮：`Custom providers` 与 `Manage models`。
+- 移动抽屉使用同一组底部按钮；原先的 `Connect an integration` 入口从模型选择器移除，减少同一界面的入口层级。内置 provider 连接仍可从 Settings → Providers 或命令面板进入。
+- 自定义 provider 与模型管理改为 `dialog.push` 压在模型选择器上；关闭或点击 `Back to model selection` 只关闭上层，重新露出模型选择器，而不是回到 composer。
+- 自定义 provider 列表底部同样提供 `Back to model selection`；表单内保留 `Back to providers`，并在 Header 提供直接返回模型选择器的入口。
+- 移除了 provider 分组上的行内 Edit 和搜索框右侧的 Custom/Connect/Manage 图标，避免与底部入口重复。
+
+### 16.2 紧凑表单
+
+- 表单改为字段网格：Provider ID、显示名、Base URL、API Key 以标签 + 输入框呈现，说明文字优先放入 `placeholder` 和 `title`；不再使用大段 description 或独立帮助段落。
+- 发现区收敛为一行 `Discovery API` 选择 + `Fetch models`，帮助文字缩短为一行；候选模型列表只在需要时占高。
+- 模型卡片以 `Model 1` 为 legend，字段按模型 key / 请求 modelID / 显示名、context/input/output、tools/image 分行排列；每个模型保留 `Remove model`。
+- Provider 高级选项、Model 高级选项和已有凭据改为可折叠 details；主表单只保留常用字段。
+- Dialog body 增加 20px 边距、12px 段落间距和独立滚动区域；Footer 固定保存/返回/删除操作，避免按钮随长表单滚走。
+
+### 16.3 Provider 与模型删除
+
+- `CustomProvider.Update` 增加 `mode: "delete"`，`patch` 变为可选；`GET/PATCH /api/experimental/config/providers/:id` 仍复用同一端点。
+- 删除前校验 revision、来源、只读状态和内置 ID；仅允许删除单一全局 V2 定义。删除 JSONC 中对应 provider，并清空该 integration 的已存储凭据；凭据清理失败返回部分成功状态。
+- 删除响应为 `config: "deleted"`，`credential` 可为 `deleted` / `failed` / `unchanged`；UI 只有第二次确认后才调用删除，成功后回到列表并刷新目录。
+- 已有模型的 `Remove model` 仍生成模型级 `null` patch，保存后从全局定义中移除；不会删除底层推理服务上的模型文件。
+- E2E 覆盖：底部入口与返回、provider 删除确认与请求体、列表清空、模型删除/编辑回归。

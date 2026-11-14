@@ -14583,7 +14583,7 @@
             }
           }
         },
-        "description": "Get current and default branch information for the requested location.",
+        "description": "Get current and default branch information for the requested location. Configured remotes are returned under experimental.remotes (Experimental: may change without compatibility guarantees).",
         "summary": "VCS info"
       }
     },
@@ -19006,11 +19006,11 @@
           },
           "config": {
             "type": "string",
-            "enum": ["saved"]
+            "enum": ["saved", "deleted"]
           },
           "credential": {
             "type": "string",
-            "enum": ["unchanged", "saved", "failed"]
+            "enum": ["unchanged", "saved", "failed", "deleted"]
           },
           "catalog": {
             "type": "string",
@@ -19105,7 +19105,7 @@
         "properties": {
           "mode": {
             "type": "string",
-            "enum": ["create", "edit"]
+            "enum": ["create", "edit", "delete"]
           },
           "revision": {
             "type": "string",
@@ -19129,7 +19129,7 @@
             "additionalProperties": false
           }
         },
-        "required": ["mode", "revision", "patch"],
+        "required": ["mode", "revision"],
         "additionalProperties": false
       },
       "Event.ID": {
@@ -27431,6 +27431,19 @@
           },
           "branch": {
             "$ref": "#/components/schemas/Vcs.Branch"
+          },
+          "experimental": {
+            "type": "object",
+            "properties": {
+              "remotes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Vcs.Remote"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "description": "Experimental: may change without compatibility guarantees."
           }
         },
         "required": ["branch"],
@@ -27439,6 +27452,19 @@
       "Vcs.Mode": {
         "type": "string",
         "enum": ["working", "branch", "committed"]
+      },
+      "Vcs.Remote": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "url"],
+        "additionalProperties": false
       },
       "Vcs.Untracked": {
         "type": "string",

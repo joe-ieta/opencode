@@ -21,7 +21,7 @@ export function createCustomProviderEditor(directory: () => string | undefined, 
     editable: (id: string) => !!store.listing?.providers.some((item) => item.id === id && !item.reason),
     open: async (id?: string) => {
       const { DialogCustomProviders } = await import("./dialog")
-      void dialog.show(() => <DialogCustomProviders directory={directory()} providerID={id} selection={selection} />)
+      void dialog.push(() => <DialogCustomProviders directory={directory()} providerID={id} selection={selection} />)
     },
   }
 }
