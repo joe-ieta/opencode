@@ -1,7 +1,9 @@
+import { Button } from "@opencode/ui/button"
 import { DialogBody, DialogHeader, DialogTitle, Dialog } from "@opencode/ui/dialog"
 import { Badge } from "@opencode/ui/badge"
 import { Icon } from "@opencode/ui/icon"
 import { MenuScroll } from "@opencode/ui/menu-scroll"
+import { createCustomProviderEditor } from "@/providers/custom/editor"
 import { ProviderModelIcon } from "@/providers/models/provider-group"
 import { Tooltip } from "@opencode/ui/tooltip"
 import { useDialog } from "@opencode/ui/context/dialog"
@@ -28,6 +30,7 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
   const directory = () => decode64(local.slug())
   const integrations = useIntegrations(directory)
   const language = useLanguage()
+  const custom = createCustomProviderEditor(directory, model)
   const modelKey = (item: ReturnType<ModelState["list"]>[number]) => `${item.provider.id}:${item.id}`
 
   const currentKey = createMemo(() => {
@@ -91,6 +94,18 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
       </DialogHeader>
       <DialogBody class="max-h-[calc(100vh_-_68px)] min-h-0 flex-none gap-0">
         <MenuScroll viewportClass="px-2 pb-2">
+          <Show when={custom.available()}>
+            <div class="px-2 pb-2">
+              <Button
+                variant="ghost"
+                class="w-full !justify-start"
+                icon="outline-settings"
+                onClick={() => void custom.open()}
+              >
+                {language.t("customProvider.title")}
+              </Button>
+            </div>
+          </Show>
           <div ref={listEl} class="flex min-h-0 flex-col">
             <div data-section="free-models" class="flex w-full flex-col items-start pb-3">
               <div class="flex h-8 w-full flex-none select-none flex-row items-center px-3 pb-2">

@@ -1,3 +1,6 @@
+import type { CustomProvider } from "@opencode/schema/custom-provider"
+import { customProviderFixture } from "../utils/custom-provider"
+import { openSession } from "../utils/workspace"
 import { expect, test, type Page } from "@playwright/test"
 import { fixture, installStressSessionTabs } from "../utils/session-fixture"
 import { sessionHref } from "../utils/app"
@@ -404,3 +407,151 @@ async function openPickerSession(page: Page, direction: "ltr" | "rtl", paid: boo
   await expectAppVisible(page.getByRole("textbox", { name: "Prompt", exact: true }))
   await expect(page.getByRole("textbox", { name: "Prompt", exact: true })).toBeEditable()
 }
+
+test("mobile custom providers replace the picker drawer and expose the manual form", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const fixture = customProviderFixture()
+  await openSession(page, {
+    name: "MobileCustomProvider",
+    ...fixture.config,
+    onCustomProviderDiscover: () => ({
+      status: "success",
+      warnings: [],
+      models: [
+        { id: "mobile/model", input: 4096, sources: { input: "/models.max_input_tokens" }, warnings: ["unverified"] },
+      ],
+    }),
+  })
+  const trigger = page.locator('[data-action="composer-model"]')
+  await expect(trigger).toHaveText("Existing Model")
+  await trigger.click()
+  const picker = page.getByRole("dialog", { name: "Select model", exact: true })
+  await picker.getByRole("button", { name: "Custom providers", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await expect(picker).toBeHidden()
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  const id = dialog.getByRole("textbox", { name: "Provider ID", exact: true })
+  await id.fill("mobile-gateway")
+  await expect(id).toBeFocused()
+  await expect(dialog).toBeInViewport({ ratio: 1 })
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:8080/v1")
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  const candidate = dialog.getByRole("checkbox", { name: "mobile/model", exact: true })
+  await expect(candidate).not.toBeChecked()
+  await candidate.check()
+  await dialog.getByRole("button", { name: "Import selected models", exact: true }).click()
+  await expect(dialog.getByRole("textbox", { name: "Model key", exact: true })).toHaveValue("mobile/model")
+  await expect(dialog.getByRole("textbox", { name: "Input limit", exact: true })).toHaveValue("4096")
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("")
+  await dialog.getByRole("button", { name: "Close", exact: true }).click()
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toHaveText("Existing Model")
+})
+
+test("mobile custom provider advanced options create explicit zero prices and validate variant identities", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const fixture = customProviderFixture()
+  await openSession(page, {
+    name: "MobileAdvancedProvider",
+    ...fixture.config,
+    onCustomProviderUpdate: (id, body) => ({
+      ...fixture.config.onCustomProviderUpdate(id, body),
+      credential: "unchanged",
+      catalog: "pending",
+    }),
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Provider ID", exact: true }).fill("private-gateway")
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:8080/v1")
+  await dialog.getByRole("textbox", { name: "Model key", exact: true }).fill("alias")
+  const provider = dialog
+    .locator("details")
+    .filter({ has: page.getByText("Provider advanced options", { exact: true }) })
+  await provider.getByText("Provider advanced options", { exact: true }).click()
+  await provider.getByRole("textbox", { name: "Response header timeout (ms)", exact: true }).fill("false")
+  const model = dialog.getByRole("group", { name: "Model 1", exact: true })
+  await model.getByText("Model advanced options", { exact: true }).click()
+  await model
+    .getByRole("group", { name: "Model request options", exact: true })
+    .getByRole("combobox", { name: "Parallel tool calls", exact: true })
+    .selectOption("false")
+  await model.getByRole("button", { name: "Add price tier", exact: true }).click()
+  const price = model.getByRole("group", { name: "Price tier 1", exact: true })
+  await price.getByRole("textbox", { name: "Input price", exact: true }).fill("0")
+  await price.getByRole("textbox", { name: "Output price", exact: true }).fill("0")
+  await model.getByRole("button", { name: "Add variant", exact: true }).click()
+  await model
+    .getByRole("group", { name: "Variant 1", exact: true })
+    .getByRole("textbox", { name: "Variant ID", exact: true })
+    .fill("same")
+  await model.getByRole("button", { name: "Add variant", exact: true }).click()
+  const variant = model.getByRole("group", { name: "Variant 2", exact: true })
+  await variant.getByRole("textbox", { name: "Variant ID", exact: true }).fill("same")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("alert")).toContainText("Check advanced options")
+  expect(fixture.requests).toEqual([])
+  await variant.getByRole("textbox", { name: "Variant ID", exact: true }).fill("high")
+  await variant.getByRole("textbox", { name: "Reasoning effort", exact: true }).fill("high")
+  await dialog.getByRole("button", { name: "Save provider", exact: true }).click()
+  await expect(dialog.getByRole("status")).toContainText("Provider saved")
+  expect(fixture.requests[0]?.body.patch).toMatchObject({
+    settings: { headerTimeout: false },
+    models: {
+      alias: {
+        settings: { parallelToolCalls: false },
+        cost: { "0": { input: 0, output: 0 } },
+        variants: { same: {}, high: { settings: { reasoningEffort: "high" } } },
+      },
+    },
+  })
+})
+
+test("mobile LM Studio native preview imports the loaded instance limit", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const fixture = customProviderFixture()
+  await openSession(page, {
+    name: "MobileLMStudioMetadata",
+    ...fixture.config,
+    onCustomProviderDiscover: (): CustomProvider.Discovery => ({
+      status: "success",
+      warnings: [],
+      models: [
+        {
+          id: "mobile-instance",
+          context: 4096,
+          maxContext: 131072,
+          loaded: true,
+          tools: false,
+          image: true,
+          sources: { context: "/api/v1/models.loaded_instances.config.context_length" },
+          warnings: ["unverified", "capabilities-declared"],
+        },
+      ],
+    }),
+  })
+  await page.locator('[data-action="composer-model"]').click()
+  await page
+    .getByRole("dialog", { name: "Select model", exact: true })
+    .getByRole("button", { name: "Custom providers", exact: true })
+    .click()
+  const dialog = page.getByRole("dialog", { name: "Custom providers", exact: true })
+  await dialog.getByRole("button", { name: "Add custom provider", exact: true }).click()
+  await dialog.getByRole("textbox", { name: "Base URL", exact: true }).fill("http://localhost:1234/v1")
+  await dialog.getByRole("combobox", { name: "Discovery API", exact: true }).selectOption("lmstudio")
+  await dialog.getByRole("button", { name: "Fetch models", exact: true }).click()
+  const checkbox = dialog.getByRole("checkbox", { name: "mobile-instance", exact: true })
+  await expect(checkbox).not.toBeChecked()
+  await checkbox.check()
+  await dialog.getByRole("button", { name: "Import selected models", exact: true }).click()
+  await expect(dialog.getByRole("textbox", { name: "Context limit", exact: true })).toHaveValue("4096")
+  await expect(dialog.getByRole("combobox", { name: "Tool support", exact: true })).toHaveValue("false")
+  await expect(dialog.getByRole("combobox", { name: "Image input", exact: true })).toHaveValue("true")
+})

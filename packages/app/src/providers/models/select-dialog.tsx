@@ -1,3 +1,4 @@
+import { createCustomProviderEditor } from "@/providers/custom/editor"
 import { Popover } from "@kobalte/core/popover"
 import {
   Component,
@@ -103,6 +104,8 @@ const ModelList: Component<{
   provider?: string
   onSelect: () => void
   model?: ModelState
+  onEdit?: (id: string) => void
+  editable?: (id: string) => boolean
 }> = (props) => {
   const language = useLanguage()
   const usage = createModelUsage({ refresh: true })
@@ -293,6 +296,13 @@ const ModelList: Component<{
               disabled={store.search.length > 0}
               onExpandedChange={(key, value) => setStore("collapsed", key, !value)}
               rows={(items) => <ModelRows items={items} mobile={props.mobile} />}
+              action={(group) => (
+                <Show when={props.editable?.(group.category)}>
+                  <Button variant="ghost" onClick={() => props.onEdit?.(group.category)}>
+                    {language.t("customProvider.edit")}
+                  </Button>
+                </Show>
+              )}
             />
           </Show>
         </div>
@@ -314,6 +324,7 @@ export function ModelSelectorDrawer(props: {
 }) {
   const dialog = useDialog()
   const location = useWorkspaceLocation()
+  const custom = createCustomProviderEditor(() => location().directory, props.model)
 
   const controller = createModelSelectorController({
     model: props.model,
@@ -340,6 +351,9 @@ export function ModelSelectorDrawer(props: {
       model={props.model}
       provider={props.provider}
       onConnect={connect}
+      onCustom={custom.available() ? () => void custom.open() : undefined}
+      onEdit={(id) => void custom.open(id)}
+      editable={custom.editable}
       chatgptPlan={chatgptPlan()}
       onClose={() => props.onClose?.()}
     />
@@ -354,6 +368,9 @@ function ModelDrawer(props: {
   onClose: () => void
   onManage: () => void
   onConnect?: () => void
+  onCustom?: () => void
+  onEdit?: (id: string) => void
+  editable?: (id: string) => boolean
 }) {
   const language = useLanguage()
   const [drawer, setDrawer] = createSignal(createModelDrawerState())
@@ -375,6 +392,10 @@ function ModelDrawer(props: {
       if (effect.action === "manage") return props.onManage()
 
       if (effect.action === "connect") return props.onConnect?.()
+
+      if (effect.action === "custom") return props.onCustom?.()
+
+      if (effect.action === "edit") return effect.target ? props.onEdit?.(effect.target) : undefined
       queueMicrotask(props.onClose)
     })
   }
@@ -423,6 +444,8 @@ function ModelDrawer(props: {
               <div class="flex min-h-0 flex-col">
                 <ModelList
                   mobile
+                  onEdit={(id) => dispatch({ type: "action.selected", action: "edit", target: id })}
+                  editable={props.editable}
                   open={selectDrawerOpen(drawer())}
                   model={props.model}
                   provider={props.provider}
@@ -430,6 +453,14 @@ function ModelDrawer(props: {
                 />
               </div>
               <div data-slot="model-selector-actions" class="flex flex-col gap-2">
+                <Show when={props.onCustom}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => dispatch({ type: "action.selected", action: "custom" })}
+                  >
+                    {language.t("customProvider.title")}
+                  </Button>
+                </Show>
                 <Button
                   variant="ghost"
                   class="w-full !h-10 !justify-start"
@@ -697,6 +728,7 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
   }
 
   const location = useWorkspaceLocation()
+  const custom = createCustomProviderEditor(() => location().directory, props.model)
 
   const connect = async () => {
     const { DialogConnectProvider } = await import("@/providers/connect/dialog")
@@ -1009,6 +1041,14 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
             placeholder={language.t("dialog.model.search.placeholder")}
             trailing={
               <>
+                <Show when={custom.available()}>
+                  <IconButton
+                    variant="ghost-muted"
+                    icon={<Icon name="outline-settings" size="small" />}
+                    aria-label={language.t("customProvider.title")}
+                    onClick={() => void custom.open()}
+                  />
+                </Show>
                 <Tooltip
                   placement="top"
                   gutter={4}
@@ -1038,6 +1078,17 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
             header={(row) => (
               <span data-slot="model-dialog-header-label" class="flex min-w-0 items-center gap-1.5">
                 <span class="min-w-0 truncate">{row.group.title ?? labels.name(row.item.provider)}</span>
+                <Show when={custom.editable(row.item.provider.id)}>
+                  <Button
+                    variant="ghost"
+                    onClick={(event: MouseEvent) => {
+                      event.stopPropagation()
+                      void custom.open(row.item.provider.id)
+                    }}
+                  >
+                    {language.t("customProvider.edit")}
+                  </Button>
+                </Show>
                 <Show when={!row.group.title && labels.workspace(row.item.provider)}>
                   {(workspace) => <Badge class="shrink-0">{workspace()}</Badge>}
                 </Show>

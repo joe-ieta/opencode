@@ -391,7 +391,7 @@ function side(point: FlyoutPoint, ax: number, ay: number, bx: number, by: number
 /** Longer than the drawer's 200ms close transition: the deferred action runs even if its end is never reported. */
 export const DRAWER_CLOSE_TIMEOUT_MS = 600
 
-export type ModelDrawerAction = "select" | "manage" | "connect"
+export type ModelDrawerAction = "select" | "manage" | "connect" | "custom" | "edit"
 
 export type ModelDrawerState =
   /** Never opened: the drawer is not mounted yet. */
@@ -399,13 +399,18 @@ export type ModelDrawerState =
   | { readonly status: "closed"; readonly attempt: number; readonly restoreTrigger: boolean }
   | { readonly status: "open"; readonly attempt: number }
   /** The close transition runs; `action` waits for it to end. */
-  | { readonly status: "closing"; readonly attempt: number; readonly action: ModelDrawerAction | undefined }
+  | {
+      readonly status: "closing"
+      readonly attempt: number
+      readonly action: ModelDrawerAction | undefined
+      readonly target?: string
+    }
   | { readonly status: "disposed" }
 
 export type ModelDrawerEvent =
   | { readonly type: "opened" }
   | { readonly type: "dismissed" }
-  | { readonly type: "action.selected"; readonly action: ModelDrawerAction }
+  | { readonly type: "action.selected"; readonly action: ModelDrawerAction; readonly target?: string }
   | { readonly type: "hidden" }
   | { readonly type: "close.timed-out"; readonly attempt: number }
   | { readonly type: "disposed" }
@@ -413,7 +418,7 @@ export type ModelDrawerEvent =
 export type ModelDrawerEffect =
   | { readonly type: "schedule-close-timeout"; readonly attempt: number; readonly delayMs: number }
   | { readonly type: "cancel-close-timeout" }
-  | { readonly type: "run-action"; readonly action: ModelDrawerAction }
+  | { readonly type: "run-action"; readonly action: ModelDrawerAction; readonly target?: string }
 
 export type ModelDrawerTransition = {
   readonly state: ModelDrawerState
@@ -451,7 +456,12 @@ export function transitionModelDrawer(state: ModelDrawerState, event: ModelDrawe
       const attempt = state.attempt + 1
 
       return {
-        state: { status: "closing", attempt, action: event.type === "action.selected" ? event.action : undefined },
+        state: {
+          status: "closing",
+          attempt,
+          action: event.type === "action.selected" ? event.action : undefined,
+          target: event.type === "action.selected" ? event.target : undefined,
+        },
         effects: [{ type: "schedule-close-timeout", attempt, delayMs: DRAWER_CLOSE_TIMEOUT_MS }],
       }
     }
@@ -474,7 +484,9 @@ function closed(
   return {
     // An action takes focus elsewhere, so focus returns to the trigger only after a plain dismiss.
     state: { status: "closed", attempt: state.attempt, restoreTrigger: state.action === undefined },
-    effects: state.action ? [...effects, { type: "run-action", action: state.action }] : effects,
+    effects: state.action
+      ? [...effects, { type: "run-action", action: state.action, target: state.target }]
+      : effects,
   }
 }
 

@@ -1,357 +1,202 @@
-# dev-my 自定义 Provider（本地模型）设计与一期改造方案
-
-> 状态：设计评审稿（未开始编码）
-> 分支：`dev-my-models`，基线 `dev-my@ce6f5362fd`
-> 日期：2026-11-04
-
-## 1. 需求定位
-
-### 1.1 一句话定位
-
-为 dev-my 桌面端补齐“**运行中模型选择器内的本地模型接入能力**”：用户可以在模型选择器中新建、发现、编辑 **OpenAI Compatible** 的本地推理引擎或私有网关，配置按官方 V2 标准写入服务端 JSONC，API Key 走凭据存储；不进入 Settings → Models / Providers。
-
-### 1.2 背景与问题
-
-- 官方 V2 已支持本地模型：Ollama / LM Studio / vLLM 默认端口自动发现；其他 OpenAI 兼容服务通过 `providers.<id>` 配置手动声明（`services/www/src/docs/content/models.mdx` §Local）。
-- 官方桌面端在 2.2.0 移除了 Custom Provider 表单（#56877）；当前 2.2.5 只能手工编辑 `opencode.json[c]`。相关诉求长期未落地：#33704（GUI 编辑自定义 provider）、#49091（TUI `/connect` 注册流程）、#50650（旧表单保存恒失败）、#57325（旧表单无 limits/discovery）、#59603（入口消失）。
-- dev-my 用户实际运行 llama.cpp、vLLM、SGLang、LM Studio、Ollama 或私有 OpenAI 兼容网关；需要：
-  - 不手写 JSONC 即可接入；
-  - 自动拉取 `/models` 并选择模型；
-  - 配置 API Key（不落明文配置）；
-  - 编辑已有自定义模型的 baseURL、模型、context/output、工具能力。
-- 目前这部分能力缺失，且 V1 `provider` 旧格式与项目级配置存在误改风险，需要明确只读边界。
-
-### 1.3 目标用户与核心场景
-
-| 用户 | 场景 |
-|---|---|
-| 本地开发者 | 在本机/局域网运行 llama.cpp、vLLM、SGLang、LM Studio、Ollama，希望从模型选择器直接新增并选用 |
-| 私有网关用户 | 使用公司/自建的 OpenAI 兼容网关，需要 URL + API Key，且 Key 不能写入 JSONC |
-| 已有 JSONC 用户 | 已有 `providers.<id>` 自定义模型，希望 UI 编辑 baseURL、模型列表、limits、工具能力 |
-| V1 历史用户 | 配置仍是 V1 `provider.<id>` 或位于项目级 JSONC，要求可见但不可被 UI 改写 |
-
-### 1.4 一期目标（Must）
-
-- **G1 新建**：模型选择器内新增 Custom Provider，写入官方 V2 `providers.<id>`。
-- **G2 编辑**：编辑全局 JSONC 中已有的 V2 自定义 provider 与其模型条目，保留注释与未知字段。
-- **G3 API Key**：表单支持设置/替换凭据，并提供用户主动删除 active/inactive 凭据的能力；Key 存入服务端凭据存储，不写入 JSONC；读取接口不返回明文。
-- **G4 模型发现**：通过服务端请求 `{baseURL}/models` 拉取模型，解析 context/output/capabilities（尽力而为），用户勾选导入。
-- **G5 推理引擎标识**：表单可选择 `llama.cpp` / `vLLM` / `SGLang` / `LM Studio` / `Ollama` / `OpenAI Compatible`，作为非官方 hint 写入 `settings.engine`（不替代任何官方字段），用于默认地址提示、徽标与发现回退；运行态剥离该字段，始终按 OpenAI Compatible 处理。
-- **G6 只读边界**：V1 `provider.<id>`、项目级/托管配置只读，不提供编辑入口；服务端写接口对只读目标返回 409。
-- **G7 热更新**：保存后无需重启，服务端配置热重载，模型选择器刷新即可使用。
-- **G8 设置页隔离**：不修改 Settings → Models / Providers 及其共享行为。
-
-### 1.5 非目标（Out of scope）
-
-- **不支持删除 provider**：provider 固定为 OpenAI Compatible，一期不提供删除；模型条目可增删改。
-- 不支持 V1 `provider` 格式的编辑或自动迁移（只读）。
-- 不支持项目级配置写入（一期仅全局；项目级只读）。
-- 不修改 Settings → Models / Providers 页面与现有连接流程。
-- 不做 TUI / CLI 配置 UI（服务端 API 保留复用能力）。
-- 不支持非 OpenAI Compatible 的 provider package（Anthropic/Bedrock/Vertex 等）。
-- 不改造官方 Ollama / LM Studio / vLLM 自动发现逻辑。
-- 不做模型连通性/推理质量测试；发现只验证 `/models` 可访问。
-- 不引入 provider 删除、ID 重命名；不做多账号切换 UI，但提供用户主动删除 active/inactive 凭据的能力。
-
-### 1.6 约束与原则
-
-1. **配置遵循官方标准**：只写 `providers.<id>`，`package` 固定 `@opencode/ai/providers/openai-compatible`，`settings.baseURL`，`models` 使用官方 `ConfigProvider.ModelConfig` 字段。
-2. **Key 不进 JSONC**：通过 `Credential` / `Integration` 存储；配置中已有的 `settings.apiKey` 保留但只读展示。
-3. **引擎 hint 不替代官方字段**：写入 `settings.engine`（官方 settings 允许的扩展键），运行态剥离；所有官方 provider/model 字段原样保留。
-4. **全局配置优先**：一期只写全局最高优先级文件；现有 provider 写回其定义所在的全局文件；项目级/托管/V1 一律只读。
-5. **保留用户内容**：JSONC 注释、未修改字段、未知 `settings`/模型字段必须保留；编辑采用叶子级 diff。
-6. **不重启桌面端/服务端**：依赖 `config.updated` 与 provider 重载；表单等待有界刷新。
-7. **不碰设置页**：只在运行时模型选择器及其新对话框内实现。
-8. **可回滚**：写入失败不破坏现有配置；Key 保存失败允许重试，不回滚已保存的 provider。
-9. **文案规范**：仅新增英文源文案，其他语言留空走 fallback。
-
-### 1.7 成功标准（验收）
-
-- 全新桌面端：不编辑文件，即可新增一个本地 provider（含多个模型）并成功发起 prompt。
-- 输入 baseURL + Key 后点击“拉取模型”，能列出并导入模型；401/连接失败有明确提示。
-- Key 保存后不出现在 JSONC 中；读取接口不返回明文；重启后仍可用。
-- 已有 V2 全局 JSONC（含注释、未知字段）编辑后：目标字段更新，其余内容逐字节保留（除目标叶子）。
-- V1 / 项目级 provider：可见但无编辑入口；直接调用写接口返回 409。
-- Settings → Models / Providers 行为无变化；现有桌面端测试通过。
-
-## 2. 上游参考与现状
-
-| 参考 | 状态 | 与本案关系 |
-|---|---|---|
-| #33704 GUI 编辑自定义 provider | open | 需求同源；本期只做运行时选择器入口，不做设置页 |
-| #49091 TUI `/connect` 自定义注册 | open | TUI 侧同类需求；本期不做，服务端 API 可复用 |
-| #50650 旧桌面表单保存失败 | open | 旧实现教训：必须有服务端配置写入能力 |
-| #57997 恢复桌面表单 | open | 可参考其 `Config.Patch`/凭据思路；本期采用独立 experimental API，避免改动 `config.update` |
-| #56877 移除桌面自定义表单 | merged (2.2.0) | 当前无 UI 的直接原因 |
-| #57161/#59520 模型/限额发现 | open | 本期在服务端自研 `/models` 发现，后续可合并 |
-| #51527 custom provider 凭据路径 | open | 本期必须解决 Key 存储 |
-| #60496 未知 releaseDate 可见 | merged | dev-my 已包含；自定义模型默认不会被 6 个月过滤器隐藏 |
-
-当前代码事实：
-
-- 桌面端无自定义 provider 表单、无 baseURL 输入；`packages/app/src` 内无 `baseURL/ollama/lmstudio/vllm` 引用。
-- 模型选择器已有可扩展点：`select-dialog.tsx` 搜索框 trailing 按钮、provider 分组 header、移动端 action 区；`provider-group.tsx` 已有 `action` 插槽。
-- 服务端已有 JSONC 写入基础：`packages/core/src/config.ts` 使用 `jsonc-parser`、`applyEdits`、`updateLock`、`requestReload`。
-- `GET /api/config` 返回的 `Config.Document.info` 是**归一化后**的配置（V1 会被迁移到 `providers`），无法在客户端可靠区分 V1/V2，因此需要服务端提供只读元数据。
-
-## 3. 总体方案
-
-```
-模型选择器（DialogSelectModel / Mobile Drawer / Unpaid）
-  ├─ “Add custom provider” 入口
-  ├─ 可编辑 provider 分组 header 的 “Edit”
-  └─ DialogCustomProvider（新建 / 编辑）
-        ├─ GET  /api/experimental/config/providers
-        │      → 列表 + scope/shape/editable + Key 元数据 + provider 快照
-        ├─ POST /api/experimental/config/providers/discover
-        │      → GET {baseURL}/models（服务端代理，支持 Key）
-        └─ PUT  /api/experimental/config/providers/:id
-               → JSON Merge Patch（null 删除字段/模型）
-               → 写入官方 providers.<id>
-               → 凭据存储 Key
-               → 热重载 → 刷新模型选择器
-```
-
-设计原则：
-
-- **读写分离**：列表接口返回只读元数据与脱敏快照；写接口只接受 provider 子树补丁。
-- **配置与凭据分离**：JSONC 只保存 provider/model；Key 只存凭据。
-- **服务端解析原始 JSONC**：V1/V2、全局/项目级由服务端判定，客户端不猜测路径。
-- **运行时选择器是唯一入口**：不触碰设置页。
-
-## 4. 服务端设计
-
-### 4.1 列表接口
-
-`GET /api/experimental/config/providers?location=...`
-
-```ts
-{
-  providers: Array<{
-    id: string
-    scope: "global" | "project" | "managed"
-    shape: "v2" | "v1"
-    editable: boolean                 // scope === "global" && shape === "v2"
-    key: {
-      configured: boolean
-      sources: Array<"credential" | "env" | "config">
-      credentials: Array<{ id: string; label: string; active: boolean }>  // 仅元数据，无 secret
-    }
-    provider: ConfigProvider.Info     // 脱敏：移除 settings.apiKey 的值
-  }>
-}
-```
-
-实现要点：
-
-- 枚举 `Config.Service.entries()` 的本地文档；对每个文档读取原始 JSONC 文本，分别检测 `providers` 与 `provider` 键。
-- `scope`：路径在全局配置目录下 → `global`；项目目录下 → `project`；well-known/managed → `managed`。
-- `shape`：存在 `providers.<id>` → `v2`；仅存在 `provider.<id>` → `v1`；两者同时存在时以 V2 为准并记录告警。
-- `editable`：仅全局 + V2；V1、项目级、托管一律 `false`。
-- `key.sources`：
-  - `credential`：`Credential.Service.list(id)` 中存在 key/oauth 凭据；
-  - `env`：`provider.env` 列出的环境变量在服务端进程中存在；
-  - `config`：原始 provider 的 `settings.apiKey` 非空。
-- `key.credentials` 返回该 provider 的凭据元数据（`id/label/active`），供用户主动删除；**绝不返回值**。
-- 返回的 `provider` 必须移除 `settings.apiKey` 的实际值（保留字段存在性），避免明文泄露；`headers` 中疑似鉴权的值也不回显（或整体脱敏）。
-
-### 4.2 保存接口
-
-`PUT /api/experimental/config/providers/:providerID`
-
-```ts
-{
-  patch: Schema.Json               // RFC 7386 JSON Merge Patch，仅作用于 providers.<id>
-  apiKey?: string                  // 写操作：设置/替换凭据；不回显
-}
-```
-
-响应：
-
-```ts
-{
-  saved: true
-  key: "saved" | "skipped" | "failed" | "config-readonly"
-  reloaded: boolean
-}
-```
-
-语义：
-
-- `patch` 为 JSON Merge Patch：对象递归合并；`null` 删除字段；`patch: null` 不允许（一期不支持删除 provider）。
-- 凭据删除不并入保存请求：客户端通过现有 `DELETE /api/credential/:credentialID` 主动删除（见 4.4）。
-- 模型删除：`patch.models["<id>"] = null`。
-- 服务端先用 `ConfigProvider.Info` 校验合并结果；非法字段/类型 → 400。
-- Provider ID：创建后不可改；写接口不接受 ID 变更。
-
-### 4.3 模型发现接口
-
-`POST /api/experimental/config/providers/discover`
-
-```ts
-{
-  baseURL: string
-  apiKey?: string                 // 显式传入时优先（只用于本次请求，不落盘）
-  providerID?: string             // 用于复用已保存凭据/配置 Key
-  engine?: "llamacpp" | "vllm" | "sglang" | "lmstudio" | "ollama" | "openai-compatible"
-}
-```
-
-响应：
-
-```ts
-{
-  models: Array<{
-    id: string
-    name?: string
-    context?: number
-    output?: number
-    input?: Array<"text" | "image" | "audio" | "video" | "pdf">
-    tools?: boolean
-  }>
-}
-```
-
-实现要点：
-
-- 所有引擎统一按 OpenAI Compatible 访问；发现路径：
-  - 通用：`{baseURL}/models`（`baseURL` 约定以 `/v1` 结尾）；
-  - 回退：`ollama` 可尝试 `/api/tags`；`lmstudio` 可尝试 `/api/v1/models`；
-  - `llamacpp` / `vllm` / `sglang`：`/v1/models`。
-- 解析兼容 `{ data: [...] }`、`{ models: [...] }` 与裸数组；字段尽力解析：
-  - `max_model_len`、`context_length`、`max_context_length`、`max_input_tokens` → context；
-  - `max_output_tokens`、`max_tokens` → output；
-  - `supported_parameters` 含 `tools` → tools=true；
-  - `architecture.input_modalities` / `input_modalities` → input。
-- 鉴权优先级：显式 `apiKey` > 已保存凭据 > `settings.apiKey` > `provider.env`。
-- 安全与限制：
-  - 仅允许 `http/https`；拒绝 URL 内嵌凭据；
-  - 拒绝 link-local / 元数据地址（如 `169.254.169.254`）；允许 loopback 与私网（本地推理必需）；
-  - 超时 5s；响应上限 2MB；重定向最多 2 次且逐跳校验；错误分类为 401/403/连接失败/超时。
-- 不返回任何 Key；不写日志明文。
-
-### 4.4 API Key 设计
-
-**存储**
-
-- 使用 `Credential`：`integrationID = provider.id`，`value = { type: "key", key }`，`activate: true`。
-- Key 不写入 JSONC；`settings.apiKey` 若已存在则原样保留，表单只读展示“由配置文件提供”。
-- 读取接口返回 `key.sources` 与凭据元数据（`id/label/active`），不返回任何 secret。
-
-**保存时序**
-
-1. 校验 patch 与 ID。
-2. 写入 JSONC（provider/model）并触发重载。
-3. 若提供 `apiKey`：
-   - 等待 integration 注册（`ConfigProviderPlugin` 会为配置 provider 注册 key 方法；有界轮询 ≤3s）；
-   - `Credential.Service.create({ integrationID, value: key, activate: true })`；
-   - 替换场景：新凭据激活后，旧凭据保留为 inactive，由用户主动删除。
-4. 返回 `key: saved/skipped/failed`；Key 失败不回滚配置，UI 提示可重试。
-
-**用户主动删除**
-
-- 表单展示 `key.credentials`：active 凭据与 inactive 历史凭据（仅 label/active）。
-- “Clear key”：删除 active key 凭据（`DELETE /api/credential/:credentialID`），provider 保留。
-- “Remove inactive”：逐个删除 inactive 凭据；删除后刷新 `key.credentials`。
-- 删除仅限 `credential` 来源；`settings.apiKey` 与 env 来源不提供 UI 删除。
-- 不提供 provider 删除。
-
-**只读与冲突**
-
-- 已存在 `settings.apiKey` 时，`apiKey` 返回 409 `config-key`；UI 禁用 Key 编辑。
-- `integration.connect` 策略拒绝时返回 400/403。
-- 凭据创建失败但配置已写入：`200` + `key: "failed"`（部分成功），UI 需明确提示。
-
-### 4.5 配置写入规则
-
-**目标文件解析**
-
-1. 全局文档中已定义 `providers.<id>` → 写该文档（最高优先级定义处）。
-2. 仅存在 `provider.<id>`（V1）→ `409 legacy-provider`。
-3. 仅存在于项目/托管文档 → `409 project-scope`。
-4. 新 ID → 写全局写入目标：最后一个已存在的全局 `opencode.json`/`opencode.jsonc`，否则创建 `opencode.jsonc`。
-5. ID 与内置 provider（models.dev / 本地发现）冲突且不在配置中 → `409 built-in-provider`。
-
-**JSONC 编辑算法**
-
-- 读取目标文件原始文本，`jsonc-parser` 解析原始 provider 对象。
-- 应用 Merge Patch 得到目标对象。
-- 递归 diff 原始对象与目标对象，生成叶子级 `modify` 编辑：
-  - 只修改变化/新增/删除的路径；
-  - 未触碰的注释、空行、未知字段保持不变；
-  - 被删除的叶子所在注释会随叶子移除（不可避免）。
-- `applyEdits` + `writeWithDirs` + `requestReload`；沿用 `updateLock` 串行化。
-- 编辑时保留：
-  - provider 级 `headers`、`body`、`compatibility`、`env`、未知 `settings` 键；
-  - 模型级 `cost`、`variants`、`compatibility`、`settings`、未知字段；
-  - 已有 `settings.apiKey`（除非用户明确迁移，一期不支持）。
-
-### 4.6 协议与生成
-
-- 两个端点均为 experimental：
-  - `/api/experimental/config/providers`（GET）
-  - `/api/experimental/config/providers/:providerID`（PUT）
-  - `/api/experimental/config/providers/discover`（POST）
-- 标识符：`experimental.config.providers.list` / `.update` / `.discover`；满足 `packages/protocol/test/experimental-identifiers.test.ts`。
-- 修改 `packages/protocol` 后，按仓库规范在 `packages/client` 执行 `bun run generate`，不手改生成文件。
-- 不修改 `Config.Patch` / `PATCH /api/experimental/config`，避免影响现有 `config.update` 语义。
-
-## 5. 桌面端设计
-
-### 5.1 入口
-
-| 位置 | 文件 | 交互 |
-|---|---|---|
-| 桌面搜索框 trailing | `select-dialog.tsx` | 新增 Custom Provider 图标按钮（与现有 plus/sliders 并列） |
-| 桌面 provider 分组 header | `select-dialog.tsx` | 可编辑自定义 provider 显示铅笔按钮 |
-| 移动端抽屉操作区 | `select-dialog.tsx` | 新增 “Add custom provider” |
-| 移动端 provider header | `ProviderModelSections` 调用处 | 使用已有 `action` 插槽渲染编辑按钮 |
-| 无 provider 空态 | `providers/models/unpaid.tsx` | 增加同一入口（P1.5） |
-
-### 5.2 表单
-
-新建/编辑共用 `DialogCustomProvider`：
-
-| 字段 | 说明 |
-|---|---|
-| Inference Engine | `llama.cpp` / `vLLM` / `SGLang` / `LM Studio` / `Ollama` / `OpenAI Compatible`；写入 `settings.engine`（非官方 hint，编辑时回填），驱动默认 URL、徽标、发现回退 |
-| Provider ID | slug；创建后只读；不得与内置 provider 冲突 |
-| 显示名称 | 可选，默认同 ID |
-| Base URL | 必填；http/https；默认按引擎填充（见附录）；提示需包含 `/v1` |
-| API Key | 密码输入；支持设置/替换；已配置显示占位；active/inactive 凭据可主动删除 |
-| 模型列表 | 表格；至少 1 个；行内编辑/删除；“Fetch models” 导入 |
-| 模型 ID | 必填；服务器真实模型名；作为 OpenCode 模型 key |
-| 显示名称 | 可选，默认模型 ID |
-| Context / Output | 可选正整数；output > context 警告 |
-| Tools | 开关，默认关闭（发现结果明确支持时自动打开） |
-| 输入类型 | 默认 text；可选 image |
-
-**发现交互**
-
-1. 点击 “Fetch models” → `POST discover`（使用当前 baseURL/Key；已保存则复用凭据）。
-2. 展示可勾选列表（id、context、tools 标记）。
-3. “Add selected” 合并到模型表：已存在的模型不覆盖用户已填字段；context/output 仅在空值时填充。
-4. 失败：401/403/连接失败/超时分别提示；保留手动录入。
-
-**编辑/只读**
-
-- `editable=false` 的 provider 不显示铅笔；如展示只读徽标，提示 V1/项目级。
-- Provider ID 只读；不支持删除；模型条目可增删改。
-- 已有 `settings.apiKey`：Key 输入禁用，提示“由配置文件提供”；保存不修改该字段。
-
-### 5.3 刷新与错误
-
-- 保存成功：等待 `config.updated` 或轮询列表接口（≤5s）→ `data.location.provider.invalidate/sync` + `model.sync` → 关闭并 toast。
-- 保存成功但 Key 失败：保持配置生效，提示“provider 已保存，Key 未保存”，提供重试。
-- 保存超时：提示“已保存，等待重载”，允许手动刷新。
-- 失败保留表单与输入。
-
-### 5.4 i18n 与样式
-
-- 仅新增英文源文案（`packages/app/src/runtime/i18n/en.ts`）；其他语言回退。
-- 复用现有 Dialog/TextInput/Button/List 样式；不修改 Settings 样式。
-
-## 6. 数据模型与配置示例
+# dev-my 自定义 Provider（本地模型）设计 v0.2
+
+> 状态：P0 手动管理、P1 主动发现、P2 原生元数据、显式最小文本测试与类型化高级字段编辑已在独立工作树实现；headers/body 任意值编辑保持源文件方式，完整推理能力和真实引擎兼容矩阵仍待后续推进。验证记录见第 10–14 节。
+> 日期：2026-11-05（Asia/Shanghai）
+> 原稿：`origin/dev-my-models@168ee33882`；维护基线：`origin/dev-my@ce6f5362fd`。
+> 评审工作树：`.cache/models-design-review`，临时分支 `models-design-review`。
+> 本轮核对 upstream/dev：`55276f2108`。详细发现、证据与验证范围见 [评审记录](custom-provider-review.md)。
+
+## 1. 需求与范围
+
+为运行中的模型选择器补齐自定义 OpenAI Compatible 服务的新增、编辑和模型导入能力。用户无需手写 JSONC 即可接入本机、局域网或私有网关；配置写到**当前连接的服务端**，Key 进入现有凭据存储。
+
+原方案的核心方向保留：使用官方 V2 `providers` 格式、从模型选择器进入、不改 Settings → Models / Providers、不迁移 V1、不写项目级配置、不删除或重命名 provider。
+
+用户真正需要的是“配置可保存、模型可见、请求可用、以后可编辑”的闭环。拉取列表只是辅助输入，不能证明模型能聊天、支持工具或给出了准确限额。[官方 Models 文档](https://opencode.ai/v2/docs/models/)说明模型选择取决于当前项目的 provider 可用性及启用状态；模型列表不是配置来源列表。
+
+### 1.1 一期分层
+
+| 优先级 | 范围 | 验收结果 |
+| --- | --- | --- |
+| P0 | 手动新增、编辑单一全局 V2 自定义 provider，模型增删改，Key 设置/替换，安全写入和刷新 | 不编辑文件即可保存、选用、重开后编辑；真实本地服务可完成 prompt |
+| P1 | 用户主动调用通用 `/models`，预览后勾选导入 | 无发现接口、离线或鉴权失败仍可手动保存 |
+| P2 | Ollama/LM Studio 原生元数据补充、更多高级字段、显式推理测试 | 原生元数据、最小文本测试和类型化高级字段已实现；工具/图像推理与真实引擎验收待后续推进 |
+
+P0/P1 均属于本需求，按闭环拆开交付。默认端口的 Ollama/LM Studio/vLLM 已有官方发现插件；不再为它们建立后台轮询系统。原稿将六种引擎适配、凭据历史管理与 UI 一次交付的 10–13 日估算缺少验证依据，取消硬性工期。
+
+### 1.2 明确不做
+
+- provider 删除/ID 重命名、V1 自动迁移、项目/托管/远程来源写入、TUI/CLI 表单。
+- 编辑内置 provider 或 `canonical` 继承链、切换非 OpenAI Compatible package。
+- 自动发推理请求、自动选中所有发现模型、自动清理历史凭据。
+- 新建配置存储、浏览器持久化 Key、为引擎名称修改通用推理 adapter。
+
+上游 [#33704 中已有 Proposal](https://github.com/anomalyco/opencode/issues/33704#issuecomment-6515528622)曾建议 Settings 入口及 Test connection。本 fork 选择模型选择器入口，并将推理测试留到 P2；这是范围取舍，不是上游已经批准的产品设计。
+
+## 2. 评审基线与复用边界
+
+| 已有能力 | 本案如何复用 |
+| --- | --- |
+| `ConfigProvider.Info` 的 package/settings/models、模型限额及能力覆盖 | 以 `packages/schema/src/config/provider.ts` 为字段事实来源 |
+| `Config.entries()` 返回按优先级排序的归一化文档 | 读取原始来源识别 V1/V2；不把归一化对象写回文件 |
+| `config.ts` 中 jsonc-parser、updateLock、requestReload | 提取最小共用写入边界；现有 `update()` 只支持 shell，不能声称已有 provider 写接口 |
+| `Credential.create`、`Integration.connection.active/resolve` | Key 存储和有效连接解析；不另写鉴权优先级表 |
+| `Credential.remove` 会在删除 active 后激活剩余凭据 | UI 明确显示替代凭据，不称为“Clear key” |
+| `ConfigProviderPlugin` 已给配置 provider 注册 key 方法 | 保存 Key 不依赖等待该注册；目录刷新另行观察 |
+| `select-dialog.tsx` / `provider-group.tsx` / `unpaid.tsx` | 入口和编辑按钮；另提供不依赖可见模型分组的管理列表 |
+
+关键行为在评审基线与上述 upstream/dev 中一致：配置读取/写入、配置 provider 插件、凭据删除、provider 配置 schema、模型选择器目录。没有把上游未合并 PR 当成本地能力。
+
+## 3. 用户流程
+
+### 3.1 新建
+
+1. 在模型选择器进入“Custom providers”，可新增或打开已有配置；无可用模型时也能进入。
+2. 填显示名、Provider ID、Base URL、可选 Key，手动添加至少一个聊天模型。引擎预设只辅助填 URL，不写入 JSONC。
+3. P1 可先拉取列表、勾选模型，再修正能力和限额；已填写字段不被发现结果覆盖。
+4. 保存前显示目标服务器、Global 范围、目标文件及改动摘要，Key 仅显示“将设置/替换”。
+5. 保存后分别显示配置写入、凭据保存、目录刷新状态；模型可选后提供“使用此模型”，不替用户改变现有会话的选择。
+
+远程服务端的 `127.0.0.1` 指远程机器。表单应在地址附近说明“从当前服务器访问”，而非使用客户端是否桌面来推断地址含义。
+
+### 3.2 编辑
+
+- 分组旁的 Edit 是快捷入口；独立的配置列表保留被隐藏、禁用、没有可见模型或未加载成功的 provider，避免出错后无法修复。
+- ID 创建后不可改。模型配置键与实际请求 `modelID` 分开显示，保留已有别名。
+- 不把 `disabled` 改回 false，不覆盖用户手动隐藏状态，不自动重置选中模型。
+- 删除模型条目仅删除该全局定义，不是注销或卸载服务端模型。存在其他来源/继承时一期只读，避免删除后从底层重新出现。
+- 保存失败保留表单；关闭后清掉未保存的 Key，不进 localStorage、URL、日志或遥测。
+
+### 3.3 表单字段
+
+| 字段 | 规则 |
+| --- | --- |
+| Provider ID | 新建使用易读 slug；服务端用现有 ID schema 校验。既有 ID 不重新 slugify；全配置和目录查重 |
+| Base URL | http/https，无内嵌凭据；默认提示 `/v1`，但不强制以它结尾，允许网关路径前缀 |
+| Key | 空白表示保持不变；设置/替换是独立操作；配置模板或 env 提供的 Key 只展示来源 |
+| 模型 key / modelID | 模型 key 是配置身份，modelID 是服务端请求名；含 `/` 的名字完整保留 |
+| Context / Input limit / Output limit | 三个独立可选正整数。留空表示未设置覆盖；显示运行时 fallback，不能称其为检测结果 |
+| Tools | 三态：继承/未验证、支持、不支持。新建默认不写覆盖；不把未发现误写为 false |
+| 输入模态 | 新建建议显式 text；启用 image 需用户确认或有来源的发现元数据。编辑保留未展示模态 |
+| 类型化高级字段 | P2 增加 compatibility 白名单、超时/编码、推理选项、cost 和 variants 编辑，见第 14 节；未展示字段原样保留，不提供任意 JSON 编辑器 |
+
+当前 schema 对全新未知模型的 fallback 是 tools=true、text/image 输入、text 输出和 200k/32k 限额，见 `packages/schema/src/model.ts`。UI 必须标注这些是运行时假设。若用户选“不支持工具”，说明其无法完成依赖工具的代码任务；不据此改变官方模型过滤规则。
+
+## 4. 配置来源与可编辑性
+
+### 4.1 只读元数据
+
+服务端按 `Config.entries()` 的真实优先级结合原始 JSONC 枚举来源，不用路径字符串前缀猜测。覆盖范围包括 standard global、显式文件、项目、托管、well-known、integration 和内联配置。未识别来源默认只读。
+
+返回每个 ID 的：来源列表、目标文件展示信息、shape、editable、readonlyReason、可编辑字段快照、credential 元数据、有效值与目标值是否相同。**不返回整个 `ConfigProvider.Info`**：未知 settings、headers、body、模型/variant 层可能含 secret，按字段白名单投影更可控。
+
+一期只允许编辑：
+
+- 定义位于当前服务端标准全局 `opencode.json` 或 `opencode.jsonc`；
+- 原始条目是 V2，且只有一个配置来源参与该 provider；
+- 显式 package 为 `@opencode/ai/providers/openai-compatible`，无 canonical；
+- 不是内置或自动发现 provider，即使全局文件存在同名 override；
+- 模型没有不同 package/endpoint 等本表单不能准确描述的覆盖；
+- 来源文本可解析且支持写入，管理策略允许该操作。
+
+同 ID 多文件、V1/V2 同时存在、项目/托管叠加或继承链，一期显示只读原因并引导编辑源文件。此保守范围替代原稿“只要全局 V2 就可编辑”；不实现字段级跨来源编辑器。
+
+新建只写全局候选文件中最高优先级已存在者（`opencode.jsonc` 高于 `opencode.json`），都不存在时创建 `opencode.jsonc`。已有条目写回唯一原始定义文件。客户端不提交任意磁盘路径；Location 参数仅决定预览/刷新视角，不授予项目配置写权限。
+
+### 4.2 保存与 JSONC
+
+- 使用明确的表单 patch schema，只允许 name、baseURL、模型 name/modelID/limit/受支持 capability 叶子和模型删除。新建时由服务端写固定 package。
+- 未提供字段不变；受支持叶子的 null 表示移除覆盖；模型值 null 表示删除条目；provider 根、settings/models 整体 null 及数组/scalar 根拒绝。
+- 不接受任意 `Schema.Json` 后只靠 Info 校验：它会允许修改 package、添加 settings.apiKey 或重写不属于表单的字段。
+- 从原始 JSONC 对象应用 patch。Schema 只用于校验受改字段和合并后的有效配置，不以解码对象重序列化整个 provider；既有未知字段与未动字段保留。
+- 解析错误、重复定义导致的歧义返回可定位错误，不从 `{}` 覆盖损坏文件。
+- `jsonc-parser.modify` 每次针对上一步更新后的文本，再 `applyEdits`，避免多个编辑使用旧偏移。路径传数组，模型 ID 中的点和斜线不拆分。
+- 保留未编辑区域。修改/删除节点附近的逗号、缩进、注释归属可能变化，不承诺所有非目标字节都恒等；用有代表性的 JSONC 样本验证。
+- 保存带服务端生成的 revision，锁内重读并核对；外部修改后返回 409，提示重新加载，不覆盖手工改动。
+- 所有此编辑器的写操作走同一全局写入服务并复用配置写入锁，不能在每个 Location 新建互不关联的锁。revision 针对目标原文和来源判定；不承诺对任意外部编辑器提供跨进程事务。
+- 写入采用临时文件成功落盘后替换原文件；替换失败保持原文件。现有 `writeWithDirs` 不等于“写入失败必回滚”，实施时验证实际文件系统能力。
+
+## 5. 凭据与保存结果
+
+### 5.1 凭据存储
+
+复用现有 `Credential`，`integrationID = providerID`，value 为 `{ type: "key", key }`。`Credential.create` 本身不要求 integration 注册，不需要原稿中的三秒轮询。
+
+新编排接口仍需执行与 `CredentialHandler` 一致的全局 `integration.connect` 策略检查，不能因为直接调用 Core 而绕过。政策拒绝、只读来源、ID 冲突等在写配置之前检查。
+
+现有 `settings.apiKey`（包括模板）原样保留，并使 Key 写操作只读；env、headers、模型层鉴权覆盖也显示来源和限制。不要把 env 名称存在等同于有效凭据，不要把“有任意历史凭据”当成“当前连接可用”。有效来源通过 `Integration.connection.active/resolve` 判定；源码还允许显式 headers 覆盖请求鉴权，发现与推理必须一致。
+
+新编辑器的列表和保存响应只返回元数据，不调用现有 `credential.list` 给表单取数：该旧端点明确会返回 secret。这里的“不回显”承诺限定新接口，不宣称现有所有 API 都已脱敏。
+
+### 5.2 保存时序与重试
+
+1. 预检来源、revision、字段和策略；Key 是写入操作，发现不自动保存 Key。
+2. 在配置写入锁内保存 JSONC，记录本次写入 revision。
+3. 若明确设置/替换 Key，创建并激活凭据；未提供 Key 不改凭据。无需等待 integration 注册。
+4. 请求并观察本次配置对应的重载，再刷新当前 Location 的 provider/model。优先使用服务端完成信号；兼容旧接口时才有界回读。
+5. 返回配置、Key、目录三个阶段的状态，不返回笼统 connected=true。
+
+重试使用稳定 credential ID（现有 CreateInput 支持 id）：同一保存操作重试时先核对该 ID 属于目标 integration，成功则复用，不再创建历史凭据；不同内容的明确替换使用新 ID。前端保持同一在途操作，避免重复提交。这是针对 #57997 已报告的普通重试问题，不增加持久任务队列。
+
+配置已保存但 Key 失败：保留配置，返回部分成功及错误 kind；只重试凭据阶段。目录超时显示“已保存，刷新待完成”，不重写配置/Key，不把超时当作模型不可用。若网络中断无法确认结果，先重新读取状态，不盲目重复保存。
+
+### 5.3 删除
+
+保留逐个删除 active/inactive 凭据能力，但称“删除此凭据”。删除 active 后旧凭据可能被自动启用，全部删除后也可能回退到 env 或配置 Key；UI 展示该后果并刷新有效来源。没有“全部清空”或“断开 provider”语义，不修改既有凭据核心逻辑。
+
+## 6. 模型发现（P1）
+
+### 6.1 协议与元数据
+
+仅由用户点击发起，通用路径为 `baseURL` 去除末尾斜线后追加 `/models`，保留反向代理路径前缀。例如 `https://gateway.example/team/v1` → `/team/v1/models`。不硬编码根 `/v1/models`，不支持在 baseURL query 中夹带 token。
+
+优先解析 OpenAI 形状 `{ data: [{ id: ... }] }`；扩展形状须用相应 adapter schema，不能把任意 `models` 数组当成同一种结构。返回条目包含 modelID、可选 name、`limit.context/input/output`、可选 capabilities、每个元数据的来源及 warnings。
+
+- `max_model_len` / 已确认语义的 `context_length` → context。
+- `max_input_tokens` → input；**不等同 context**。
+- `max_output_tokens` → output；模糊 `max_tokens` 不自动映射。
+- 缺失工具/模态元数据 → unknown，不伪造 false 或 true；`supported_parameters` 出现 tools 只能算端点声明，不能证明服务器已启用工具解析。
+- 过滤明确的 embedding/非聊天类型；类型未知可显示“未验证”候选，不自动全选。
+- 手工值优先，发现只填未设置字段。正整数校验；声明互相矛盾时提示，不静默 clamp。
+- 不写 releaseDate、cost 等猜测；不把运行时 200k/32k fallback 固化为用户覆盖。
+
+原稿的 Ollama/LM Studio 回退移至 P2，因为原生 API 元数据并不同构：Ollama `/api/tags` 主要提供库存；LM Studio `/api/v1/models` 使用 key/display_name/type，还区分加载实例的 context_length 与模型最大值。Ollama/LM Studio 的能力读取可参考现有插件，但不能原样把“模型理论上限”当作“当前运行上限”。参见 [Ollama tags](https://docs.ollama.com/api/tags) 和 [LM Studio models](https://lmstudio.ai/docs/developer/rest/list)。
+
+### 6.2 鉴权与请求边界
+
+发现请求采用互斥形式：
+
+- `saved`：providerID + revision；服务端从已核对配置解析 URL/连接/headers，客户端不能同时覆盖目标 URL。
+- `draft`：baseURL + 可选本次显式 Key；不附带 providerID，不自动复用存储凭据。
+
+修改 URL 后需要重新输入本次测试 Key；不能用旧 providerID 将 Key 发送到任意草稿地址。保存 URL 变更时显示有效凭据将用于新地址，由用户明确提交；已有隐藏鉴权覆盖则一期只读。
+
+沿用原稿的请求限制并简化：只允许 http/https，拒绝内嵌凭据和 link-local/云元数据目标，保留 loopback/私网用于本地服务；实现与测试涵盖解析后的 IPv4/IPv6。默认**不跟随重定向**，让用户改填最终 URL，避免设计逐跳授权转发系统。该边界适用于当前有鉴权的服务端，不作为公共无鉴权代理发布。
+
+5 秒为交互超时默认值，2 MB 响应上限，限制条目数，支持取消。错误区分 HTTP 鉴权失败、404/不支持发现、网络错误、超时、过大响应、非法 JSON/schema、空库存；保留 HTTP 状态码但不原样回显可能含 secret 的响应正文。失败不删除配置或清空已编辑模型。
+
+## 7. API 与分层
+
+新接口继续 experimental，已实施以下四个端点：
+
+| Method / Path | OpenAPI identifier | 作用 |
+| --- | --- | --- |
+| GET `/api/experimental/config/providers` | `experimental.config.providers.list` | 来源、只读理由、编辑快照、Key 元数据 |
+| PATCH `/api/experimental/config/providers/:providerID` | `experimental.config.providers.update` | typed patch + revision + 可选 Key 操作；新建/编辑明确区分 |
+| POST `/api/experimental/config/providers/discover` | `experimental.config.providers.discover` | saved/draft 互斥发现 |
+| POST `/api/experimental/config/providers/test` | `experimental.config.providers.test` | 用户显式发起的已保存连接最小文本测试 |
+
+复用 `LocationQuery` 和 `locationQueryOpenApi`，不发明 `?location=/path` 参数；具体编码由生成 SDK 处理。新端点说明包含 `Experimental: may change without compatibility guarantees.`。SDK 应生成 `client.experimental.config.providers.*`，通过生成结果核验，不能只凭前缀测试认定命名完整正确。
+
+更新响应建议表达三个阶段：`config: saved`，`credential: unchanged | saved | failed`，`catalog: ready | pending`，以及 providerID/revision/结构化错误。请求失败与部分成功明确区分。400 字段非法；409 来源/冲突/过期；策略错误遵循现有协议的 kind/状态，不随意声称现有 API 使用 403。
+
+具体 Schema 定义放 Schema 或 Protocol 的恰当边界，不从 Core 导出到 Client。Core 拥有来源读取、文本编辑、发现与编排逻辑；Server handler 负责协议映射及现有策略边界。Client 只依赖 Schema/Protocol；App 使用生成 SDK。公共 API 变化后从 `packages/client` 运行 `bun run generate`。
+
+不扩充通用 `Config.Patch` 的任意 provider 替换语义；复用底层配置写入设施。这样可保留上游 #57997 的架构思路，又满足本案编辑已有 JSONC、只读来源及最小回显的要求。
+
+## 8. 配置示例与引擎预设
+
+以下是假设用户已确认真实限制和工具支持后的示例，不是所有本地模型的默认值：
 
 ```jsonc
 {
@@ -359,20 +204,13 @@
     "local-vllm": {
       "name": "Local vLLM",
       "package": "@opencode/ai/providers/openai-compatible",
-      "settings": {
-        "baseURL": "http://127.0.0.1:8000/v1",
-        "engine": "vllm"
-      },
+      "settings": { "baseURL": "http://127.0.0.1:8000/v1" },
       "models": {
-        "Qwen/Qwen3-Coder-30B-A3B-Instruct": {
+        "coder": {
           "modelID": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-          "name": "Qwen3 Coder 30B (local)",
+          "name": "Local coder",
           "limit": { "context": 131072, "output": 16384 },
-          "capabilities": {
-            "tools": true,
-            "input": ["text"],
-            "output": ["text"]
-          }
+          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] }
         }
       }
     }
@@ -380,185 +218,140 @@
 }
 ```
 
-说明：
+引擎预设可保留 llama.cpp 8080、vLLM 8000、SGLang 30000、LM Studio 1234、Ollama 11434 的 loopback URL 提示，均可修改；这些是预设，不是探测结果。编辑旧配置无需推断引擎名，一律显示 OpenAI Compatible。
 
-- `package` 固定为 `@opencode/ai/providers/openai-compatible`（创建时写入；编辑时保留原值）。
-- Key 不在此文件中；`settings.apiKey` 仅作为兼容保留，不在 UI 编辑。
-- 引擎标识写入 `settings.engine`（非官方 hint，取值见附录），运行态剥离，不替代任何官方字段；官方 provider/model 字段原样保留。
+不新增 `settings.engine`。现有 settings 的未知字段会进入 providerOptions，不能说官方客户端自动忽略；为 UI 徽标改动 `packages/ai` 得不偿失。用户原本手写该字段的配置仍按未知字段保留，不替用户删除。若未来必须跨客户端持久化引擎身份，再独立设计 experimental schema。
 
-## 7. 代码边界
+## 9. 验证与实施顺序
 
-### 7.1 服务端（新增/修改）
+| 阶段 | 交付 | 必过验证 |
+| --- | --- | --- |
+| M0 | 本修订稿及证据审阅 | 明确一期只读范围、入口与 P0/P1 顺序；不称已批准 |
+| M1 | Core 来源/typed patch/JSONC 写入，协议与 handler | 源文件归属、无损保留、冲突与策略；生成 SDK |
+| M2 | 手动新建/编辑、Key、目录恢复入口 | 真正保存→可选→prompt→重开编辑；无 Key 的本地服务 |
+| M3 | 手动 `/models` 导入 | URL 前缀、鉴权一致性、限额语义、错误恢复 |
+| M4 | 移动端、i18n、已有设置回归和实机矩阵 | 四类状态：可见、隐藏、disabled、目录加载失败均可管理 |
 
-| 文件 | 改动 |
-|---|---|
-| `packages/protocol/src/groups/config.ts` 或新增 `groups/custom-provider.ts` | 三个 experimental 端点与 schema |
-| `packages/core/src/config.ts` / 新 `config/provider-model.ts` | 原始 JSONC 枚举、V1/V2/scope 识别、Merge Patch、叶子级写入、目标文件解析 |
-| `packages/server/src/handlers/config.ts` 或新 handler | 薄 handler；错误映射；Key 编排 |
-| `packages/schema/src/config/provider.ts` | 复用 `ConfigProvider.Info`；必要时新增 API 局部 schema |
-| `packages/ai/src/providers/openai-compatible.ts` | 在构建 provider options 前剥离 `settings.engine`，避免 hint 进入运行态请求 |
-| `packages/client` | `bun run generate` 生成 SDK/类型 |
-| `packages/core/test/config/*`、`packages/protocol/test/*` | 新增测试 |
+最低测试矩阵：
 
-### 7.2 桌面端（新增/修改）
+- JSON/JSONC 单一全局、同 ID 双全局、项目覆盖、managed、integration、V1/V2 混合、未知/非法原文、内置 ID、canonical/模型 endpoint 覆盖。
+- 多叶子同时编辑、模型 key 含 `/` 和点、未知字段/注释/模板/variants 保留、删除后不复活、revision 变化、写入失败原文不变。
+- 无 Key、stored/env/config/header 来源、设置/替换/普通重试、部分成功、删除 active 回退、策略拒绝；新响应与日志无 secret。
+- saved 发现不允许任意 URL；draft 不读取保存 Key；重定向、路径前缀、401/403/404、超时、大小、坏 JSON、空库存、未知能力、独立 input/context/output。
+- 服务端保存与当前 Location 目录刷新；不同项目/第二客户端；共享全局写入；旧服务器无接口时隐藏入口并给出版本提示。
+- 桌面/移动/空态/全部隐藏 provider；关闭表单清理临时 Key；Settings → Models / Providers 原行为不变；未知 releaseDate 可见而显式隐藏仍有效。
 
-| 文件 | 改动 |
-|---|---|
-| `packages/app/src/providers/models/custom-provider-dialog.tsx` | 新增表单 |
-| `packages/app/src/providers/models/custom-provider.ts` | 列表/保存/发现 hook、变更 patch、刷新、凭据删除 |
-| `packages/app/src/providers/models/select-dialog.tsx` | 入口与编辑动作 |
-| `packages/app/src/runtime/i18n/en.ts` | 英文文案 |
-| 测试：`custom-provider.test.ts`、组件 story/test | 表单/过滤/保存流程 |
+按仓库要求，实施测试前读取 `.opencode/skills` 中对应 unit/component/app-e2e 技能；测试从包目录运行。`bun run check` 是根目录规范检查，Protocol/HttpApi 改动后生成客户端并执行 experimental 标识符测试。
 
-### 7.3 明确不改
+手工验收只在隔离测试服务中进行；本轮不连接、重启或修改用户正在运行的背景服务/配置/凭据。
 
-- `packages/app/src/providers/models/manage.tsx`（Settings → Models）
-- `packages/app/src/providers/connect/dialog.tsx`（Settings → Providers）
-- Settings 路由、`providers/catalog/*`
-- `composer.tsx` / `composer/commands.tsx` 入口逻辑（仍打开改造后的选择器）
-- 官方自动发现插件 `packages/core/src/plugin/provider/{ollama,lmstudio,vllm}.ts`
-- TUI / CLI
+## 10. P0 实施记录
 
-## 8. 测试计划
+实现位于 `.cache/models-design-review` 的 `models-design-review` 分支，基于 `dev-my-models@168ee33882`；主工作区及 `dev-my@ce6f5362fd` 保持原值。按用户指示在该临时分支提交，不推送。
 
-**服务端**
+- 桌面付费、免费和移动模型选择器均可打开配置管理列表；手动新增、编辑全局 OpenAI Compatible provider，不依赖运行时库存。模型 key 与请求 model ID、context/input/output 分开维护，工具和图片能力允许继承。
+- 配置仅接受白名单叶子 patch，保留原有 JSONC 注释、body、variants 等字段。多来源、项目来源、内置覆盖及超出一期范围的配置只读；保留配置中的认证来源而不回传 secret。旧服务器缺少新接口时隐藏入口。
+- 全局写入锁与既有 shell writer 共享，revision 冲突返回 409，配置使用临时文件替换。Key 单独写入现有 Credential 存储，明确配置保存、凭据失败和目录 pending 状态；稳定 ID 支持幂等重试，删除 active credential 沿用既有回退语义。
+- 保存不自动切换当前模型；显式选用只提供当前可用且未隐藏的模型。新接口及默认行为位于 experimental 命名空间，客户端和 OpenAPI 均由生成脚本更新。
+- `/models` 发现导入、引擎预设、外部真实服务兼容矩阵及独立的连接检测界面留待后续阶段。
 
-- 列表：V2 全局、V1 全局、项目级、managed、无配置；Key 来源；`settings.apiKey` 脱敏。
-- 保存：新建、编辑 baseURL/名称、模型增删改、`null` 清除字段、V1/项目级/内置冲突 409、ID 不可变。
-- JSONC：注释保留、未知字段保留、目标文件解析、并发锁、非法 payload、写入失败回滚。
-- engine hint：写入/回填；运行态剥离，不进入 provider options。
-- Key：设置/替换/主动删除（active/inactive）、integration 未注册、策略拒绝、部分成功、明文不出现。
-- 发现：OpenAI 兼容响应、vLLM/llama.cpp/SGLang 字段、401/403/超时/连接失败、SSRF 拒绝、大小限制。
+验收已覆盖真实 HTTP 与文件、JSONC 保留、跨 Location 并发冲突、严格 patch、非法 URL、重复 JSON key、项目覆盖与配置认证只读、凭据轮换/回退、实际 SQLite 写入失败及重试幂等。通过本地模拟 OpenAI Compatible 端点完成实际文本生成，确认 `/nested/v1` 前缀、独立请求模型 ID 和存储的 Bearer key 被采用。
 
-**协议**
+- 新增 API 用例连续重复 10 次，共 30 次通过；配置与策略关联回归共 6 项通过。
+- experimental 标识符测试及 OpenAPI 同步检查通过；最终 `bun run check` 的 35 个任务全部通过；新增实现文件的 focused lint 为 0 warning / 0 error。
+- 构建模式 UI 用 5 个 worker、关闭 retries 连续重复 10 次，共 30 次全部通过，覆盖手动新增、编辑、凭据失败重试、原选择保留、显式选模和移动入口。
+- 额外执行的全量 `typecheck:e2e` 仍报告旧场景类型错误，包括 composer 旧 provider default fixture、timeline/review/settings 与 performance 场景；新增用例与夹具没有新增诊断。本轮未扩展到这些已有场景修复。
 
-- `bun run generate` 后类型/OpenAPI 正确；experimental 标识符测试通过。
+## 11. P1 实施记录
 
-**桌面端**
+沿用同一独立工作树与临时分支，新增用户点击触发的 `POST /api/experimental/config/providers/discover`，不引入后台发现任务。请求体为 `{ target: { mode: "saved", providerID, revision } }` 或 `{ target: { mode: "draft", baseURL, key? } }`，位置参数仍使用生成 SDK 的 `location`。两种 target 严格互斥，不能借保存的 providerID 覆盖目标地址。
 
-- 表单校验、Merge Patch 生成、发现合并、Key 状态展示、只读过滤。
-- Picker：仅 `editable` provider 显示编辑；V1/项目级不显示。
-- 保存后刷新与选中；失败保留表单；Settings 回归无变化。
+- saved 模式检查 revision、来源、全局连接政策及插件激活状态，再复用 Provider 与 Integration 的有效连接解析。支持 provider 级存储 Key、env/config Key 和显式 headers；模型/variant 专属鉴权或不支持的认证方式明确拒绝发现，继续保留手动输入。
+- draft 模式只使用本次显式输入的 Key。修改 URL 会清除表单 Key 和过期发现结果，必须重新输入；不会把已保存的 Key 或 headers 发往草稿地址。
+- 保留 URL 前缀后追加 `/models`；解析域名地址并禁止 link-local、IPv4-mapped link-local 和明确的云元数据地址，允许 loopback/私网。默认不跟随重定向；总发现超时 5 秒，响应上限 2 MiB，最多处理 1,000 条。错误返回类别和可用的 HTTP 状态码，不转发远端响应正文。
+- 解析 OpenAI `{ data: [...] }`，ID 保留斜线和点。`max_model_len`、`max_input_tokens`、`max_output_tokens` 分别作为 context/input/output 的服务器声明，携带字段来源；非法限额省略，矛盾声明提示。缺失能力保持未验证，tools 参数声明不自动开启工具支持，`max_tokens` 和未确认语义的 `context_length` 不自动映射。
+- 展示预览且默认不选中模型；只导入用户勾选项，按请求 ID 匹配已有别名，保留手填名称、限额和能力，只填空字段。导入停留在草稿，仍需单独保存。桌面和移动入口共用实现，支持取消和关闭清理。
 
-**手工矩阵**
+协议核对依据：OpenAI 的 [List models](https://developers.openai.com/api/reference/resources/models/methods/list) 只保证基础模型信息；vLLM 当前 [show_available_models 源码](https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/openai/models/serving.py) 将服务配置的 `max_model_len` 写入基础模型条目。这里将其展示为服务器声明，不将列表结果称为聊天、工具或图像能力验证。
 
-- llama.cpp / vLLM / SGLang / LM Studio / Ollama；本地与局域网；带 Key 与无 Key；重启持久化；带注释 JSONC 编辑；V1/项目级只读。
+已完成验证：真实 API 与 P0 关联回归 8 项；构建模式桌面/移动首轮回归 5 项。最终发现 API 连续重复 10 次，20 次全部通过，包含真实 5 秒超时、认证 header 非法值脱敏；构建模式 UI 用 5 个 worker、关闭 retries 重复 10 次，30 次全部通过。最终 `bun run check` 的 35 个任务全部通过，experimental 标识符测试与 OpenAPI 同步检查通过。全量 `typecheck:e2e` 剩余 13 项旧诊断，已逐项对照确认新增用例与夹具没有新增诊断。
 
-## 9. 里程碑
+P1 验证均使用临时配置、内存数据库及隔离本地端点。该阶段未连接外部实际推理服务，未修改用户运行中的配置、凭据或服务；后续原生元数据实施见第 12 节，外部引擎兼容矩阵仍未验收。
 
-| 阶段 | 内容 | 交付 |
-|---|---|---|
-| M0 | 本文档评审确认 | 设计冻结 |
-| M1 | core：JSONC 枚举/写入/只读识别 + 测试 | `feat(core): manage custom providers in config` |
-| M2 | protocol + server 三端点 + `bun run generate` | `feat(protocol): add custom provider API` |
-| M3 | app：列表/新建表单/Key/发现 | `feat(app): add custom provider editor` |
-| M4 | app：编辑现有 provider/只读/移动端 | `feat(app): edit configured custom providers` |
-| M5 | 校验/刷新/组件测试/手工矩阵 | `test(app): cover custom provider editing` |
+## 12. P2 原生元数据实施记录
 
-预估：**10–13 个开发日**（含 Key 与发现）。
+2026-11-05，沿用同一独立工作树和 `models-design-review` 分支。此次仅推进 Ollama、LM Studio 原生元数据及对应测试；高级字段和显式推理测试未纳入本次实现。主工作区及 `dev-my` 保持原值；该阶段修改按用户指示在临时分支提交，不推送。
 
-## 10. 风险与待确认
+发现请求在原有 `target` 外新增可选 `api: "openai" | "ollama" | "lmstudio"`，省略时仍使用通用 `/models`。Ollama 的可选 `metadata` 接受 1–20 个选中模型 ID；其他 API 不接受该参数。API 类型只控制本次发现，不写入配置，不新增 `settings.engine`，也不改变既有内置插件的发现行为。
 
-| 风险/决策 | 说明 | 建议 |
-|---|---|---|
-| 引擎标识存放 | `settings.engine` 为非官方 hint，官方客户端会忽略；上游 schema 变更时需保持兼容 | 运行态剥离，不进入 provider options；官方字段不动；上游同步时保留映射 |
-| Key 替换遗留旧凭据 | `Credential.create` 新凭据激活，旧凭据保留为 inactive | 表单展示 active/inactive 并提供用户主动删除；删除不影响 provider |
-| 配置已含 `settings.apiKey` | 与凭据来源冲突 | 一期只读并禁止 UI 修改；避免静默覆盖 |
-| 注释保留粒度 | 删除字段会带走该行注释 | 叶子级 diff；测试锁定；文档说明 |
-| 项目级只读 | 用户可能期望编辑项目配置 | 一期只读并提示；二期再评估 |
-| 发现 SSRF | 服务端访问用户输入 URL | 仅 http/https、拒绝 link-local、允许私网、超时/大小限制、重定向逐跳校验 |
-| 自动发现重复 | 同端口 Ollama/LM Studio/vLLM 已有内置 provider | 表单提示可能重复；不阻止 |
-| 无删除/ID 不可变 | 误建 provider 难以清理 | 表单创建前确认 ID；二期再评估删除/重命名 |
-| 刷新时序 | provider 重载异步 | 有界轮询 + 事件；超时提示 |
+- 原生 API 复用当前 saved/draft 的地址和鉴权边界，只移除 baseURL 路径末尾的一个 `/v1` 后追加原生路径，保留代理前缀；不接受额外目标地址。沿用 DNS/地址限制、不跟随重定向和整体 5 秒超时。所有子请求共用 2 MiB 响应预算，候选最多 1,000 条，Ollama 详情并发最多 4 个。
+- Ollama 首次只调用 `/api/tags` 展示库存，不自动逐模型读取。用户勾选后显式读取 `/api/ps` 和选中模型的 `/api/show`；服务端先刷新库存确认 ID，不读取未选模型。非聊天能力模型在能力明确后过滤；旧版本缺失能力声明时保持未知，不能当作 `false`。可选详情或运行状态接口失败时保留库存并显示未知/警告；鉴权、重定向、超限及整体超时仍返回明确错误。
+- Ollama 仅将 `/api/ps` 中唯一匹配的运行实例 `context_length` 作为当前 context。`model_info` 只按 `general.architecture` 读取对应架构的 `context_length`，作为单独的 `maxContext` 展示；不会用其他架构字段、理论上限或 `parameters` 中的 `num_ctx` 填充当前 context。未加载或实例上下文有歧义时保持未知。
+- LM Studio 使用 `GET /api/v1/models`，只保留 `type: "llm"`。每个加载实例以其原始 `loaded_instances[].id` 和独立的 `config.context_length` 成为候选，不合并不同实例的上下文。未加载模型使用 `key`，当前 context 留空；`max_context_length` 只展示为模型理论上限，不导入为运行限额。缺失、非法或非正限额保持未知，工具/图像字段只采用原生 API 的明确布尔声明。
+- 桌面和移动端共用发现 API 选择、预览及勾选导入。原生能力仅补齐“继承”字段，context 仅补齐空字段，保留手填名称、限额和明确能力值；`maxContext`、加载状态及 API 选择不写入 provider。取消或读取超时保留库存、选择和表单草稿；切换另一个 provider 后重置发现 API。
 
-## 附录 A：引擎默认值与发现路径
+字段含义依据官方文档核对：[Ollama tags](https://docs.ollama.com/api/tags)、[show model details](https://docs.ollama.com/api-reference/show-model-details)、[running models](https://docs.ollama.com/api/ps) 及 [context length](https://docs.ollama.com/context-length)；[LM Studio models](https://lmstudio.ai/docs/developer/rest/list)、[load](https://lmstudio.ai/docs/developer/rest/load) 及 [OpenAI-compatible models](https://lmstudio.ai/docs/developer/openai-compat/models)。能力字段展示为服务声明，不表示已通过聊天、工具调用或图像推理验证。
 
-| Engine | 默认 Base URL 提示 | 发现路径（优先 → 回退） |
-|---|---|---|
-| llama.cpp | `http://127.0.0.1:8080/v1` | `/v1/models` |
-| vLLM | `http://127.0.0.1:8000/v1` | `/v1/models` |
-| SGLang | `http://127.0.0.1:30000/v1` | `/v1/models` |
-| LM Studio | `http://127.0.0.1:1234/v1` | `/v1/models` → `/api/v1/models` |
-| Ollama | `http://127.0.0.1:11434/v1` | `/v1/models` → `/api/tags` |
-| OpenAI Compatible | 空 | `/v1/models` |
+已完成验证：
 
-配置中的 engine 取值：`llamacpp` / `vllm` / `sglang` / `lmstudio` / `ollama` / `openai-compatible`；缺省按 `openai-compatible` 处理。
+- 原生 API 与 P0/P1、配置和策略联合回归 11 项通过；原生 API 用例重复 10 轮，30 次通过，含真实 HTTP、5 秒超时、累计响应上限、路径前缀、鉴权、未知字段、实例隔离与理论上限不回填。
+- 构建模式桌面/移动关联回归首轮 9 项通过；3 项原生交互用 5 个 worker、关闭 retries 重复 10 轮，30 次全部通过，覆盖取消、超时重试、手填值保留、API 重置及移动导入。
+- `bun run check` 的 35 个任务全部通过；本次实现与测试的 focused lint 为 0 warning / 0 error。客户端和 OpenAPI 已按脚本生成，experimental 标识符与生成一致性检查通过。
+- 全量 `typecheck:e2e` 仍有 13 项已有诊断，新增用例与夹具未新增诊断；没有扩展到已有 performance、timeline、review、settings 等场景修复。
 
-说明：Ollama / LM Studio / vLLM 默认端口已有官方自动发现；上述默认值用于非默认端口或远程主机的 custom provider。
+该原生元数据阶段使用隔离本地 HTTP 端点、临时配置及测试数据库，未连接实际安装的 Ollama/LM Studio，未调用加载或推理 API，也未修改用户运行中的服务、配置或凭据。真实引擎版本兼容矩阵和推理验收仍需后续完成。
 
-## 附录 B：接口示例
+## 13. P2 显式最小文本测试实施记录
 
-**列表**
+原有 P0/P1 和原生元数据改动已按用户指示提交为 `0cde0f3c49`（`feat(app): manage custom providers and import native model metadata`），仅在独立工作树的 `models-design-review` 分支，不推送、不改动 `dev-my`。本节记录此后的增量实现。
 
-```http
-GET /api/experimental/config/providers?location=%2Fworkspace%2Fproject
-```
+每个已保存模型提供“Test text response”。新增、修改地址、Key 或请求模型 ID 后需先保存，避免测试结果与待保存连接混淆。测试从当前连接的服务端发起，复用已保存 provider 的 revision、来源、连接策略、有效 Key 与显式 headers；不允许为该请求替换 URL，也不接受 draft target、用户自定义 prompt 或任意生成参数。
 
-```json
-{
-  "providers": [
-    {
-      "id": "local-vllm",
-      "scope": "global",
-      "shape": "v2",
-      "editable": true,
-      "key": { "configured": true, "sources": ["credential"], "credentials": [] },
-      "provider": {
-        "name": "Local vLLM",
-        "package": "@opencode/ai/providers/openai-compatible",
-        "settings": { "baseURL": "http://127.0.0.1:8000/v1" },
-        "models": {}
-      }
-    }
-  ]
-}
-```
+- 请求体为 `{ target: { mode: "saved", providerID, revision }, modelID }`。追加 `/chat/completions` 时保留 baseURL 前缀，发送固定短提示词，`max_tokens: 32`、`stream: false`。没有自动重试，也不会因发现、导入、保存或打开编辑器而自动发出请求。
+- 界面明确告知可能加载模型或产生费用。整体期限为 30 秒，响应上限 2 MiB；沿用地址限制、不跟随重定向及远端错误正文脱敏。取消会中断客户端请求及等待；不承诺远端已经开始的加载或生成立即停止。
+- 只有收到首个 choice 的非空文本才返回成功；空列表、空白文本和仅有 reasoning 内容均不算成功。响应仅包含结果类别和可用的 HTTP 状态码，不回传模型生成文本、reasoning、远端原始错误或其他响应字段。
+- 成功表示该地址、凭据和模型 ID 能完成本次最小文本请求，不验证 tools、image、context/input/output 限额、custom body/settings、compatibility 或 variants。固定预算下未返回可见文本的 reasoning 模型需在正常 Session 中继续验证，不自动加大预算或改写配置。
+- 修改表单、切换 provider、保存、删除凭据或关闭界面会清除旧结果并取消在途测试。取消和失败保留草稿；成功不创建 Session、不改变当前选模，也不持久化“已验证”能力标记。
 
-**保存**
+请求兼容性参考 [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility) 与 [LM Studio Chat Completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions)。此功能采用最小兼容请求，不替代实际任务或完整配置的推理验收。
 
-```http
-PUT /api/experimental/config/providers/local-vllm
-```
+验证覆盖真实隔离 HTTP/配置/凭据存储、无 Session 副作用、路径与请求模型 ID、策略拒绝、过期 revision、严格 payload、401/404/429、重定向、响应超限、非法/无文本响应及错误脱敏。整体 30 秒超时使用 TestClock 验证，避免每轮实际等待；界面覆盖显式发起、取消、超时重试、修改后失效及原选模保留。
 
-```json
-{
-  "patch": {
-    "name": "Local vLLM",
-    "settings": { "baseURL": "http://127.0.0.1:8001/v1", "engine": "vllm" },
-    "models": {
-      "Qwen/Qwen3-Coder-30B-A3B-Instruct": {
-        "limit": { "context": 131072, "output": 16384 },
-        "capabilities": { "tools": true, "input": ["text"], "output": ["text"] }
-      },
-      "old-model": null
-    }
-  },
-  "apiKey": "sk-local"
-}
-```
+- 后端 P0/P1/P2、配置和策略联合回归 14 项通过；本轮 3 项文本测试用例重复 10 轮，30 次全部通过。
+- 构建模式桌面/移动关联回归 9 项通过；新增文本交互用例开启 fully parallel、5 个 worker、关闭 retries，重复 10 次全部通过。
+- `bun run check` 的 35 个任务全部通过；本轮服务端、协议、Schema、实现和共享夹具的 focused lint 为 0 warning / 0 error。客户端/OpenAPI 已按脚本生成，experimental 标识符及 OpenAPI 生成一致性检查通过。
+- 全量 `typecheck:e2e` 与此前逐项对照仍为同一组 13 项已有诊断，新增用例和夹具未新增诊断。
 
-**发现**
+该最小文本测试阶段只访问隔离测试端点，没有连接实际安装的 Ollama/LM Studio 或调用用户服务的推理 API。后续类型化高级字段实施见第 14 节；真实引擎版本兼容矩阵与工具/图像推理验收仍是后续范围。
 
-```http
-POST /api/experimental/config/providers/discover
-```
+## 14. P2 类型化高级字段实施记录
 
-```json
-{
-  "baseURL": "http://127.0.0.1:8000/v1",
-  "providerID": "local-vllm",
-  "engine": "vllm"
-}
-```
+2026-11-05，按用户确认的范围，先完成可类型校验的兼容选项、超时/编码、模型计价与变体编辑；headers/body 中可能含密钥的任意值继续保留，通过源文件修改。仍位于 `.cache/models-design-review` 的 `models-design-review` 分支，不改动主工作区和 `dev-my`。
 
-```json
-{
-  "models": [
-    {
-      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "context": 131072,
-      "tools": true
-    }
-  ]
-}
-```
+依据官方 [Providers](https://opencode.ai/v2/docs/providers/) 和 [Models](https://opencode.ai/v2/docs/models/) 文档核对，字段事实以本分支 `ConfigProvider.Info`、`ModelResolver`、`Provider.modelSettings` 及 OpenAI Compatible lowering 为准。编辑器只覆盖当前 OpenAI Compatible package 的以下字段，不把采样参数误写成无效的 provider options：
+
+| 层级 | 可编辑字段 |
+| --- | --- |
+| Provider | settings 的 timeout、headerTimeout、chunkTimeout、encoding、reasoningEffort、textVerbosity、parallelToolCalls；下列兼容字段 |
+| Model | encoding、reasoningEffort、textVerbosity、parallelToolCalls；下列兼容字段；cost；variants |
+| Variant | encoding、reasoningEffort、textVerbosity、parallelToolCalls；ID 创建后只读，支持删除该全局条目 |
+| Compatibility | reasoningField、maxTokensField、requireReasoning、requireFinishReason、requireAssistantAfterTool、supportsPromptCacheKey、streamUsage、cacheFormat |
+
+超时只在 Provider 层提供，单位为毫秒，支持正整数、false（关闭）和清除覆盖。模型与变体层只提供实际会被继承/应用的选项。布尔值与枚举允许恢复继承；清除单个字段发送 null，不重写整个 settings/compatibility。reasoningField 拒绝协议已保留的 role/content/refusal/tool_calls 字段。启用压缩前需确认服务端支持。
+
+计价以 USD / 百万 token 显示，支持普通价格及按 context size 分层的 input/output/cache read/cache write，明确区分零价与未设置。input/output 必须同时为非负有限数字；层级阈值是互异的正整数，最多一个无阈值的默认价。删除所有行移除该模型的 cost 覆盖。读取时将对象/数组统一成展示行；写入使用原快照的行索引 patch，更新/追加后倒序删除，避免同一请求中索引漂移。将旧单价对象转为数组时保留其未展示属性；清除单个 cache 字段保留其余字段。结构转换可能调整节点内部排版，仍不承诺所有非目标字节恒等。
+
+变体只管理该全局定义中的条目，生成或继承的变体可能继续存在。以 ID 作为 patch 身份，只修改指定 settings 叶子，保留未展示 settings、headers、body；显式删除变体会删除其整个全局条目。新 ID 不得为空、重复、使用保留的 default 或含 #。既有空/重复/保留 ID 只限制变体编辑并提示修改源文件，不阻止基础字段编辑。
+
+新只读快照仍是字段白名单投影，未知 settings、headers、body 及其中 secret 不返回浏览器。写接口拒绝 apiKey/baseURL 等绕过原有入口的高级 patch、任意 JSON、稀疏价格索引、非法价格和不支持的模型级超时。最后仍校验合并后的 `ConfigProvider.Info`，来源、revision、写入锁、凭据存储与目录刷新沿用 P0 边界。
+
+界面中的 Provider/Model 高级区默认折叠，桌面和移动端复用控件。保存后以服务端新快照重建价格/变体行身份，保留外层表单和展开状态，确保第二次编辑使用新索引。原生发现只补齐原有基础字段，不覆盖这些高级设置；最小文本测试继续明确不验证高级生成选项。
+
+已完成验证：
+
+- 后端 P0/P1/P2、配置和策略联合回归 16 项通过。新增高级字段 API 用例重复 10 轮，20 次全部通过，覆盖叶子保留、单价到分层转换、同次更新/追加/删除、清除继承、特殊模型/变体 ID、严格字段校验、过期 revision 和无 secret 快照；保存后的选项经实际隔离生成请求验证进入模型/变体请求。
+- 构建模式桌面/移动关联回归 11 项通过。两项新增高级交互用例开启 fully parallel、5 个 worker、关闭 retries 重复 10 轮，20 次全部通过，覆盖非法输入不提交、零价、空设置变体、重名校验、保存后索引更新及第二次无改动保存。
+- `bun run check` 的 35 个任务全部通过；本轮实现、Schema、服务端测试与共享夹具的 focused lint 为 0 warning / 0 error；客户端/OpenAPI 已由脚本更新，experimental 标识符与 OpenAPI 一致性检查通过。
+- 全量 `typecheck:e2e` 仍为此前同一组 13 项已有诊断，新增用例与夹具未新增诊断。
+
+额外诊断发现，含 `settings.constructor` 的端到端样本会触发现有配置链失败，本轮未扩展其兼容范围；白名单函数自身已独立确认只投影声明字段，不读取原型属性。该额外样本不计入上述端到端验收。真实 Ollama/LM Studio 引擎、工具/图像推理及跨版本兼容矩阵仍不在本次自动化验收范围。
