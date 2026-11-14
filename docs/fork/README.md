@@ -12,6 +12,7 @@
 | [维护与发布方法](maintenance.md)                    | 日常跟踪、上游同步、验证门禁、标签和发行操作        |
 | [PR 与 Issue 跟踪](upstream-prs.md)                 | 当前状态、合并策略、历史关闭项和产品设计建议        |
 | [dev-my](dev-my/README.md)                          | V2 桌面发行、Side bar、迁移补丁、配置和运行时渠道   |
+| [dev-my 与官方 dev 差异](dev-my/differences.md)     | Side bar、模型管理与桌面发行的产品、设计和实现对照 |
 | [oc-headless](oc-headless/README.md)                | V2 oc_core、Qt 适配、API 漂移、契约门禁和发行记录   |
 | [qt-headless](qt-headless/README.md)                | V1 qtoc_core、Qt 集成设计、HTTP/SSE、维护和历史记录 |
 | [来源清单](sources.md)                              | 从哪个分支、哪个提交、哪个路径整理而来              |

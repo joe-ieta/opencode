@@ -18,7 +18,7 @@
 
 | 分支                                           | 定位与跟踪源                                                           | 当前进度                                                                                                                                                                                                                  |
 | ---------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev-my](docs/fork/dev-my/README.md) | 桌面唯一维护主线，发行 OpenCode My | Windows [v2.2.5-my.5](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5) 的自动检查及下载校验通过，安装后人工验收待完成，构建源码 `02457d62e2`。Linux 发行版为 `v2.2.5-dev-my.2`。 |
+| [dev-my](docs/fork/dev-my/README.md) | 桌面唯一维护主线，发行 OpenCode My | 官方基线已同步至 V2 2.3.0；`dev-my-models` 已合入 `dev-my`。Windows 测试预发行 [v2.3.0-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.3.0-my.2) 提供自定义 Provider，安装后人工验收待完成；稳定 Latest 为 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)。 |
 | [oc-headless](docs/fork/oc-headless/README.md) | 跟随官方 `upstream/dev`，发行 V2 `oc_core`，供 Qt/C++ 或其他客户端接入 | 已同步至 V2 2.2.0；标签 `oc-headless-v2.2.0`，本地 Windows 构建、协议门禁和冒烟通过；Qt 传输与会话测试已完成，GUI 权限/表单人工验收仍待完成                                                                               |
 | [qt-headless](docs/fork/qt-headless/README.md) | 跟随官方 `upstream/v1`，维护 V1 `qtoc_core` 和 Qt 集成                 | 已同步至 V1 1.19.5；迭代标签 `qt-headless-v1.19.5.1`；Windows 构建、类型检查和服务冒烟通过，后续以 V1 修复维护为主                                                                                                        |
 
@@ -29,6 +29,7 @@
 - **桌面任务观察窗**：独立 Side bar 模式的 Running sessions 与按项目组织的 Recent sessions；最近列表默认每项目 5 条、可展开，展示分支、运行时长、最近操作和会话数量。首页与侧栏共享历史索引；关闭侧栏条目保留历史，重新打开后恢复。
 - **升级与恢复**：V1→V2 单向升级确认、迁移清理批次提交与恢复、SQLite 错误分类、Layer 依赖诊断等补丁按分支需要保留；上游未接纳或 PR 关闭不代表可以删除。
 - **自定义模型可见性**：保留未知发布日期，防止模型被错误识别为 1970 年旧模型而隐藏。此修复已随桌面 `.2` 发行，并已合入官方。
+- **模型管理界面**：模型选择器底部提供 `Custom providers` 与 `Manage models`；可新增/编辑/删除全局 OpenAI Compatible Provider，Key 进凭据存储，支持主动发现、原生元数据、最小文本测试、类型化高级字段与 JSONC 保留写入。
 - **Qt/headless 工具链**：V1 裁剪与 V2 最小差异构建分开，产物分别命名为 `qtoc_core`、`oc_core`，不互相替代。
 
 ## 上游贡献与合并策略
@@ -51,6 +52,7 @@
 - [发布环境与多架构构建](docs/fork/KB/release-environment.md)
 - [自建发布物存储](docs/fork/KB/self-hosted-release-storage.md)
 - [dev-my 桌面发行与运行时约定](docs/fork/dev-my/README.md)
+- [dev-my 与官方 dev 差异：Side bar、模型管理与桌面发行](docs/fork/dev-my/differences.md)
 - [oc-headless：V2 内核、协议门禁、Qt 适配与发行记录](docs/fork/oc-headless/README.md)
 - [qt-headless：V1 内核、Qt 集成、协议、维护与历史记录](docs/fork/qt-headless/README.md)
 - [文档来源与整理边界](docs/fork/sources.md)
