@@ -4,13 +4,13 @@
 
 跟随官方 `upstream/dev`，在本仓库 `origin/dev-my` 维护，发行完整 OpenCode My 桌面应用，并保留本仓库尚未被上游接纳的功能和修复。它不用于替代两条 Qt/headless 内核发行线。
 
-- 源码基线已同步至 `dev@ff90ed9160`，内核基于 V2 2.2.5；保留共享项目历史、独立 Side bar、升级迁移及独立桌面发行补丁。`dev-my` 是唯一维护主线，远端 `sidebar-mode` 仅冻结保留 PR 引用，旧 `sidebar-projects` 两端分支已删除。二进制与源码同步记录见 [releases.md](releases.md)。
-- 最新 Windows 测试版 [v2.2.5-my.3](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3)，构建源码 `97c429b635`；完整安装包及四个发布文件的本地、服务端和公开下载摘要均已核对。安装后的 Windows 人工验收已于 2026-11-03 由用户确认通过，详见 [发行记录](releases.md)。
-- 新包包含项目名称排序、独立固定区域、折叠未读提示、滚动和后台 Shell 汇总修复。用户确认 Windows 验收通过后，已整理同步至 [PR #60867](https://github.com/anomalyco/opencode/pull/60867) 的 `703db47378`；PR 保留 Draft，等待上游设计评审，不发送测试邀请。
-- 本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。不将历史已清理的发行入口列为当前下载，历史验收记录保留于 [发行记录](releases.md)。
-- 最新 Linux amd64/arm64 测试版：[v2.2.5-dev-my.2](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)，Ubuntu 24.04 基线，源码 `3777b783c5`；提供 AppImage/deb。全部平台统一使用本仓库 GitHub Release。两架构 CLI/目录/迁移冒烟、实际安装包与远端摘要校验通过；Linux GUI 与原生 ARM64 GUI 尚未人工验收。
+- 2026-11-14，源码基线已同步至 V2 2.3.0 的 `dev@f0089856c0`，合入 227 个上游提交，保留共享项目历史、独立 Side bar、Running、升级迁移及桌面发行补丁。`dev-my` 是桌面维护主线，远端 `sidebar-mode` 保留为 PR 来源引用。二进制与源码同步记录见 [releases.md](releases.md)。
+- 最新正式发行 [v2.2.6-my.1](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) 提供 Windows x64 NSIS 和 Linux amd64、arm64 的 AppImage 与 deb，构建源码 `231de37312`。Windows 与 Linux 本地验证均已通过。
+- 本版增加 Side bar 项目计数、固定区域下置与远程仓库提示，并合入官方会话已读菜单、侧面板恢复、Copilot Auto 和嵌入模型入口；继续复用共享项目缓存、会话索引与 Running 实现。
+- 正式发行已设为 GitHub Latest。构建和验收结果见 [发行记录](releases.md)。
+- Linux 在 Ubuntu 24.04.5 容器中构建，完整检查 34 项、两种架构各 7,676 个模型比对、CLI 迁移冒烟及四个安装包的解包检查均通过。ARM64 冒烟在 QEMU 中执行；2026-11-13 用户确认 Linux 本地验证通过。
 - macOS 暂无本 fork 发行验证；`release-my.ts` 支持 Windows x64 与 Linux x64/arm64。Linux arm64 可在 Ubuntu 24.04 x64 上通过 `qemu-user-static`、`libc6-dev-arm64-cross` 和 binfmt 交叉构建及 CLI 冒烟，正式 ARM64 GUI 验收仍需原生 arm64。完整环境准备、构建和排障见 [发布环境与多架构构建](../KB/release-environment.md)。
-- 最近正式版验证（`v2.2.3-dev-my.3`）：Windows 与 WSL Ubuntu 根检查均 35/35；Windows NSIS、ASAR/CLI 版本、7-Zip 完整性、`latest.yml` SHA512 通过；Linux x64/arm64 模型目录冒烟各 7,646 个模型，desktop CLI 冒烟均通过；两架构 ASAR/CLI、AppImage/deb 架构、deb 元数据、更新清单与 10 个资产的服务端 SHA256 均已核对。完整应用单元测试、browser 条件测试和 GUI 回归未在本轮重复运行；ARM64 GUI 尚未原生验收。详细结果见 [releases.md](releases.md)。
+- 历史正式版验证（`v2.2.3-dev-my.3`）：Windows 与 WSL Ubuntu 根检查均 35/35；Windows NSIS、ASAR/CLI 版本、7-Zip 完整性、`latest.yml` SHA512 通过；Linux x64/arm64 模型目录冒烟各 7,646 个模型，desktop CLI 冒烟均通过；两架构 ASAR/CLI、AppImage/deb 架构、deb 元数据、更新清单与 10 个资产的服务端 SHA256 均已核对。完整应用单元测试、browser 条件测试和 GUI 回归未在本轮重复运行；ARM64 GUI 尚未原生验收。详细结果见 [releases.md](releases.md)。
 
 ## 已维护的行为
 
@@ -54,7 +54,7 @@ Recent sessions 默认使用 By project 分组，已有偏好优先。按项目�
 
 | 项目                | 约定                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------- |
-| 源码分支 / 版本后缀 | `dev-my` / `<V2版本>-dev-my.<N>`                                                                  |
+| 源码分支 / 版本后缀 | `dev-my` / `<V2版本>-my.<N>`                                                                      |
 | 桌面产品名          | `OpenCode My`                                                                                     |
 | 桌面 appId          | `ai.opencode.desktop.dev-my`                                                                      |
 | 后台运行渠道        | **`dev`**，不能改成 `dev-my`                                                                      |

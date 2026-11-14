@@ -6,10 +6,89 @@
 
 | 通道         | 版本              | 平台               | 下载                                                                               |
 | ------------ | ----------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| Windows 测试 | `v2.2.5-my.3`     | Windows x64        | [GitHub 完整安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.3) |
-| Linux 测试   | `v2.2.5-dev-my.2` | Ubuntu amd64/arm64 | [GitHub](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-dev-my.2)        |
+| Windows | `v2.2.6-my.1` | Windows x64 | [NSIS 安装包](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
+| Linux | `v2.2.6-my.1` | Ubuntu amd64/arm64 | [AppImage / deb](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1) |
 
-本次 GitHub 稳定 Latest 接口返回 404，以上仅列出已核验的测试版下载。本次使用 `--latest=false`。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+`v2.2.6-my.1` 为 Windows 和 Linux 的正式发行，已设为 GitHub Latest。全部平台统一使用 GitHub 完整安装包，Gitee 已停用。需要独立下载源时可参考 [自建发布物存储](../KB/self-hosted-release-storage.md) 草案，当前尚未接入。历史源码标签不代表旧 Release 资产仍可下载。
+
+## 2026-11-14：同步官方 dev 至 2.3.0 源码
+
+- 从 `upstream/dev` 合入 `f0089856c07eded13396a0a0d05f19f1718be7b9`，相对上一基线新增 227 个提交；`origin/dev` 同步为该官方提交的镜像。
+- 保留独立 Side bar、项目计数、完整会话索引与 Running，接入上游共享会话排序、新侧栏分组和 Recent 视图；适配后台作业活动通知及子会话测试依赖。
+- 修正本地与上游隐藏会话词条重名，以及新增灰阶检查在 Windows 路径下无法匹配既有例外的问题。公共协议合并后重新运行客户端生成器。
+- 验证通过：根目录 `bun run check`（35/35 项）、App 官方 TypeScript 检查、应用单元测试 2,723 项、核心作业/活动/执行/子会话测试 94 项，以及生产 Chromium 的 Home/标签/Side bar 回归 113 项（无重试）。共享索引和侧栏排序用例重复 10 次，合计 210 项通过。浏览器回归验证了重命名缓存、关闭菜单及执行完成后的重排。
+- 额外的 `typecheck:e2e` 未通过：共 190 条诊断，包含其他回归用例的旧字段、未使用变量及 E2E 配置缺少 CSS/Vite 类型等；本轮修改的 Home/tabs 用例和 mock-server 未报类型错误。Home 性能基准 `exp_d319fa` 因测试浏览器 CDP 连接中断而未完成，不据此作性能结论。
+- 本次为源码同步，已验收的 `v2.2.6-my.1` 安装包、标签与 Latest 发行保持原样。
+
+## v2.2.6-my.1 Windows x64 与 Linux amd64/arm64 正式发行
+
+- 2026-11-10 18:45:29（Asia/Shanghai）公开为测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.6-my.1)
+- 2026-11-10，用户确认 Windows 本地验证通过；沿用同一源码标签和四个已验证资产，转为正式发行（`prerelease=false`）并设为 GitHub Latest。
+- 构建源码为 `231de37312ef7172cb6be387ea89d6a427934555`。维护分支 `dev-my` 合入官方 `dev@57719d7fd400721783a059fee78c7d33a21cd9b6`，相对上次官方基线新增 78 个提交，版本更新为 2.2.6。
+- Side bar 增加项目计数、固定项目下置及按需显示的 origin/upstream 提示。保留 my.7 的 Home/Side bar 共享项目缓存、会话索引和 Running 分支加载实现，避免引入旧贡献稿的重复逻辑。
+- 合入官方会话已读/未读菜单、侧面板关闭与恢复快捷键、GitHub Copilot Auto、OpenAI/Google/Vertex 嵌入模型入口，以及 OAuth 刷新、Claude Agent 会话、缓存预热和会话生成用量统计修复。
+- 简洁性审阅：远程提示复用现有 VCS 缓存，不增加独立轮询或持久化；Copilot Auto 复用模型解析 hook，嵌入模型复用请求执行器。新增远程信息放入 `experimental.remotes`，客户端与 OpenAPI 由生成器更新；修正带凭据和端口的 HTTPS 地址被误判为 SCP 地址的问题，提示移除凭据、查询参数和片段，并保留端口。地址回归用例已验证修复前失败、修复后通过。
+- 按本仓库明确约束保留服务端非阻塞插件加载，未采纳官方本轮临时等待插件并超时返回 503 的补丁。
+- 根检查 34/34 项、App 官方 TypeScript 检查、相关单元测试 222 项、生产 Chromium 回归 115 项及 Side bar 重点重复回归 40 项通过；浏览器测试均无重试。VCS 套件在本机默认 30 秒预算下出现真实 Git 进程超时及随后清理临时目录的 `EBUSY`，诊断运行中的远程信息用例通过，未将整套 VCS 测试记为通过。
+- Bun 1.4.4 构建，模型目录比较覆盖 7,676 个模型；CLI 服务发现、V1 升级确认与历史迁移冒烟通过。NSIS 完整性、实际 ASAR/CLI 版本、项目管理资源、固定标签更新源及清单 SHA512/大小已核验。
+- 安装包 `opencode-desktop-win-x64.exe` 为 281,699,674 字节，SHA256 为 `cadb9c9c32c8ce331e8c19d5482a9318632e7a07ec6c504096f3cbd8c4cdc9dd`。本地路径为 `dist/releases/v2.2.6-my.1/opencode-desktop-win-x64.exe`。安装包未签名，Windows 本地安装验证已由用户确认通过；初次发布仅含 Windows x64，Linux 追加记录见下。
+- Windows 初次发行时，四个 GitHub 资产的服务端大小及 SHA256 与本地一致；三份清单的完整公开下载、安装器公开下载入口、总大小和 65,536 字节文件头均核验通过。源码标签固定在上述构建提交，发行文档另行提交。
+- 原 `origin/dev@171d675ae1a233c891c13f47e68003bc99aeb3a7` 的 fork 历史已完整保存到 `origin/dev-my`，随后使用租约校验将 `origin/dev` 恢复为上述官方提交的镜像。默认分支仍为 `dev-my`。
+- 2026-11-13（Asia/Shanghai），在同一正式 Release 追加 Linux amd64/arm64 的 AppImage、deb 和两份更新清单。构建使用同一不可变源码标签及 Windows 模型快照，快照 SHA256 为 `6a14794d0dc259042e56fc52b1e974cdd091247a99c3ba23d1c9490e330ed087`。
+- Linux 环境为 Ubuntu 24.04.5 容器、Node 24.15.0、Bun 1.4.4。完整检查 34/34 项通过；两个架构各比较 7,676 个模型，并通过 CLI 服务发现、V1 升级确认和历史迁移冒烟。
+- 四个安装包均已实际解包，核验 Electron、CLI、终端组件的架构、ASAR 版本与界面资源、桌面入口、metainfo 及更新源；同架构 AppImage/deb 的 ASAR 与 CLI 相同，包内 CLI 与构建所用二进制一致。两份 Linux 更新清单的 SHA512、文件大小和目标架构匹配。
+- ARM64 AppImage 沿用静态启动器（`toolsets.appimage=1.0.3`）。ARM64 CLI 及 AppImage 解包通过 QEMU 执行。
+- 2026-11-13（Asia/Shanghai），用户确认 Linux 本地验证通过；Windows 与 Linux 的本地验收均已完成。
+- 联合 `SHA256SUMS` 覆盖全部 5 个安装包，`build.json` 记录三个构建目标。全部 10 个 GitHub 资产的大小及 SHA256 均已验证，公开清单完整下载与各安装包的 65,536 字节范围下载均匹配本地。原 Windows 安装包与 `latest.yml` 的资产 ID、大小及摘要保持一致；Release 仍为正式版及 Latest。
+
+| 安装包 | 字节 | SHA256 |
+| --- | ---: | --- |
+| `opencode-desktop-linux-x86_64.AppImage` | 328,499,886 | `886b4fa551c18ed4cb8e40560bdf542351044a74df5436db6f02ac1a4559fd04` |
+| `opencode-desktop-linux-amd64.deb` | 274,221,356 | `9719ce99d315e19ee8d777e3c256b714c5a79110bd13c60696ff17929c84f8d9` |
+| `opencode-desktop-linux-arm64.AppImage` | 306,429,237 | `3b9cebd88087adf8a86bef9daa07690ce430deaeb7cf6df847b86041b0c4ea8f` |
+| `opencode-desktop-linux-arm64.deb` | 263,897,780 | `d7052aeb250c5814d2f12d1ff7feadc7a2c0c5786c7f2d9eb40e375ca9c422ae` |
+
+## v2.2.5-my.7 Windows x64 与 Linux amd64/arm64 正式发行
+
+- 2026-11-09 17:23:21（Asia/Shanghai）公开为 Windows x64 测试预发行，`draft=false`、`prerelease=true`，设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.7)
+- 构建源码为 `5e4e2bd7033fa86e3beaf8026f25e26ec5fab21f`，已合入官方 `dev@12a661ea40`。Side bar 的项目、会话行、草稿和 Running 各有独立模块。Home 和 Side bar 共用项目操作与会话索引，项目清单与保留的会话行共用一个缓存快照。
+- Running 保留全局后台活动与子会话显示，复用 Inbox 的分支重试和时长格式化，按会话行加载信息及待处理请求。
+- 完整检查 33 项、正式 App TypeScript 检查、相关单元测试 46 项和生产 Chromium 回归 102 项通过。模型目录比较覆盖 7,645 个模型，CLI 服务发现与 V1 历史迁移冒烟通过。
+- NSIS 完整性、ASAR 和内置 CLI 版本、固定标签更新源、清单和四个远端资产摘要已核验。安装包 `opencode-desktop-win-x64.exe` 为 281,676,454 字节，SHA256 为 `9b3ea0ef4cc60199b462c8b247d41bc2ea805522c5142089529c88f13cfc5826`。安装包未签名。
+- 2026-11-09（Asia/Shanghai），用户确认 Windows x64 安装和 Side bar 项目管理手工测试均通过。
+- Windows 验收通过后，以同一不可变标签和同一模型快照在 Ubuntu 24.04 容器中构建 Linux x64、ARM64 的 AppImage 和 deb。ARM64 AppImage 使用 Electron Builder 的静态启动器（`toolsets.appimage=1.0.3`）。GitHub Release 已转为正式发行并设为 Latest。
+- Linux 完整检查 33 项通过。两种架构的 7,645 个模型目录、服务发现、V1 迁移及历史冒烟通过。已从实际安装包核验 ELF、ASAR、CLI、原生终端组件和更新源。ARM64 冒烟使用模拟环境，Linux 桌面未做人工验收。
+- 两份 Linux 更新清单和全部 10 个 GitHub 资产的大小与摘要已核对。联合 `SHA256SUMS` 覆盖 5 个安装包，`build.json` 记录三种构建目标。安装包未签名。
+
+## v2.2.5-my.6 Windows x64 测试预发行
+
+- 2026-11-09 00:36:36（Asia/Shanghai）公开为 Windows x64 测试预发行，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.6)
+- 构建源码为 `ca61e332a34fa4bd2aa1eeef9c11930817bbf3ba`，基于已同步官方 `dev@caf8d6a554ecd988767c08f1f15508849eff8728` 的 `dev-my`。用户于 2026-11-08 确认 Windows 安装后的手工测试通过，`project-management` 随后快进合入 `dev-my`。
+- 吸收 [PR #2](https://github.com/joe-ieta/opencode/pull/2) 的 Home 项目管理共享思路：Side bar 增加相同的项目菜单及添加项目入口，支持编辑、复制路径、关闭/重新打开、导入/新建会话及导出会话。Side bar 只按项目显示，栏目使用 Projects，保留草稿和运行会话；同时修复新草稿在冷加载时未及时持久化的问题。
+- 合入前完整根检查 33 项、相关单元测试 35 项、生产 Chromium Home/标签回归 102 项及重点重复回归 30 项通过；浏览器回归均无重试。
+- 合入后重新构建生产界面，6/6 Chromium 冒烟通过（三 workers、无重试），覆盖 Home/Side bar 项目共享、项目菜单与编辑、关闭/重新打开后的草稿及运行会话保留、整组收起、历史同步和旧 List 设置兼容。
+- 使用 Bun 1.4.4 构建。模型目录完整比较 7,660 个模型；单次请求遇到五秒插件激活超时后，通过已有 `--via-server` 模式复验。隔离的服务发现、V1 升级确认及迁移历史冒烟通过。
+- 实际安装包的 ASAR/CLI 版本、项目管理资源、NSIS 完整性、固定标签更新源、SHA256SUMS 和更新清单 SHA512/大小均通过校验；产物未签名。
+- 安装包位于 `dist/releases/v2.2.5-my.6/opencode-desktop-win-x64.exe`，281,873,709 字节，SHA256 为 `5bd579bd793ca7671e33e6b9f57d7aacb53ba5f5b85241aff05b3a12408223bb`。源码标签固定在构建提交，四个 GitHub 资产的服务端大小及 SHA256 与本地一致。
+- 三份清单的完整公开下载与本地一致；安装器公开下载入口、总大小及 65,536 字节文件头均已验证。稳定 Latest 接口仍返回 404，本次未改变 Latest。临时分支 `project-management` 的本地和远程引用已在确认完全合入且无开放 PR 后删除。
+
+## v2.2.5-my.5 Windows x64 测试预发行
+
+- 2026-11-06 01:27:28（Asia/Shanghai）公开为 Windows x64 测试预发行，设置 `--latest=false`。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.5)
+- 构建源码 `02457d62e2dc12674041aaf5dc6dedcea04e1291` 合入官方 `dev@1009033569e3a31bcfc1dab857c2a66db82dbdeb` 和 PR `2de04af2cd0ca555b8393ecb1411e46663d694bb`。应用标识为 `ai.opencode.desktop.dev-my`，更新源固定在本发行标签。
+- Inbox 首屏通过上游状态机等待活动快照和工作会话的权限及表单查询。超时后展示已有内容，之后的活动更新继续刷新现有界面。
+- PR 根检查 35 项、应用相关单测 22 项、客户端会话数据测试 35 项、生产 Chromium 回归 19 项通过。修复前的两次隔离对照均复现 Inbox 提前展示。发行源码根检查 35 项和生产 Chromium 回归 21 项通过。
+- Bun 1.4.4 构建，比较 7,658 个模型，通过服务发现、V1 升级确认和历史迁移冒烟。NSIS、内置 ASAR 与 CLI、固定标签更新源及 `latest.yml` 校验通过。安装器 `opencode-desktop-win-x64.exe` 为 281,105,297 字节，SHA256 为 `b9db3afbf5498c28430635ff5ed82d81e2bb27edbff0461da63d22c6ec709b5c`。四个 GitHub 资产的服务端摘要及公开下载均与本地一致。
+- 安装包未签名，Windows 安装后人工验收待完成。
+
+## v2.2.5-my.4 Windows x64 测试预发行
+
+- 2026-11-05 23:54:42（Asia/Shanghai）公开，`draft=false`、`prerelease=true`，发布时设置 `--latest=false`。提供 Windows x64 完整安装包。[GitHub Release](https://github.com/joe-ieta/opencode/releases/tag/v2.2.5-my.4)
+- 构建源码 `0eb91d7ea1b2d40326673d231c1bfb673d6713df` 合入官方 `dev@6bd47192ac97527e9fdc5e64c36fd4730aec2acd` 及 Side bar 贡献稿 `ad6923e0c30de156d951a240b511646d865d8ea2`。应用标识为 `ai.opencode.desktop.dev-my`，更新源固定在本发行标签。
+- 底部 Running 随模型执行和后台 Shell 活动刷新。活动会话在项目内置顶，结束后将重新计算的顺序保存到已有手动排序的列表。Inbox 首屏等待活动状态同步后显示提示。
+- 自动验证通过根检查 35 项、应用单元测试 2,406 项和生产 Chromium 回归 180 项。Bun 1.4.4 构建，比较 7,658 个内置模型，通过服务发现、V1 升级确认和历史迁移冒烟。独立 E2E 类型检查仍有 12 条上游基线已有的 fixture 诊断。
+- 已核对 NSIS 完整性、内置 ASAR 与 CLI 版本、更新源及 `latest.yml` 的 SHA512 和大小。安装器 `opencode-desktop-win-x64.exe` 为 281,014,299 字节，SHA256 为 `c460b738fe7d26a0aa5789e8873f7559b84051509af200446bc30028e30e9d58`。四个 GitHub 资产的服务端摘要及公开下载均与本地一致。
+- 安装包未签名，Windows 安装后人工验收待完成。
 
 ## v2.2.5-my.3 Windows x64 测试预发行
 

@@ -808,6 +808,26 @@ describe("Vcs", () => {
     ),
   )
 
+  it.live("reports configured remotes", () =>
+    withGit((directory) =>
+      Effect.gen(function* () {
+        yield* Effect.promise(async () => {
+          await fs.writeFile(path.join(directory, "file.txt"), "one\n")
+          await commitAll(directory, "initial")
+          await $`git remote add origin https://github.com/team/project.git`.cwd(directory).quiet()
+          await $`git remote add upstream git@github.com:team/project-fork.git`.cwd(directory).quiet()
+        })
+
+        const vcs = yield* Vcs.Service
+        yield* vcs.reload()
+        expect((yield* vcs.info()).experimental?.remotes?.toSorted((a, b) => a.name.localeCompare(b.name))).toEqual([
+          { name: "origin", url: "https://github.com/team/project.git" },
+          { name: "upstream", url: "git@github.com:team/project-fork.git" },
+        ])
+      }),
+    ),
+  )
+
   it.live("diffs the working copy against HEAD with patches", () =>
     withGit((directory) =>
       Effect.gen(function* () {

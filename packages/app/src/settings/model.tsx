@@ -7,6 +7,7 @@ import { setNewIcons } from "@opencode/ui/icon"
 import { timelinePresets, type TimelineCategory, type TimelineDetail } from "@opencode/session-ui/timeline/detail"
 import { persisted } from "@/runtime/persistence/storage"
 import { Persistence } from "@/runtime/persistence/schema"
+import { usePlatform } from "@/runtime/platform/platform"
 import { ScopedKey, type ServerScope } from "@/runtime/server/scope"
 
 export type Settings = typeof settingsSchema.Type
@@ -20,6 +21,8 @@ export type FollowUpBehavior = Settings["general"]["followUpBehavior"]
 export type BackgroundActivity = Settings["general"]["backgroundActivity"]
 
 export type TimelineWidth = Settings["general"]["timelineWidth"]
+
+export type SidebarOrganize = Settings["general"]["sidebarOrganize"]
 
 export type TabLayout = Settings["appearance"]["tabLayout"]
 
@@ -133,6 +136,9 @@ const generalSchema = Persistence.struct({
   foldUserMessages: Schema.Boolean,
   // The redesigned keyboard-first question dock, off until it ships.
   newQuestionUI: Schema.Boolean,
+  // The redesigned session timeline, off until it ships.
+  newTimeline: Persistence.optional(Schema.Boolean),
+  sidebarOrganize: Schema.Literals(["projects", "list", "customize", "recent"]),
   mobileTitlebarPosition: Schema.Literals(["top", "bottom"]),
   // Owned by the review plugin, which copies it out once; kept so settings rewrites cannot drop it first.
   mobileDiffWrap: Persistence.optional(Schema.Boolean),
@@ -146,7 +152,6 @@ const appearanceSchema = Persistence.struct({
   terminal: Schema.String,
   // "inbox" is experimental: the vertical layout with a server-wide session inbox in place of tabs.
   tabLayout: Schema.Literals(["horizontal", "vertical", "inbox", "sidebar"]),
-  tabGrouping: Schema.Literals(["none", "project"]),
   sidebarOpen: Persistence.optional(Schema.Boolean),
   reduceMotion: Schema.Literals(["system", "on", "off"]),
 })
@@ -300,13 +305,14 @@ export const settingsPersistence = Persistence.migrate(
 export const defaultSettings: Settings = {
   general: {
     timelineDetail: { ...timelinePresets[2].value },
-    showCustomAgents: false,
+    showCustomAgents: true,
     showTurnDiffs: false,
     backgroundActivity: "left",
     timelineWidth: "comfortable",
     newIcons: false,
     foldUserMessages: false,
     newQuestionUI: false,
+    sidebarOrganize: "list",
     mobileTitlebarPosition: "top",
     followUpBehavior: "steer",
   },
@@ -316,7 +322,6 @@ export const defaultSettings: Settings = {
     sans: "",
     terminal: "",
     tabLayout: "horizontal",
-    tabGrouping: "project",
     reduceMotion: "system",
   },
   keybinds: {},
@@ -340,11 +345,23 @@ function withFallback<T>(read: () => T | undefined, fallback: T) {
   return createMemo(() => read() ?? fallback)
 }
 
+/** Only local/dev desktop builds offer the Recent side-tab organization. */
+export function recentSessionsAvailable(platform: "web" | "desktop", channel: ImportMetaEnv["VITE_OPENCODE_CHANNEL"]) {
+  return platform === "desktop" && (channel === "local" || channel === "dev")
+}
+
 export const { use: useSettings, provider: SettingsProvider } = createSimpleContext({
   name: "Settings",
   gate: false,
   init: () => {
     const [store, setStore, , ready] = persisted({ key: "settings.v3" }, settingsPersistence, defaultSettings)
+
+    const sidebarOrganizeOptions: SidebarOrganize[] = recentSessionsAvailable(
+      usePlatform().platform,
+      import.meta.env.VITE_OPENCODE_CHANNEL,
+    )
+      ? ["list", "projects", "customize", "recent"]
+      : ["list", "projects", "customize"]
 
     const showCustomAgents = withFallback(
       () => store.general?.showCustomAgents,
@@ -429,9 +446,22 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         setFoldUserMessages(value: boolean) {
           setStore("general", "foldUserMessages", value)
         },
+        newTimeline: withFallback(() => store.general?.newTimeline, false),
+        setNewTimeline(value: boolean) {
+          setStore("general", "newTimeline", value)
+        },
         newQuestionUI: withFallback(() => store.general?.newQuestionUI, defaultSettings.general.newQuestionUI),
         setNewQuestionUI(value: boolean) {
           setStore("general", "newQuestionUI", value)
+        },
+        sidebarOrganizeOptions,
+        sidebarOrganize: createMemo(() => {
+          const value = store.general?.sidebarOrganize
+
+          return sidebarOrganizeOptions.includes(value) ? value : defaultSettings.general.sidebarOrganize
+        }),
+        setSidebarOrganize(value: SidebarOrganize) {
+          setStore("general", "sidebarOrganize", value)
         },
         mobileTitlebarPosition: withFallback(
           () => store.general?.mobileTitlebarPosition,
@@ -468,10 +498,6 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         tabLayout: withFallback(() => store.appearance?.tabLayout, defaultSettings.appearance.tabLayout),
         setTabLayout(value: TabLayout) {
           setStore("appearance", "tabLayout", value)
-        },
-        tabGrouping: withFallback(() => store.appearance?.tabGrouping, defaultSettings.appearance.tabGrouping),
-        setTabGrouping(value: Settings["appearance"]["tabGrouping"]) {
-          setStore("appearance", "tabGrouping", value)
         },
         sidebarOpen: withFallback(() => store.appearance?.sidebarOpen, true),
         setSidebarOpen(value: boolean) {

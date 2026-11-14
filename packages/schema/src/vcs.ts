@@ -9,9 +9,20 @@ export const Branch = Schema.Struct({
 }).annotate({ identifier: "Vcs.Branch" })
 export interface Branch extends Schema.Schema.Type<typeof Branch> {}
 
+export const Remote = Schema.Struct({
+  name: Schema.String,
+  url: Schema.String,
+}).annotate({ identifier: "Vcs.Remote" })
+export interface Remote extends Schema.Schema.Type<typeof Remote> {}
+
 export const Info = Schema.Struct({
   provider: optional(Schema.String),
   branch: Branch,
+  experimental: optional(
+    Schema.Struct({
+      remotes: optional(Schema.Array(Remote)),
+    }).annotate({ description: "Experimental: may change without compatibility guarantees." }),
+  ),
 }).annotate({ identifier: "Vcs.Info" })
 export interface Info extends Schema.Schema.Type<typeof Info> {}
 
